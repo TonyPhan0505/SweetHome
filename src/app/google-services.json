@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "840762170357",
+    "project_id": "sweethome-7045b",
+    "storage_bucket": "sweethome-7045b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:840762170357:android:639c0a0e961024c1589ebc",
+        "android_client_info": {
+          "package_name": "com.example.sweethome"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBJ9CwUjzk4-z5luc6sm2OK8wK0MZTUF08"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
