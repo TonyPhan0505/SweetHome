@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+    * Code for the roundedCorners style was based on code from the following source:
+    * The original post was made by Gabriele Mariotti. (2020, May 27). The post was edited. (2021, March 5). StackOverflow. https://stackoverflow.com/a/62039192.
+    * The content of the posts on StackOverflow are licensed under Creative Commons Attribution-ShareAlike.
+    -->
+    <style name="roundedCorners">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">5dp</item>
+    </style>
+</resources>
