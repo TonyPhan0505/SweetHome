@@ -3,5 +3,5 @@
     <font
         android:fontStyle="normal"
         android:fontWeight="400"
-        android:font="@font/Inika_Regular" />
+        android:font="@font/inika_regular_font" />
 </font-family>

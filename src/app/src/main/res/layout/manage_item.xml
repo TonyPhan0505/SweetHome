@@ -76,18 +76,38 @@
         </RelativeLayout>
     </LinearLayout>
 
-    <com.smarteist.autoimageslider.SliderView
-        android:id="@+id/image_slider"
+    <RelativeLayout
+        android:id="@+id/no_image_placeholder"
         android:layout_width="match_parent"
-        android:layout_height="150dp"
-        android:layout_centerInParent="true"
-        app:sliderIndicatorEnabled="true"
-        app:sliderIndicatorGravity="center_horizontal|bottom"
-        app:sliderIndicatorMargin="15dp"
-        app:sliderIndicatorOrientation="horizontal"
-        app:sliderIndicatorPadding="3dp"
-        app:sliderIndicatorRadius="2dp"
-        app:sliderIndicatorSelectedColor="#5A5A5A"
-        app:sliderIndicatorUnselectedColor="#FFF"
-        app:sliderScrollTimeInSec="1" />
+        android:layout_height="wrap_content"
+        android:visibility="invisible"
+        android:layout_marginTop="20dp">
+        <ImageView
+            android:layout_width="300dp"
+            android:layout_height="174dp"
+            android:src="@drawable/no_image_placeholder"
+            android:layout_centerHorizontal="true" />
+    </RelativeLayout>
+
+    <FrameLayout
+        android:id="@+id/image_slider_frame"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:visibility="invisible">
+        <com.smarteist.autoimageslider.SliderView
+            android:id="@+id/image_slider"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_centerInParent="true"
+            app:sliderIndicatorEnabled="true"
+            app:sliderIndicatorGravity="center_horizontal|bottom"
+            app:sliderIndicatorMargin="15dp"
+            app:sliderIndicatorOrientation="horizontal"
+            app:sliderIndicatorPadding="3dp"
+            app:sliderIndicatorRadius="2dp"
+            app:sliderIndicatorSelectedColor="#5A5A5A"
+            app:sliderIndicatorUnselectedColor="#FFF"
+            app:sliderScrollTimeInSec="1" />
+    </FrameLayout>
 </LinearLayout>

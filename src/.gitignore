@@ -1,0 +1,25 @@
+# for macs
+.DS_Store
+
+# Gradle files
+.gradle/
+build/
+
+# Local configuration file (e.g., keystore.properties)
+local.properties
+
+# Android Studio files
+.idea/
+
+# Compiled .class files
+*.class
+
+# Log files
+*.log
+
+# Android Studio .iml files
+*.iml
+
+# Android library and module .aar/.jar files
+*.aar
+*.jar
