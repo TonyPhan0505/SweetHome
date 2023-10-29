@@ -3,6 +3,6 @@
     <string name="item_name">Item Name</string>
     <string name="date_format">yyyy/MM/dd</string>
     <string name="cad_currency">CAD $</string>
-    <string name="total">Total Estimated Value:    CAD $</string>
+    <string name="total">Total Estimated Value:\t\t\t\t\t CAD $</string>
     <string name="no_adding_msg">oops no adding yet</string>
 </resources>

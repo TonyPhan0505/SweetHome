@@ -22,7 +22,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -33,7 +32,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-
 
 import java.util.ArrayList;
 
@@ -90,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
      * Adds a new item to the items collection
      * @param item
      */
-    public void addItem(Item item){
+    private void addItem(Item item){
         itemsRef.add(item) //add the item to our items collection
                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                     @Override
@@ -109,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Gets all of the items in the items collection
      * and updates the frontend to display them in the list
+     * order: oldest added items at the top
      */
     private void getAllItems(){
         itemsRef.get()
