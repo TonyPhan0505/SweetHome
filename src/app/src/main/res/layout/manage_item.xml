@@ -82,8 +82,8 @@
         android:visibility="gone"
         android:layout_marginTop="20dp">
         <ImageView
-            android:layout_width="300dp"
-            android:layout_height="174dp"
+            android:layout_width="365dp"
+            android:layout_height="211dp"
             android:src="@drawable/no_image_placeholder"
             android:layout_centerHorizontal="true" />
     </RelativeLayout>
@@ -111,11 +111,11 @@
     </FrameLayout>
 
     <LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_horizontal">
+        android:gravity="center_horizontal"
+        >
         <androidx.cardview.widget.CardView
             android:id="@+id/open_gallery_button"
             android:clickable="true"
@@ -125,7 +125,9 @@
             app:cardBackgroundColor="@color/dark_green"
             app:cardElevation="4dp"
             app:cardUseCompatPadding="true"
-            app:contentPadding="10dp">
+            app:contentPadding="10dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp">
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -163,7 +165,8 @@
             app:cardBackgroundColor="@color/light_grey"
             app:cardElevation="4dp"
             app:cardUseCompatPadding="true"
-            app:contentPadding="10dp">
+            app:contentPadding="10dp"
+            android:layout_marginTop="20dp">
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -187,5 +190,44 @@
                     android:fontFamily="@font/inika_regular"/>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tags"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        android:layout_marginStart="25dp"
+        android:layout_marginBottom="12dp"
+        android:fontFamily="@font/inika_regular"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center">
+        <com.example.sweethome.CustomAddTagsField
+            android:id="@+id/tag_input"
+            android:layout_width="365dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp"
+            android:padding="8dp"
+            android:hint="new tag..."
+            android:inputType="text"
+            android:textStyle="italic"
+            android:fontFamily="@font/inika_regular"
+            android:background="@drawable/add_tags_field_border"/>
+
+        <HorizontalScrollView
+            android:layout_width="360dp"
+            android:layout_height="wrap_content">
+            <LinearLayout
+                android:id="@+id/tags_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+            </LinearLayout>
+        </HorizontalScrollView>
     </LinearLayout>
 </LinearLayout>
