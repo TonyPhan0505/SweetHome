@@ -2,6 +2,7 @@ package com.example.sweethome;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -16,8 +17,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.appcompat.widget.AppCompatEditText;
 
+import java.util.ArrayList;
+
 public class CustomAddTagsField extends AppCompatEditText {
     private LinearLayout tags_container;
+    private ArrayList<String> addedTagNames;
 
     public CustomAddTagsField(Context context) {
         super(context);
@@ -41,7 +45,7 @@ public class CustomAddTagsField extends AppCompatEditText {
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         tags_container.setPadding(0, 16, 0, 0);
         this.setOnKeyListener((v, keyCode, event) -> {
-            if (keyCode == 62 || keyCode == KeyEvent.KEYCODE_ENTER) {
+            if (keyCode == KeyEvent.KEYCODE_ENTER) {
                 addTag(getText().toString().trim());
                 setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
                 return true;
@@ -52,7 +56,7 @@ public class CustomAddTagsField extends AppCompatEditText {
             @Override
             public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    addTag(getText().toString().trim());
+                    addTag(getText().toString().trim().replace(",", ""));
                     setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
                     Context context = textView.getContext();
                     InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -80,11 +84,18 @@ public class CustomAddTagsField extends AppCompatEditText {
 
     private void addTag(String tagName) {
         if (!tagName.isEmpty()) {
+            this.addedTagNames.add(tagName);
             setTypeface(Typeface.defaultFromStyle(Typeface.NORMAL));
             View tag_item = LayoutInflater.from(getContext()).inflate(R.layout.tag_item, null);
+            LinearLayout tag_wrapper = tag_item.findViewById(R.id.tag_wrapper);
+            ColorGenerator newColor = new ColorGenerator();
+            int tag_color = newColor.getColorCode();
+            int tag_name_color = newColor.getTextColorCode();
+            tag_wrapper.setBackgroundColor(tag_color);
             TextView tag_name_field = tag_item.findViewById(R.id.tag_name);
             ImageView remove_tag_button = tag_item.findViewById(R.id.remove_tag_button);
             tag_name_field.setText(tagName);
+            tag_name_field.setTextColor(tag_name_color);
             tags_container = ((Activity) getContext()).findViewById(R.id.tags_container);
             if (tags_container != null) {
                 tags_container.addView(tag_item);
@@ -94,5 +105,9 @@ public class CustomAddTagsField extends AppCompatEditText {
             });
             setText(null);
         }
+    }
+
+    public ArrayList<String> getAddedTagNames() {
+        return this.addedTagNames;
     }
 }

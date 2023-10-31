@@ -24,9 +24,9 @@ public class EditItemActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.manage_item);
+
         add_tags_field = findViewById(R.id.tag_input);
         tags_container = findViewById(R.id.tags_container);
-
         TextView screen_name = findViewById(R.id.screen_name);
         screen_name.setText("View / Edit Item");
 
