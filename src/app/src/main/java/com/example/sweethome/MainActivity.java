@@ -18,7 +18,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,6 +46,9 @@ public class MainActivity extends AppCompatActivity {
     private ItemsCustomAdapter itemAdapter;
     private FirebaseFirestore db;
     private CollectionReference itemsRef;
+    private Spinner sortSpinner;
+    private ArrayAdapter<String> sortAdapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +64,28 @@ public class MainActivity extends AppCompatActivity {
         itemList = findViewById(R.id.item_list);
         itemAdapter = new ItemsCustomAdapter(this, dataList);
         itemList.setAdapter(itemAdapter);
+
+        /* setup the Sort Spinner*/
+        sortSpinner = findViewById(R.id.spinner_sort_options);
+        sortAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, getResources().getStringArray(R.array.sort_options));
+        sortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sortSpinner.setAdapter(sortAdapter);
+
+        // Spinner selection listener
+        sortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                // Handle sorting based on selection
+                //TODO: sortDataList(position);
+                String selectedSortOption = parentView.getItemAtPosition(position).toString();
+                Toast.makeText(MainActivity.this, "Selected: " + selectedSortOption, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {
+                // Do nothing here
+            }
+        });
 
         /* find our add button on the frontend and set an onclicklistener for it */
         final FloatingActionButton addButton = findViewById(R.id.add_button);
