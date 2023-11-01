@@ -60,7 +60,9 @@ public class CustomAddTagsField extends AppCompatEditText {
                     setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
                     Context context = textView.getContext();
                     InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(getWindowToken(), 0);
+                    if (imm != null) {
+                        imm.hideSoftInputFromWindow(getWindowToken(), 0);
+                    }
                     return true;
                 }
                 return false;

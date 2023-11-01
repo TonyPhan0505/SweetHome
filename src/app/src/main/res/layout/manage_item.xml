@@ -217,6 +217,7 @@
                     android:gravity="center_horizontal" />
 
                 <EditText
+                    android:id="@+id/item_name_field"
                     android:layout_width="match_parent"
                     android:layout_height="45dp"
                     android:padding="10dp"
@@ -250,6 +251,7 @@
                     android:layout_marginTop="10dp"
                     android:background="@drawable/rounded_border">
                     <EditText
+                        android:id="@+id/serial_number_field"
                         android:layout_width="110dp"
                         android:layout_height="45dp"
                         android:layout_marginStart="8dp"
@@ -260,6 +262,7 @@
                         android:background="@android:color/transparent"/>
 
                     <ImageView
+                        android:id="@+id/open_sn_scanner_button"
                         android:layout_width="25dp"
                         android:layout_height="25dp"
                         android:layout_marginStart="12dp"
@@ -326,14 +329,14 @@
             android:orientation="vertical"
             android:gravity="center">
             <EditText
-                android:id="@+id/description_input"
+                android:id="@+id/description_field"
+                android:inputType="textMultiLine"
                 android:layout_width="365dp"
                 android:layout_height="100dp"
                 android:layout_marginBottom="15dp"
                 android:gravity="top"
                 android:padding="8dp"
                 android:hint="Add a description here"
-                android:inputType="text"
                 android:fontFamily="@font/inika_regular"
                 android:background="@drawable/rounded_border"/>
         </LinearLayout>
@@ -348,7 +351,7 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:paddingHorizontal="16dp">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -359,9 +362,11 @@
                     android:gravity="center_horizontal" />
 
                 <EditText
+                    android:id="@+id/make_field"
                     android:layout_width="match_parent"
                     android:layout_height="45dp"
                     android:padding="10dp"
+                    android:hint="e.g. Google"
                     android:textSize="16sp"
                     android:layout_marginTop="10dp"
                     android:inputType="textNoSuggestions"
@@ -374,7 +379,7 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:paddingHorizontal="16dp">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -391,9 +396,11 @@
                     android:layout_marginTop="10dp"
                     android:background="@drawable/rounded_border">
                     <EditText
-                        android:layout_width="110dp"
+                        android:id="@+id/model_field"
+                        android:hint="e.g. pixel 8 pro"
+                        android:layout_width="match_parent"
                         android:layout_height="45dp"
-                        android:layout_marginStart="8dp"
+                        android:paddingHorizontal="8dp"
                         android:textSize="16sp"
                         android:inputType="textNoSuggestions"
                         android:maxLines="1"
@@ -422,16 +429,16 @@
                     android:textSize="16sp"
                     android:gravity="center_horizontal" />
 
-                <EditText
-                    android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/date_field"
+                    android:text="YYYY-MM-DD"
+                    android:layout_width="160dp"
+                    android:paddingHorizontal="8dp"
                     android:layout_height="45dp"
-                    android:padding="10dp"
-                    android:hint="yyyy-mm-dd"
-                    android:textSize="16sp"
                     android:layout_marginTop="10dp"
-                    android:inputType="textNoSuggestions"
-                    android:maxLines="1"
-                    android:background="@drawable/rounded_border" />
+                    android:paddingTop="13dp"
+                    android:clickable="true"
+                    android:background="@drawable/rounded_border"/>
             </LinearLayout>
 
             <LinearLayout
@@ -456,11 +463,13 @@
                     android:layout_marginTop="10dp"
                     android:background="@drawable/rounded_border">
                     <EditText
-                        android:layout_width="110dp"
+                        android:id="@+id/value_field"
+                        android:layout_width="match_parent"
                         android:layout_height="45dp"
-                        android:layout_marginStart="8dp"
+                        android:hint="e.g. $1000"
+                        android:paddingHorizontal="8dp"
                         android:textSize="16sp"
-                        android:inputType="textNoSuggestions"
+                        android:inputType="number"
                         android:maxLines="1"
                         android:background="@android:color/transparent"/>
                 </LinearLayout>
@@ -482,14 +491,14 @@
             android:orientation="vertical"
             android:gravity="center">
             <EditText
-                android:id="@+id/comment_input"
+                android:id="@+id/comment_field"
                 android:layout_width="365dp"
                 android:layout_height="100dp"
                 android:layout_marginBottom="15dp"
                 android:gravity="top"
                 android:padding="8dp"
                 android:hint="Add a comment here"
-                android:inputType="text"
+                android:inputType="textMultiLine"
                 android:fontFamily="@font/inika_regular"
                 android:background="@drawable/rounded_border"/>
         </LinearLayout>
