@@ -1,3 +1,24 @@
 <resources>
     <string name="app_name">SweetHome</string>
+    <string name="item_name">Item Name</string>
+    <string name="date_format">yyyy/MM/dd</string>
+    <string name="cad_currency">CAD $</string>
+    <string name="total">Total Estimated Value:\t\t\t\t\t CAD $</string>
+    <string name="no_adding_msg">oops no adding yet</string>
+    <string name="item_tag">Kitchen</string>
+    <string name="search_hint">Search...</string>
+    <string name="search_icon">Search Icon</string>
+    <string-array name="sort_options">
+        <item>Newest</item>
+        <item>Oldest</item>
+        <item>Highest value</item>
+        <item>Lowest value</item>
+        <item>Make: A - Z</item>
+        <item>Make: Z - A</item>
+        <item>Description: A - Z</item>
+        <item>Description: Z - A</item>
+        <item>Tags: A - Z</item>
+        <item>Tags: Z - A</item>
+    </string-array>
+
 </resources>
