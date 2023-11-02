@@ -17,6 +17,8 @@ package com.example.sweethome;
  */
 
 /* necessary imports */
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class Item {
@@ -28,9 +30,10 @@ public class Item {
     private double estimatedValue;
     private Date purchaseDate;
     private String comment;
+    private ArrayList<URL> photos;
 
     /* constructor for this class */
-    public Item(String name, String make, String model, String serialNumber, double estimatedValue, Date purchaseDate, String comment) {
+    public Item(String name, String make, String model, String serialNumber, double estimatedValue, Date purchaseDate, String comment, ArrayList<URL> photos) {
         this.name = name;
         this.make = make;
         this.model = model;
@@ -38,6 +41,7 @@ public class Item {
         this.estimatedValue = estimatedValue;
         this.purchaseDate = purchaseDate;
         this.comment = comment;
+        this.photos = photos;
     }
 
     /* no-arg constructor for this class */
@@ -100,5 +104,18 @@ public class Item {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public ArrayList<URL> getPhotos() {
+        return photos;
+    }
+
+    public void setPhotos(ArrayList<URL> photos) {
+        this.photos = photos;
+    }
+
+    /* function to add a new image URL to the photo arraylist */
+    public void addPhotos(URL photo) {
+        this.photos.add(photo);
     }
 }
