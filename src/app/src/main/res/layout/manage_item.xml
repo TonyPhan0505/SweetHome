@@ -116,42 +116,44 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:gravity="center_horizontal"
-            >
+            android:orientation="horizontal">
+
             <androidx.cardview.widget.CardView
                 android:id="@+id/open_gallery_button"
-                android:clickable="true"
                 android:layout_width="180dp"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="10dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="10dp"
+                android:clickable="true"
                 app:cardBackgroundColor="@color/dark_green"
+                app:cardCornerRadius="10dp"
                 app:cardElevation="4dp"
                 app:cardUseCompatPadding="true"
-                app:contentPadding="10dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="10dp">
+                app:contentPadding="10dp">
+
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                    android:layout_marginStart="25dp"
                     android:gravity="center"
-                    android:layout_marginStart="25dp">
+                    android:orientation="horizontal">
+
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:src="@drawable/open_gallery_icon"
-                        android:contentDescription="gallery icon"
                         android:layout_marginEnd="8dp"
-                        app:tint="@color/white"/>
+                        android:contentDescription="gallery icon"
+                        android:src="@drawable/open_gallery_icon"
+                        app:tint="@color/white" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:fontFamily="@font/inika_regular"
                         android:text="Gallery"
                         android:textColor="@color/white"
-                        android:textSize="16sp"
-                        android:fontFamily="@font/inika_regular" />
+                        android:textSize="16sp" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -161,37 +163,39 @@
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/open_camera_button"
-                android:clickable="true"
                 android:layout_width="180dp"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="10dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="10dp"
+                android:clickable="true"
                 app:cardBackgroundColor="@color/light_grey"
+                app:cardCornerRadius="10dp"
                 app:cardElevation="4dp"
                 app:cardUseCompatPadding="true"
-                app:contentPadding="10dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="10dp">
+                app:contentPadding="10dp">
+
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                    android:layout_marginStart="25dp"
                     android:gravity="center"
-                    android:layout_marginStart="25dp">
+                    android:orientation="horizontal">
+
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:src="@drawable/open_camera_icon"
-                        android:contentDescription="camera icon"
                         android:layout_marginEnd="8dp"
-                        app:tint="@color/dark_grey"/>
+                        android:contentDescription="camera icon"
+                        android:src="@drawable/open_camera_icon"
+                        app:tint="@color/dark_grey" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:fontFamily="@font/inika_regular"
                         android:text="Camera"
                         android:textColor="@color/black"
-                        android:textSize="16sp"
-                        android:fontFamily="@font/inika_regular"/>
+                        android:textSize="16sp" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
         </LinearLayout>

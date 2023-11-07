@@ -11,6 +11,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -52,6 +53,14 @@ public class ManageItemActivity extends AppCompatActivity {
     private SliderView sliderView;
     private FrameLayout sliderViewFrame;
     private TextView screen_name;
+    private ImageView save_button;
+    private EditText item_name_field;
+    private EditText serial_number_field;
+    private CustomAddTagsField tag_input;
+    private EditText description_field;
+    private EditText make_field;
+    private EditText model_field;
+    private EditText comment_field;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +80,14 @@ public class ManageItemActivity extends AppCompatActivity {
         sliderDataArrayList = new ArrayList<>();
         Intent intent = getIntent();
         open_gallery_button = findViewById(R.id.open_gallery_button);
+        save_button = findViewById(R.id.check_icon);
+        item_name_field = findViewById(R.id.item_name_field);
+        serial_number_field = findViewById(R.id.serial_number_field);
+        tag_input = findViewById(R.id.tag_input);
+        description_field = findViewById(R.id.description_field);
+        make_field = findViewById(R.id.make_field);
+        model_field = findViewById(R.id.model_field);
+        comment_field = findViewById(R.id.comment_field);
 
         // get item's information sent from home screen.
         if (intent != null) {
@@ -169,6 +186,15 @@ public class ManageItemActivity extends AppCompatActivity {
                 pickImageFromGallery();
             }
         });
+
+        save_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isInputValid()) {
+                    // Perform actions when all input fields are valid
+                }
+            }
+        });
     }
 
     private void pickImageFromGallery() {
@@ -190,5 +216,56 @@ public class ManageItemActivity extends AppCompatActivity {
                 sliderView.setSliderAdapter(adapter);
             }
         }
+    }
+
+    private boolean isInputValid() {
+        boolean isValid = true;
+
+        if (item_name_field.getText().toString().isEmpty()) {
+            item_name_field.setError("Item name is required");
+            isValid = false;
+        }
+
+        if (serial_number_field.getText().toString().isEmpty()) {
+            serial_number_field.setError("Serial number is required");
+            isValid = false;
+        }
+
+        if (tag_input.getText().toString().isEmpty()) {
+            tag_input.setError("Tag is required");
+            isValid = false;
+        }
+
+        if (description_field.getText().toString().isEmpty()) {
+            description_field.setError("Description is required");
+            isValid = false;
+        }
+
+        if (make_field.getText().toString().isEmpty()) {
+            make_field.setError("Make is required");
+            isValid = false;
+        }
+
+        if (model_field.getText().toString().isEmpty()) {
+            model_field.setError("Model is required");
+            isValid = false;
+        }
+
+        if (date_field.getText().toString().isEmpty()) {
+            date_field.setError("Date is required");
+            isValid = false;
+        }
+
+        if (value_field.getText().toString().isEmpty()) {
+            value_field.setError("Date is required");
+            isValid = false;
+        }
+
+        if (comment_field.getText().toString().isEmpty()) {
+            comment_field.setError("Comment is required");
+            isValid = false;
+        }
+
+        return isValid;
     }
 }
