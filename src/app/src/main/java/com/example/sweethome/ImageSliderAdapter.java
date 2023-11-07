@@ -29,7 +29,7 @@ public class ImageSliderAdapter extends SliderViewAdapter<ImageSliderAdapter.Sli
     public void onBindViewHolder(SliderAdapterViewHolder viewHolder, int position) {
         ImageSliderData sliderItem = imageUrls.get(position);
         Glide.with(viewHolder.itemView)
-                .load(sliderItem.getImgUrl())
+                .load(sliderItem.getImgUri())
                 .fitCenter()
                 .into(viewHolder.imageViewBackground);
     }

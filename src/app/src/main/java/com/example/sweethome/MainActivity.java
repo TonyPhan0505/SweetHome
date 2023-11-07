@@ -19,7 +19,8 @@ public class MainActivity extends AppCompatActivity {
         editItemButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, EditItemActivity.class);
+                Intent intent = new Intent(MainActivity.this, ManageItemActivity.class);
+                intent.putExtra("screen", "View / Edit Item");
                 startActivity(intent);
             }
         });

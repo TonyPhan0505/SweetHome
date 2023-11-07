@@ -1,22 +1,19 @@
 package com.example.sweethome;
 
+import android.net.Uri;
+
 public class ImageSliderData {
-    private String imgUrl;
+    private Uri imgUri;
 
-    public ImageSliderData(String imgUrl) {
-        this.imgUrl = imgUrl;
+    public ImageSliderData(Uri imgUri) {
+        this.imgUri = imgUri;
     }
 
-    // Constructor for placeholder
-    public ImageSliderData(int imageResource) {
-        this.imgUrl = String.valueOf(imageResource);
+    public Uri getImgUri() {
+        return imgUri;
     }
 
-    public String getImgUrl() {
-        return imgUrl;
-    }
-
-    public void setImgUrl(String imgUrl) {
-        this.imgUrl = imgUrl;
+    public void setImgUri(Uri imgUri) {
+        this.imgUri = imgUri;
     }
 }
