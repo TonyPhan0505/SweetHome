@@ -15,12 +15,17 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.PopupWindow;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -48,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
     private CollectionReference itemsRef;
     private Spinner sortSpinner;
     private ArrayAdapter<String> sortAdapter;
+    private PopupWindow popupWindow;
+    private boolean isPanelShown = false; // keep track of action panel visibility
 
 
     @Override
@@ -71,6 +78,8 @@ public class MainActivity extends AppCompatActivity {
         sortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sortSpinner.setAdapter(sortAdapter);
 
+        setUpActionButtonPanel();
+
         // Spinner selection listener
         sortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -88,12 +97,14 @@ public class MainActivity extends AppCompatActivity {
         });
 
         /* find our add button on the frontend and set an onclicklistener for it */
-        final FloatingActionButton addButton = findViewById(R.id.add_button);
-        addButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast add = Toast.makeText(getApplicationContext(), R.string.no_adding_msg, Toast.LENGTH_LONG); //make a little temporary message on the bottom to tell users we aren't adding right now
-                add.show(); //show the message
+        final FloatingActionButton tagActionButton = findViewById(R.id.tag_action_button);
+        tagActionButton.setOnClickListener(view -> {
+            if (!isPanelShown) {
+                showPanel(view);
+                Toast.makeText(MainActivity.this, "Show", Toast.LENGTH_SHORT).show();
+            } else {
+                hidePanel();
+                Toast.makeText(MainActivity.this, "Hide", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -109,6 +120,34 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void hidePanel() {
+        if (popupWindow != null && popupWindow.isShowing()) {
+            isPanelShown = false;
+            Toast.makeText(MainActivity.this, "false", Toast.LENGTH_SHORT).show();
+            popupWindow.dismiss();
+        }
+    }
+
+    private void showPanel(View view) {
+        if (popupWindow != null) {
+            isPanelShown = true;
+            view.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+            int xOffset = view.getMeasuredWidth() - view.getWidth();
+//            Toast.makeText(MainActivity.this, "true", Toast.LENGTH_SHORT).show();
+            popupWindow.showAsDropDown(view, xOffset, -view.getHeight()); // TODO: Fix overlapping display
+        }
+    }
+
+    private void setUpActionButtonPanel() {
+
+        // inflate layout for panel with 3 buttons
+        @SuppressLint("InflateParams") View panelView = LayoutInflater.from(this).inflate(R.layout.action_button_panel, null);
+
+        // create PopupWindow
+        popupWindow = new PopupWindow(panelView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+        popupWindow.setOutsideTouchable(false);
     }
 
 
@@ -131,6 +170,30 @@ public class MainActivity extends AppCompatActivity {
                         Log.e("Firestore", "db write fails"); //log if we were unsuccessful in adding the new item
                     }
                 });
+    }
+
+    /**
+     * Delete item/items
+     * @param items list of item to delete
+     */
+    private void deleteItems(ArrayList<Item> items) {
+        for (Item item: items) {
+            String itemName = item.getName();
+            itemsRef.document(itemName)
+                    .delete()
+                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void unused) {
+                            Log.d("Firestore", "DocumentSnapshot successfully deleted!");
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.e("Firestore", "DocumentSnapshot deleted Failed!");
+                        }
+                    });
+        }
     }
 
     /**
