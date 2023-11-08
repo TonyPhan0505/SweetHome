@@ -41,7 +41,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-
+import com.google.firebase.firestore.Query;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements DeleteItemFragment.OnFragmentInteractionListener {
@@ -81,16 +81,16 @@ public class MainActivity extends AppCompatActivity implements DeleteItemFragmen
         sortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sortSpinner.setAdapter(sortAdapter);
 
-        setUpActionButtonPanel();
+//        setUpActionButtonPanel();
 
         // Spinner selection listener
         sortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
                 // Handle sorting based on selection
-                //TODO: sortDataList(position);
                 String selectedSortOption = parentView.getItemAtPosition(position).toString();
                 Toast.makeText(MainActivity.this, "Selected: " + selectedSortOption, Toast.LENGTH_SHORT).show();
+                getAllItems(selectedSortOption); // Sort and load data based on the selected option
             }
 
             @Override
@@ -100,14 +100,18 @@ public class MainActivity extends AppCompatActivity implements DeleteItemFragmen
         });
 
         /* find our add button on the frontend and set an onclicklistener for it */
-        final FloatingActionButton addButton = findViewById(R.id.add_button);
-        addButton.setOnClickListener(view -> {
-            if (!isPanelShown) {
+        final FloatingActionButton tagActionButton = findViewById(R.id.tag_action_button);
+        tagActionButton.setOnClickListener(view -> {
+            if (popupWindow == null) {
+                setUpActionButtonPanel();
+            }
+            if (!popupWindow.isShowing()) {
+                setUpActionButtonPanel();
                 showPanel(view);
-                Toast.makeText(MainActivity.this, "Show", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MainActivity.this, "Show", Toast.LENGTH_SHORT).show();
             } else {
                 hidePanel();
-                Toast.makeText(MainActivity.this, "Hide", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MainActivity.this, "Hide", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -136,7 +140,7 @@ public class MainActivity extends AppCompatActivity implements DeleteItemFragmen
                     Log.e("Firestore",error.toString()); //if there was any error, log it
                 }
                 if (value != null) {
-                    getAllItems(); //otherwise get all items currently in the items collection and display them in our list
+                    getAllItems("Newest"); // Initial load sorted by Newest
                 }
             }
         });
@@ -163,21 +167,24 @@ public class MainActivity extends AppCompatActivity implements DeleteItemFragmen
     }
 
     private void hidePanel() {
-        if (popupWindow != null && popupWindow.isShowing()) {
-            isPanelShown = false;
+//        if (popupWindow != null && popupWindow.isShowing()) {
+//            isPanelShown = false;
             Toast.makeText(MainActivity.this, "false", Toast.LENGTH_SHORT).show();
             popupWindow.dismiss();
-        }
+//        }
     }
 
     private void showPanel(View view) {
-        if (popupWindow != null) {
-            isPanelShown = true;
+////        if (popupWindow != null) {
+//            isPanelShown = true;
             view.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
             int xOffset = view.getMeasuredWidth() - view.getWidth();
 //            Toast.makeText(MainActivity.this, "true", Toast.LENGTH_SHORT).show();
-            popupWindow.showAsDropDown(view, xOffset, -view.getHeight()); // TODO: Fix overlapping display
-        }
+//            popupWindow.showAsDropDown(view, xOffset, -view.getHeight()); // Fix overlapping display
+                popupWindow.showAtLocation(findViewById(android.R.id.content).getRootView(), 10, 250, 720);
+//        } else {
+//            isPanelShown = false;
+//        }
     }
 
     private void setUpActionButtonPanel() {
@@ -189,6 +196,7 @@ public class MainActivity extends AppCompatActivity implements DeleteItemFragmen
         popupWindow = new PopupWindow(panelView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
         popupWindow.setOutsideTouchable(false);
     }
+
 
 
     /**
@@ -241,22 +249,64 @@ public class MainActivity extends AppCompatActivity implements DeleteItemFragmen
      * and updates the frontend to display them in the list
      * order: oldest added items at the top
      */
-    private void getAllItems(){
-        itemsRef.get()
-                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                        dataList.clear(); //clear whatever data we currently have stored in our item list
-                        for (QueryDocumentSnapshot doc : queryDocumentSnapshots){ //get everything that is stored in our db at the moment
-                            Item item = doc.toObject(Item.class); //convert the contents of each document in the items collection to an item object
-                            Log.i("Firestore", String.format("Item %s fetched", item.getName())); //log the name of the item we successfully got from the db
-                            dataList.add(item); //add the item object to our item list
-                        }
-                        itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
-                        totalEstimateValue(); //recalculate and display the total estimated value
-                    }
-                });
+    private void getAllItems(String sortBy) {
+        Query query;
+
+        switch (sortBy) {
+            case "Oldest":
+                query = itemsRef.orderBy("purchaseDate", Query.Direction.ASCENDING);
+                break;
+            case "Highest value":
+                query = itemsRef.orderBy("estimatedValue", Query.Direction.DESCENDING);
+                break;
+            case "Lowest value":
+                query = itemsRef.orderBy("estimatedValue", Query.Direction.ASCENDING);
+                break;
+            case "Make: A - Z":
+                query = itemsRef.orderBy("make", Query.Direction.ASCENDING);
+                break;
+            case "Make: Z - A":
+                query = itemsRef.orderBy("make", Query.Direction.DESCENDING);
+                break;
+            case "Description: A - Z":
+                query = itemsRef.orderBy("description", Query.Direction.ASCENDING);
+                break;
+            case "Description: Z - A":
+                query = itemsRef.orderBy("description", Query.Direction.DESCENDING);
+                break;
+            case "Tags: A - Z":
+                query = itemsRef.orderBy("tags", Query.Direction.ASCENDING);
+                break;
+            case "Tags: Z - A":
+                query = itemsRef.orderBy("tags", Query.Direction.DESCENDING);
+                break;
+            default:
+                // If none of the specified cases match, default to Newest
+                query = itemsRef.orderBy("purchaseDate", Query.Direction.DESCENDING);
+                break;
+        }
+
+        query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                dataList.clear();
+                for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                    Item item = doc.toObject(Item.class);
+                    Log.i("Firestore", String.format("Item %s fetched", item.getName()));
+                    dataList.add(item);
+                }
+                itemAdapter.notifyDataSetChanged();
+                totalEstimateValue();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e("Firestore", "Error fetching sorted data", e);
+            }
+        });
     }
+
+
 
     /**
      * Calculates the total estimated value of all the items in the items list

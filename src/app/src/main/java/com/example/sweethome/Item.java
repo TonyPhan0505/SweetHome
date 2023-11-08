@@ -24,6 +24,7 @@ import java.util.Date;
 public class Item {
     /* attributes of this class */
     private String name;
+    private String description;
     private String make;
     private String model;
     private String serialNumber;
@@ -33,15 +34,16 @@ public class Item {
     private ArrayList<URL> photos;
 
     /* constructor for this class */
-    public Item(String name, String make, String model, String serialNumber, double estimatedValue, Date purchaseDate, String comment, ArrayList<URL> photos) {
+    public Item(String name, String description, String make, String model, String serialNumber, double estimatedValue, Date purchaseDate, String comment) {
         this.name = name;
         this.make = make;
+        this.description = description;
         this.model = model;
         this.serialNumber = serialNumber;
         this.estimatedValue = estimatedValue;
         this.purchaseDate = purchaseDate;
         this.comment = comment;
-        this.photos = photos;
+        this.photos = new ArrayList<URL>(); // the photos array will be initialized as an empty array, but it can be added to and deleted from using the add and delete methods below
     }
 
     /* no-arg constructor for this class */
@@ -56,6 +58,14 @@ public class Item {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getMake() {
@@ -110,12 +120,13 @@ public class Item {
         return photos;
     }
 
-    public void setPhotos(ArrayList<URL> photos) {
-        this.photos = photos;
-    }
-
     /* function to add a new image URL to the photo arraylist */
     public void addPhotos(URL photo) {
         this.photos.add(photo);
+    }
+
+    /* function to delete an image URL from the photo arraylist */
+    public void deletePhotos(URL photo) {
+        this.photos.remove(photo);
     }
 }
