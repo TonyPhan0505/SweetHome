@@ -40,16 +40,5 @@
             android:text="@string/add_tag"
             android:textAllCaps="false"
             android:textColor="#FFFFFF" />
-
-        <Button
-            android:id="@+id/delete_panel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:backgroundTint="#F78787"
-            android:fontFamily="sans-serif-medium"
-            android:text="@string/delete"
-            android:textAllCaps="false"
-            android:textColor="#FFFFFF" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

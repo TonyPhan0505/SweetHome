@@ -99,5 +99,20 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:focusable="true">
     </com.google.android.material.floatingactionbutton.FloatingActionButton>
-
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/delete_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="3dp"
+        android:clickable="true"
+        android:foreground="@android:drawable/ic_menu_delete"
+        android:foregroundGravity="center"
+        android:foregroundTint="@color/beige"
+        android:foregroundTintMode="src_atop"
+        app:backgroundTint="@color/red"
+        app:layout_constraintBottom_toTopOf="@+id/add_button"
+        app:layout_constraintBottom_toBottomOf="@+id/item_list"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:focusable="true">
+    </com.google.android.material.floatingactionbutton.FloatingActionButton>
 </androidx.constraintlayout.widget.ConstraintLayout>
