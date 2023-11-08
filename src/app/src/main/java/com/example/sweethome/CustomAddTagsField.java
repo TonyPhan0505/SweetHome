@@ -21,7 +21,7 @@ import java.util.ArrayList;
 
 public class CustomAddTagsField extends AppCompatEditText {
     private LinearLayout tags_container;
-    private ArrayList<String> addedTagNames;
+    private ArrayList<String> addedTagNames = new ArrayList<>();
 
     public CustomAddTagsField(Context context) {
         super(context);

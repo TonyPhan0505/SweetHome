@@ -58,6 +58,7 @@ public class ManageItemActivity extends AppCompatActivity {
     private EditText serial_number_field;
     private CustomAddTagsField tag_input;
     private EditText description_field;
+
     private EditText make_field;
     private EditText model_field;
     private EditText comment_field;
@@ -231,7 +232,7 @@ public class ManageItemActivity extends AppCompatActivity {
             isValid = false;
         }
 
-        if (tag_input.getText().toString().isEmpty()) {
+        if (tags_container.getChildCount() <= 0) {
             tag_input.setError("Tag is required");
             isValid = false;
         }
