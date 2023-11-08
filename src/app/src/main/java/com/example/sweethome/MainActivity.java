@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
         sortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sortSpinner.setAdapter(sortAdapter);
 
-        setUpActionButtonPanel();
+//        setUpActionButtonPanel();
 
         // Spinner selection listener
         sortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -99,12 +99,16 @@ public class MainActivity extends AppCompatActivity {
         /* find our add button on the frontend and set an onclicklistener for it */
         final FloatingActionButton tagActionButton = findViewById(R.id.tag_action_button);
         tagActionButton.setOnClickListener(view -> {
-            if (!isPanelShown) {
+            if (popupWindow == null) {
+                setUpActionButtonPanel();
+            }
+            if (!popupWindow.isShowing()) {
+                setUpActionButtonPanel();
                 showPanel(view);
-                Toast.makeText(MainActivity.this, "Show", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MainActivity.this, "Show", Toast.LENGTH_SHORT).show();
             } else {
                 hidePanel();
-                Toast.makeText(MainActivity.this, "Hide", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MainActivity.this, "Hide", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -123,21 +127,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void hidePanel() {
-        if (popupWindow != null && popupWindow.isShowing()) {
-            isPanelShown = false;
+//        if (popupWindow != null && popupWindow.isShowing()) {
+//            isPanelShown = false;
             Toast.makeText(MainActivity.this, "false", Toast.LENGTH_SHORT).show();
             popupWindow.dismiss();
-        }
+//        }
     }
 
     private void showPanel(View view) {
-        if (popupWindow != null) {
-            isPanelShown = true;
+////        if (popupWindow != null) {
+//            isPanelShown = true;
             view.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
             int xOffset = view.getMeasuredWidth() - view.getWidth();
 //            Toast.makeText(MainActivity.this, "true", Toast.LENGTH_SHORT).show();
-            popupWindow.showAsDropDown(view, xOffset, -view.getHeight()); // TODO: Fix overlapping display
-        }
+//            popupWindow.showAsDropDown(view, xOffset, -view.getHeight()); // Fix overlapping display
+                popupWindow.showAtLocation(findViewById(android.R.id.content).getRootView(), 10, 250, 720);
+//        } else {
+//            isPanelShown = false;
+//        }
     }
 
     private void setUpActionButtonPanel() {
