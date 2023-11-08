@@ -18,12 +18,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.Spinner;
@@ -43,9 +44,11 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements DeleteItemFragment.OnFragmentInteractionListener {
     /* attributes of this class */
     private ArrayList<Item> dataList;
+    private ArrayList<Item> selectedItem;
+
     private ListView itemList;
     private TextView totalEstimateValue;
     private ItemsCustomAdapter itemAdapter;
@@ -108,6 +111,23 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+        final FloatingActionButton deleteButton = findViewById(R.id.delete_button);
+
+        /* show delete popup */
+        deleteButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                // Create an instance of DeleteItemFragment
+                DeleteItemFragment deleteItemFragment = new DeleteItemFragment();
+                // Pass the selected items to the DeleteItemFragment
+                deleteItemFragment.setSelectedItemsList(selectedItem);
+                deleteItemFragment.show(getSupportFragmentManager(), "DELETE_FRAGMENT_TAG");
+
+            }
+        });
+
         /* listen for changes in the collection and update our list of items accordingly */
         itemsRef.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
@@ -118,6 +138,26 @@ public class MainActivity extends AppCompatActivity {
                 if (value != null) {
                     getAllItems(); //otherwise get all items currently in the items collection and display them in our list
                 }
+            }
+        });
+
+        itemList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                CheckBox itemCheckBox = view.findViewById(R.id.item_checkBox);
+                itemCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        Item item = dataList.get(position);
+                        if (isChecked) {
+                            selectedItem.add(item); // Add the item to the selected items list
+                            Toast.makeText(MainActivity.this, item.getName(), Toast.LENGTH_SHORT).show();
+                        } else {
+                            selectedItem.remove(item); // Remove the item from the selected items list
+                        }
+                    }
+                });
+
             }
         });
     }
@@ -178,6 +218,7 @@ public class MainActivity extends AppCompatActivity {
     private void deleteItems(ArrayList<Item> items) {
         for (Item item: items) {
             String itemName = item.getName();
+            //Toast.makeText(MainActivity.this, itemName, Toast.LENGTH_SHORT).show();
             itemsRef.document(itemName)
                     .delete()
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -230,5 +271,10 @@ public class MainActivity extends AppCompatActivity {
         totalEstimateValue = findViewById(R.id.total_estimated_value_footer); // find our total estimated value textview from our frontend layout
         String totalText = String.format("%.2f", total); // format the total we calculated as a string
         totalEstimateValue.setText(this.getString(R.string.total) + totalText); // and updated our frontend to display the updated amount
+    }
+
+    @Override
+    public void onDeletePressed(ArrayList<Item> selectedItems) {
+        deleteItems(selectedItems);
     }
 }
