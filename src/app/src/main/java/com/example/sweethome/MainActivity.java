@@ -172,6 +172,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * Delete item/items
+     * @param items list of item to delete
+     */
+    private void deleteItems(ArrayList<Item> items) {
+        for (Item item: items) {
+            String itemName = item.getName();
+            itemsRef.document(itemName)
+                    .delete()
+                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void unused) {
+                            Log.d("Firestore", "DocumentSnapshot successfully deleted!");
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.e("Firestore", "DocumentSnapshot deleted Failed!");
+                        }
+                    });
+        }
+    }
+
+    /**
      * Gets all of the items in the items collection
      * and updates the frontend to display them in the list
      * order: oldest added items at the top
