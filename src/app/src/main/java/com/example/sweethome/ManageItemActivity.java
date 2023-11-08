@@ -200,7 +200,7 @@ public class ManageItemActivity extends AppCompatActivity {
 
     private void pickImageFromGallery() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("images/*");
+        intent.setType("image/*");
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         startActivityForResult(intent, 1);
     }
