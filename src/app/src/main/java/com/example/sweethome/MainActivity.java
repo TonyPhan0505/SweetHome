@@ -11,10 +11,10 @@ package com.example.sweethome;
  */
 
 /* necessary imports */
+
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -38,6 +38,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.EventListener;
@@ -45,7 +46,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.firestore.Query;
+
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -85,29 +86,6 @@ public class MainActivity extends AppCompatActivity implements Filterable{
         itemListView = findViewById(R.id.item_list);
         itemAdapter = new ItemsCustomAdapter(this, itemList);
         itemListView.setAdapter(itemAdapter);
-
-        /* Retrieve all existing items(if there are any) from Firestore Database */
-        itemsRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                itemList.clear();
-                if (!queryDocumentSnapshots.isEmpty()) {
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        Item item = doc.toObject(Item.class);
-                        item.setItemId(doc.getId());
-                        Log.i("Firestore", String.format("Item %s fetched", item.getName()));
-                        itemList.add(item);
-                    }
-                    itemAdapter.notifyDataSetChanged();
-                    totalEstimatedValue();
-                }
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.e("Firestore", "Error fetching sorted data", e);
-            }
-        });
         
         /* setup the sort spinner */
         sortSpinner = findViewById(R.id.spinner_sort_options);
@@ -115,7 +93,10 @@ public class MainActivity extends AppCompatActivity implements Filterable{
         sortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sortSpinner.setAdapter(sortAdapter);
 
-//        setUpActionButtonPanel();
+        /* retrieve all items from the database if there are any */
+        getAllItemsFromDatabase();
+
+        //TODO: setUpActionButtonPanel();
 
         /* spinner selection listener */
         sortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -168,9 +149,6 @@ public class MainActivity extends AppCompatActivity implements Filterable{
             }
         });
 
-
-
-        /* find our add button on the frontend and set an onclicklistener for it */
         final FloatingActionButton tagActionButton = findViewById(R.id.tag_action_button);
         tagActionButton.setOnClickListener(view -> {
             if (popupWindow == null) {
@@ -189,7 +167,7 @@ public class MainActivity extends AppCompatActivity implements Filterable{
         final FloatingActionButton deleteActionButton = findViewById(R.id.delete_action_button);
         deleteActionButton.setOnClickListener(view -> {
             selectedItems = new ArrayList<Item>();
-            for (int i = 0; i < itemList.getCount(); i++) {
+            for (int i = 0; i < itemListView.getCount(); i++) {
                 Item item = itemAdapter.getItem(i);
                 Boolean select = item.isSelected();
                 if (item != null && item.isSelected()) {
@@ -323,11 +301,17 @@ public class MainActivity extends AppCompatActivity implements Filterable{
                         itemList.clear(); //clear whatever data we currently have stored in our item list
                         for (QueryDocumentSnapshot doc : queryDocumentSnapshots){ //get everything that is stored in our db at the moment
                             Item item = doc.toObject(Item.class); //convert the contents of each document in the items collection to an item object
+                            item.setItemId(doc.getId()); //set the item ID
                             Log.i("Firestore", String.format("Item %s fetched", item.getName())); //log the name of the item we successfully got from the db
                             itemList.add(item); //add the item object to our item list
                         }
                         itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
                         calculateTotalEstimatedValue(); //recalculate and display the total estimated value
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("Firestore", "Error fetching data", e);
                     }
                 });
     }
