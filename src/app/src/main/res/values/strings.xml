@@ -3,25 +3,37 @@
     <string name="item_name">Item Name</string>
     <string name="date_format">yyyy/MM/dd</string>
     <string name="cad_currency">CAD $</string>
+    <string name="add_item">Add New</string>
     <string name="total">Total Estimated Value:\t\t\t\t\t CAD $</string>
     <string name="no_adding_msg">oops no adding yet</string>
-    <string name="item_tag">Kitchen</string>
+    <string name="no_tag_sort_msg">oops no sorting by tags yet</string>
+    <string name="no_tag_filter_msg">oops no filtering by tags yet</string>
+    <string name="item_tag">Tag</string>
     <string name="search_hint">Search...</string>
     <string name="search_icon">Search Icon</string>
     <string name="add_tag">Add Tag</string>
     <string name="delete">Delete</string>
     <string name="create_tag">Create Tag</string>
+    <string name="sort_most_recent">Newest</string>
+    <string name="sort_least_recent">Oldest</string>
+    <string name="sort_highest_value">Highest value</string>
+    <string name="sort_lowest_value">Lowest Value</string>
+    <string name="sort_make_az">Make: A - Z</string>
+    <string name="sort_make_za">Make: Z - A</string>
+    <string name="sort_description_az">Description: A - Z</string>
+    <string name="sort_description_za">Description: Z - A</string>
+    <string name="sort_tags_az">Tags: A - Z</string>
+    <string name="sort_tags_za">Tags: Z - A</string>
     <string-array name="sort_options">
-        <item>Newest</item>
-        <item>Oldest</item>
-        <item>Highest value</item>
-        <item>Lowest value</item>
-        <item>Make: A - Z</item>
-        <item>Make: Z - A</item>
-        <item>Description: A - Z</item>
-        <item>Description: Z - A</item>
-        <item>Tags: A - Z</item>
-        <item>Tags: Z - A</item>
+        <item>@string/sort_most_recent</item>
+        <item>@string/sort_least_recent</item>
+        <item>@string/sort_highest_value</item>
+        <item>@string/sort_lowest_value</item>
+        <item>@string/sort_make_az</item>
+        <item>@string/sort_make_za</item>
+        <item>@string/sort_description_az</item>
+        <item>@string/sort_description_za</item>
+        <item>@string/sort_tags_az</item>
+        <item>@string/sort_tags_za</item>
     </string-array>
-
 </resources>
