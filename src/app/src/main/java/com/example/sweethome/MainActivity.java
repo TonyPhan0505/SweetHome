@@ -50,10 +50,10 @@ import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
     /* attributes of this class */
-    private ArrayList<Item> dataList;
+    private ArrayList<Item> itemList;
     private ArrayList<Item> selectedItem;
 
-    private ListView itemList;
+    private ListView itemListView;
     private View itemView;
     private TextView totalValueView;
     private CheckBox itemCheckBox;
@@ -79,25 +79,25 @@ public class MainActivity extends AppCompatActivity {
         itemsRef = db.collection("items");
 
         /* set up our list of items, find the list on our frontend layout, and set the corresponding array adapter */
-        dataList = new ArrayList<Item>();
-        itemList = findViewById(R.id.item_list);
-        itemAdapter = new ItemsCustomAdapter(this, dataList);
-        itemList.setAdapter(itemAdapter);
+        itemList = new ArrayList<Item>();
+        itemListView = findViewById(R.id.item_list);
+        itemAdapter = new ItemsCustomAdapter(this, itemList);
+        itemListView.setAdapter(itemAdapter);
 
         /* Retrieve all existing items(if there are any) from Firestore Database */
         itemsRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                dataList.clear();
+                itemList.clear();
                 if (!queryDocumentSnapshots.isEmpty()) {
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         Item item = doc.toObject(Item.class);
                         item.setItemId(doc.getId());
                         Log.i("Firestore", String.format("Item %s fetched", item.getName()));
-                        dataList.add(item);
+                        itemList.add(item);
                     }
                     itemAdapter.notifyDataSetChanged();
-                    totalEstimatedValue();
+                    calculateTotalEstimatedValue();
                 }
             }
         }).addOnFailureListener(new OnFailureListener() {
@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
                 // Handle sorting based on selection
                 String selectedSortOption = parentView.getItemAtPosition(position).toString();
                 Toast.makeText(MainActivity.this, "Selected: " + selectedSortOption, Toast.LENGTH_SHORT).show();
-                getAllItems(selectedSortOption, itemsRef); // Sort and load data based on the selected option
+                sortDataList(selectedSortOption, itemList); // Sort and load data based on the selected option
             }
 
             @Override
@@ -173,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
         final FloatingActionButton deleteActionButton = findViewById(R.id.delete_action_button);
         deleteActionButton.setOnClickListener(view -> {
             selectedItems = new ArrayList<Item>();
-            for (int i = 0; i < itemList.getCount(); i++) {
+            for (int i = 0; i < itemListView.getCount(); i++) {
                 Item item = itemAdapter.getItem(i);
                 Boolean select = item.isSelected();
                 if (item != null && item.isSelected()) {
@@ -211,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("Firestore",error.toString()); //if there was any error, log it
                 }
                 if (value != null) {
-                    getAllItems("Newest", itemsRef); // Initial load sorted by Newest
+                    getAllItemsFromDatabase(itemsRef); // Initial load sorted by Newest
                 }
             }
         });
@@ -294,102 +294,139 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Gets all of the items in the items collection
+    /*
+     * Gets all of the items in the items collection from the db
      * and updates the frontend to display them in the list
-     * order: oldest added items at the top
-     * @param sortBy
-     * @param itemsRef
-     * @return
-     *
      */
-    public void getAllItems(String sortBy, CollectionReference itemsRef) {
-        Query query = sortItems(sortBy, itemsRef);
-
-        query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                dataList.clear();
-                if (!queryDocumentSnapshots.isEmpty()) {
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        Item item = doc.toObject(Item.class);
-                        item.setItemId(doc.getId());
-                        Log.i("Firestore", String.format("Item %s fetched", item.getName()));
-                        dataList.add(item);
+    private void getAllItemsFromDatabase(CollectionReference itemsRef){
+        itemsRef.get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        itemList.clear(); //clear whatever data we currently have stored in our item list
+                        for (QueryDocumentSnapshot doc : queryDocumentSnapshots){ //get everything that is stored in our db at the moment
+                            Item item = doc.toObject(Item.class); //convert the contents of each document in the items collection to an item object
+                            Log.i("Firestore", String.format("Item %s fetched", item.getName())); //log the name of the item we successfully got from the db
+                            itemList.add(item); //add the item object to our item list
+                        }
+                        itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
+                        calculateTotalEstimatedValue(); //recalculate and display the total estimated value
                     }
-                    itemAdapter.notifyDataSetChanged();
-                    totalEstimatedValue();
-                }
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.e("Firestore", "Error fetching sorted data", e);
-            }
-        });
-
+                });
     }
 
-    /**
-     * Sorts item in the database and in the app's item list
-     * by the indicated sorting preference.
-     * @param sortBy
-     * @param itemsRef
-     * @return Query
-     *      a firebase Query about how the items must be sorted
+    /*
+     * Given a selected sorting option, sorts the current item
+     * list according to the selected criteria.
      */
-    public Query sortItems(String sortBy, CollectionReference itemsRef) {
-        Query query;
-
-        switch (sortBy) {
-            case "Oldest":
-                query = itemsRef.orderBy("purchaseDate", Query.Direction.ASCENDING);
-                break;
-            case "Highest value":
-                query = itemsRef.orderBy("estimatedValue", Query.Direction.DESCENDING);
-                break;
-            case "Lowest value":
-                query = itemsRef.orderBy("estimatedValue", Query.Direction.ASCENDING);
-                break;
-            case "Make: A - Z":
-                query = itemsRef.orderBy("make", Query.Direction.ASCENDING);
-                break;
-            case "Make: Z - A":
-                query = itemsRef.orderBy("make", Query.Direction.DESCENDING);
-                break;
-            case "Description: A - Z":
-                query = itemsRef.orderBy("description", Query.Direction.ASCENDING);
-                break;
-            case "Description: Z - A":
-                query = itemsRef.orderBy("description", Query.Direction.DESCENDING);
-                break;
-            case "Tags: A - Z":
-                query = itemsRef.orderBy("tags", Query.Direction.ASCENDING);
-                break;
-            case "Tags: Z - A":
-                query = itemsRef.orderBy("tags", Query.Direction.DESCENDING);
-                break;
-            default:
-                // If none of the specified cases match, default to Newest
-                query = itemsRef.orderBy("purchaseDate", Query.Direction.DESCENDING);
-                break;
+    private void sortDataList(String selectedSortOption, ArrayList<Item> itemList) {
+        if (selectedSortOption.equals(this.getString(R.string.sort_least_recent))) { //if we are sorting items by oldest to newest acquired
+            itemList.sort((item1, item2) -> item1.getPurchaseDate().compareTo(item2.getPurchaseDate()));
         }
-        return query;
+        else if (selectedSortOption.equals(this.getString(R.string.sort_most_recent))) { //if we are sorting items by newest to oldest acquired
+            itemList.sort((item1, item2) -> item2.getPurchaseDate().compareTo(item1.getPurchaseDate()));
+        }
+        else if (selectedSortOption.equals(this.getString(R.string.sort_highest_value))) { //if we are sorting items by highest to lowest value
+            itemList.sort((item1, item2) -> Double.compare(item2.getEstimatedValue(), item1.getEstimatedValue()));
+        }
+        else if (selectedSortOption.equals(this.getString(R.string.sort_lowest_value))) { //if we are sorting items by lowest to highest value
+            itemList.sort((item1, item2) -> Double.compare(item1.getEstimatedValue(), item2.getEstimatedValue()));
+        }
+        else if (selectedSortOption.equals(this.getString(R.string.sort_make_az))) { //if we are sorting items by make alphabetically
+            itemList.sort((item1, item2) -> item1.getMake().compareTo(item2.getMake()));
+        }
+        else if (selectedSortOption.equals(this.getString(R.string.sort_make_za))) { //if we are sorting items by make reverse alphabetically
+            itemList.sort((item1, item2) -> item2.getMake().compareTo(item1.getMake()));
+        }
+        else if (selectedSortOption.equals(this.getString(R.string.sort_description_az))) { //if we are sorting items by description reverse alphabetically
+            itemList.sort((item1, item2) -> item1.getDescription().compareTo(item2.getDescription()));
+        }
+        else if (selectedSortOption.equals(this.getString(R.string.sort_description_za))) { //if we are sorting items by description reverse alphabetically
+            itemList.sort((item1, item2) -> item2.getDescription().compareTo(item1.getDescription()));
+        }
+        else { //if they want to sort by tags let them know this function is not yet available
+            Toast.makeText(MainActivity.this, R.string.no_tag_sort_msg, Toast.LENGTH_SHORT).show();
+        }
+        itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
     }
 
-    /**
-     * Calculates the total estimated value of all the items in the items list
+    /*
+     * Given a start date and end date, filters the current item list
+     * accordingly (ie. keeps items between start and end INCLUSIVE).
+     */
+    public void filterByDate(Date startDate, Date endDate) {
+        Date inclusiveStart = new Date(startDate.getTime() - ONE_DAY); //remove a day from the start date so we filter inclusively
+        ArrayList<Item> filteredList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
+        for (int i = 0; i < itemList.size(); i++) { //for every item in the current list
+            Item item = itemList.get(i); //get the item
+            Date purchaseDate = item.getPurchaseDate(); //get the purchase date of the item
+            if (purchaseDate.before(inclusiveStart) || item.getPurchaseDate().after(endDate)) { //if the purchase date does not fall within the given date range
+                filteredList.add(item); //add it to the filtered list
+            }
+        }
+        itemList.removeAll(filteredList); //remove all items that are to be filtered out from our current list ie. were not purchased in the provided time frame
+        itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
+        calculateTotalEstimatedValue(); //recalculate and display the total estimated value
+    }
+
+    /*
+     * Given a make, filters the current item list
+     * accordingly (ie. keeps items with the specified make).
+     */
+    public void filterByMake(String make) {
+        ArrayList<Item> filteredList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
+        for (int i = 0; i < itemList.size(); i++) { //for every item in the current list
+            Item item = itemList.get(i); //get the item
+            String itemMake = item.getMake(); //get the make of the item
+            if (!itemMake.equalsIgnoreCase(make)) { //if it DOES NOT match the given make (case insensitive)
+                filteredList.add(item); //add it to the filtered list
+            }
+        }
+        itemList.removeAll(filteredList); //remove all items that are to be filtered out from our current list ie. don't match the given make
+        itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
+        calculateTotalEstimatedValue(); //recalculate and display the total estimated value
+    }
+
+    /*
+     * Given a description keyword, filters the current item list
+     * accordingly (ie. keeps items with the specified keyword).
+     */
+    public void filterbyKeyword(String keyword) {
+        keyword = keyword.toLowerCase(); //change the keyword to lowercase so we can be case insensitive
+        ArrayList<Item> filteredList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
+        for (int i = 0; i < itemList.size(); i++) { //for every item in the current list
+            Item item = itemList.get(i); //get the item
+            String description = item.getDescription().toLowerCase(); //get the description of the item (also lowercase)
+            if (!description.contains(keyword)) { //if it DOES NOT contain the given keyword
+                filteredList.add(item); //add it to the filtered list
+            }
+        }
+        itemList.removeAll(filteredList); //remove all items from the current list that are to be filtered out ie. don't contain the given keyword in their description
+        itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
+        calculateTotalEstimatedValue(); //recalculate and display the total estimated value
+    }
+
+    /*
+     * Given a tag, filters the current item list accordingly
+     * (ie. keeps items associated with the specified tag).
+     */
+    public void filterByTag(String tag) { //currently unavailable so let them know
+        Toast.makeText(MainActivity.this, R.string.no_tag_filter_msg, Toast.LENGTH_SHORT).show();
+    }
+
+    /*
+     * Calculates the total estimated value of all the items currently in the list
      * and updates the frontend to display the correct total
      */
-    public void totalEstimatedValue() {
-        double total = 0.00; // initialize the total amount of the estimated value to zero
-        for (int i = 0; i < dataList.size(); i++) { // for every item on our list
-            Item item = (Item) dataList.get(i); // get the item
-            total += item.getEstimatedValue(); // add the estimated value of the current item to the total
+    private void calculateTotalEstimatedValue() {
+        double total = 0.00; //initialize the total amount of the estimated value to zero
+        for (int i = 0; i < itemList.size(); i++) { //for every item on our list
+            Item item = (Item) itemList.get(i); //get the item
+            total += item.getEstimatedValue(); //add the estimated value of the current item to the total
         }
-        totalValueView = findViewById(R.id.total_estimated_value_footer); // find our total estimated value textview from our frontend layout
-        String totalText = String.format("%.2f", total); // format the total we calculated as a string
-        totalValueView.setText(this.getString(R.string.total) + totalText); // and updated our frontend to display the updated amount
+        totalEstimatedValue = findViewById(R.id.total_estimated_value_footer); //find our total estimated value textview from our frontend layout
+        String totalText = String.format("%.2f", total); //format the total we calculated as a string
+        totalEstimatedValue.setText(this.getString(R.string.total) + totalText); //and updated our frontend to display the updated amount
     }
 
 }

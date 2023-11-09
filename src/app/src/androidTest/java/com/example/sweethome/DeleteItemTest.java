@@ -11,6 +11,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.CoreMatchers.anything;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.allOf;
 
 import android.widget.EditText;
 
@@ -21,19 +22,27 @@ import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
+
+import org.hamcrest.Matchers;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+
 // sources: https://stackoverflow.com/questions/27382147/write-a-test-that-clicks-on-views-inside-popupwindow
 @RunWith(AndroidJUnit4.class)
 @LargeTest
-public class MainActivityTest {
+public class DeleteItemTest {
     @Rule
     public ActivityScenarioRule<MainActivity> scenario=new ActivityScenarioRule<MainActivity>(MainActivity.class);
 
+    @Before
+    public void setup() throws InterruptedException{
+        Thread.sleep(5000);
+    }
     @Test
-    public void testDeleteItem() {
+    public void testDeleteItem() throws InterruptedException{
 //        onView(withId(R.id.add_item_button)).perform(click);
 //        onView(withId(R.id.item_name_edittext)).perform(ViewActions.typeText("Couch"));
 //        onView(withId(R.id.item_description_edittext)).perform(ViewActions.typeText("This is an old couch"));
@@ -42,7 +51,11 @@ public class MainActivityTest {
 //        onView(withId(R.id.value_edittext)).perform(ViewActions.typeText("$1199"));
 //        onView(withId(R.id.donebutton)).perform(click());
 //        onData(withId(R.id.item_checkBox)).inAdapterView(withId(R.id.item_list)).atPosition(0).perform(click());
+        onData(anything()).inAdapterView(withId(R.id.item_list)).atPosition(0).onChildView(withId(R.id.item_checkBox)).perform(click());
+        Thread.sleep(3000);
         onView(withId(R.id.delete_action_button)).perform(click());
+        Thread.sleep(3000);
+        onView(withId(R.id.delete_button)).perform(click());
 //        onView(ViewMatchers.withContentDescription("Delete"))
 //                .inRoot(RootMatchers.isPlatformPopup())
 //                .perform(ViewActions.click());
