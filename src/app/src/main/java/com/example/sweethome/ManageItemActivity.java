@@ -32,26 +32,34 @@ import android.app.DatePickerDialog;
 import android.widget.DatePicker;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.smarteist.autoimageslider.SliderView;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 
 public class ManageItemActivity extends AppCompatActivity {
-    FirebaseStorage imageStorage = FirebaseStorage.getInstance();
-    StorageReference imageStorageRef = imageStorage.getReference();
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private FirebaseStorage imageStorage = FirebaseStorage.getInstance();
+    private StorageReference imageStorageRef = imageStorage.getReference();
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private CollectionReference itemsCollection = db.collection("items");
     private CustomAddTagsField add_tags_field;
     private LinearLayout tags_container;
     private TextView date_field;
     private EditText value_field;
     private ImageView nav_back_button;
+    private String itemId;
     private String name;
     private String description;
     private String make;
@@ -80,6 +88,9 @@ public class ManageItemActivity extends AppCompatActivity {
     private RelativeLayout noImagePlaceholder;
     private static final int CAMERA_PERMISSION_REQUEST = 123;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+    private ArrayList<com.example.sweethome.Item> itemsList = new ArrayList<>();
+    private String edit_screen_name = "View / Edit";
+    private String add_screen_name = "Add Item";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,7 +130,8 @@ public class ManageItemActivity extends AppCompatActivity {
         if (intent != null) {
             String screen = intent.getStringExtra("screen");
             screen_name.setText(screen);
-            if ("View / Edit".equals(screen)) {
+            if (edit_screen_name.equals(screen)) {
+                itemId = intent.getStringExtra("itemId");
                 name = intent.getStringExtra("name");
                 item_name_field.setText(name);
                 description = intent.getStringExtra("description");
@@ -153,6 +165,24 @@ public class ManageItemActivity extends AppCompatActivity {
             sliderViewFrame.setVisibility(View.GONE);
             noImagePlaceholder.setVisibility(View.VISIBLE);
         }
+
+        itemsCollection.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                itemsList.clear();
+                for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                    String name = documentSnapshot.getString("name");
+                    String description = documentSnapshot.getString("description");
+                    String make = documentSnapshot.getString("make");
+                    String model = documentSnapshot.getString("model");
+                    String serialNumber = documentSnapshot.getString("serialNumber");
+                    Double estimatedValue = documentSnapshot.getDouble("estimatedValue");
+                    Timestamp purchaseDate = documentSnapshot.getTimestamp("purchaseDate");
+                    String comment = documentSnapshot.getString("comment");
+                    itemsList.add(new Item(name, description, make, model, serialNumber, estimatedValue, purchaseDate, comment));
+                }
+            }
+        });
 
         // listen to the user choosing the date in the date-picker and display the date in the format YYYY-MM-DD.
         date_field.setOnClickListener(new View.OnClickListener() {
@@ -237,10 +267,19 @@ public class ManageItemActivity extends AppCompatActivity {
                         Date parsedPurchaseDate = dateFormat.parse(purchaseDate);
                         Timestamp purchaseDateTS = new Timestamp(parsedPurchaseDate);
                         Item newItem = new Item(name, description, make, model, serialNumber, estimatedValue, purchaseDateTS, comment);
-                        db.collection("items").add(newItem);
-                        if ("Add Item".equals(screen_name.getText().toString())) {
+                        if (add_screen_name.equals(screen_name.getText().toString())) {
+                            itemsCollection.add(newItem);
                             Toast.makeText(ManageItemActivity.this, "Successfully added new item.", Toast.LENGTH_SHORT).show();
                         } else {
+                            Map<String, Object> updates = new HashMap<>();
+                            updates.put("name", name);
+                            updates.put("description", description);
+                            updates.put("make", make);
+                            updates.put("model", model);
+                            updates.put("serialNumber", serialNumber);
+                            updates.put("estimatedValue", estimatedValue);
+                            updates.put("purchaseDate", purchaseDate);
+                            updates.put("comment", comment);
                             Toast.makeText(ManageItemActivity.this, "Successfully updated item.", Toast.LENGTH_SHORT).show();
                         }
                         Intent intent = new Intent(ManageItemActivity.this, MainActivity.class);
@@ -293,6 +332,7 @@ public class ManageItemActivity extends AppCompatActivity {
         }
     }
 
+    // handle effects after selecting photos from gallery and taking photo with camera
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -335,9 +375,15 @@ public class ManageItemActivity extends AppCompatActivity {
             isValid = false;
         }
 
-        if (serial_number_field.getText().toString().isEmpty()) {
-            serial_number_field.setError("Serial number is required");
-            isValid = false;
+        if (!serial_number_field.getText().toString().isEmpty()) {
+            for (com.example.sweethome.Item item : itemsList) {
+                String serialNumber = item.getSerialNumber();
+                if (serialNumber.equals(serial_number_field.getText().toString())) {
+                    isValid = false;
+                    serial_number_field.setError("Serial number already exists.");
+                    break;
+                }
+            }
         }
 
         if (tags_container.getChildCount() <= 0) {

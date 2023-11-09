@@ -34,6 +34,7 @@ public class Item {
     private String comment;
     private Boolean selected = false;
     private ArrayList<String> photos;
+    private String id;
 
     /* constructor for this class */
     public Item(String name, String description, String make, String model, String serialNumber, double estimatedValue, Timestamp purchaseDate, String comment) {
@@ -129,6 +130,14 @@ public class Item {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public String getItemId() {
+        return id;
+    }
+
+    public void setItemId(String id) {
+        this.id = id;
     }
 
     public ArrayList<String> getPhotos() {
