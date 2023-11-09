@@ -32,7 +32,7 @@ public class Item {
     private Date purchaseDate;
     private String comment;
     private Boolean selected = false;
-    private ArrayList<URL> photos;
+    private ArrayList<String> photos;
     private String id;
 
     /* constructor for this class */
@@ -45,10 +45,10 @@ public class Item {
         this.estimatedValue = estimatedValue;
         this.purchaseDate = purchaseDate;
         this.comment = comment;
-//        this.photos = new ArrayList<URL>(); // the photos array will be initialized as an empty array, but it can be added to and deleted from using the add and delete methods below
+        this.photos = new ArrayList<String>(); // the photos array will be initialized as an empty array, but it can be added to and deleted from using the add and delete methods below
     }
 
-    public Item(String name, String description, String make, String model, String serialNumber, double estimatedValue, Date purchaseDate, String comment, ArrayList<URL> photos, Boolean selected) {
+    public Item(String name, String description, String make, String model, String serialNumber, double estimatedValue, Date purchaseDate, String comment, Boolean selected) {
         this.name = name;
         this.make = make;
         this.description = description;
@@ -57,7 +57,7 @@ public class Item {
         this.estimatedValue = estimatedValue;
         this.purchaseDate = purchaseDate;
         this.comment = comment;
-        this.photos = new ArrayList<URL>(); // the photos array will be initialized as an empty array, but it can be added to and deleted from using the add and delete methods below
+        this.photos = new ArrayList<String>(); // the photos array will be initialized as an empty array, but it can be added to and deleted from using the add and delete methods below
         this.selected = selected;
     }
 
@@ -139,7 +139,7 @@ public class Item {
         this.id = id;
     }
 
-    public ArrayList<URL> getPhotos() {
+    public ArrayList<String> getPhotos() {
         return photos;
     }
 
@@ -156,12 +156,12 @@ public class Item {
     }
 
     /* function to add a new image URL to the photo arraylist */
-    public void addPhotos(URL photo) {
+    public void addPhotos(String photo) {
         this.photos.add(photo);
     }
 
     /* function to delete an image URL from the photo arraylist */
-    public void deletePhotos(URL photo) {
+    public void deletePhotos(String photo) {
         this.photos.remove(photo);
     }
 }

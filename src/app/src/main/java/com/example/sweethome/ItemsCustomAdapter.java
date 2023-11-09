@@ -74,10 +74,6 @@ public class ItemsCustomAdapter extends ArrayAdapter<Item> {
                 public void onClick(View v) {
                     CheckBox checkbox = (CheckBox) v;
                     Item item = (Item) checkbox.getTag();
-//                    if (item != null) {
-//                        item.toggleSelected();
-//                        itemCheckboxView.setChecked(item.isSelected());
-//                    }
                     item.setSelected(checkbox.isChecked());
 
                 }
