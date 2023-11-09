@@ -51,6 +51,8 @@ import java.util.Date;
 public class MainActivity extends AppCompatActivity {
     /* attributes of this class */
     private ArrayList<Item> dataList;
+    private ArrayList<Item> selectedItem;
+
     private ListView itemList;
     private View itemView;
     private TextView totalValueView;
@@ -199,6 +201,7 @@ public class MainActivity extends AppCompatActivity {
             });
 
             deleteDialog.show();
+
         });
 
         /* listen for changes in the collection and update our list of items accordingly */
@@ -213,6 +216,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
     }
 
     private void hidePanel() {
