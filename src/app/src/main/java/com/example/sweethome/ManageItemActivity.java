@@ -25,33 +25,40 @@ import android.widget.TextView;
 import android.Manifest;
 
 import java.io.ByteArrayOutputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import android.app.DatePickerDialog;
 import android.widget.DatePicker;
 import android.widget.Toast;
 
+import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.smarteist.autoimageslider.SliderView;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 
 import javax.annotation.Nullable;
 
 public class ManageItemActivity extends AppCompatActivity {
     FirebaseStorage imageStorage = FirebaseStorage.getInstance();
     StorageReference imageStorageRef = imageStorage.getReference();
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CustomAddTagsField add_tags_field;
     private LinearLayout tags_container;
     private TextView date_field;
     private EditText value_field;
     private ImageView nav_back_button;
     private String name;
+    private String description;
     private String make;
     private String model;
     private String serialNumber;
     private Double estimatedValue;
-    private Date purchaseDate;
+    private String purchaseDate;
     private String comment;
     private ArrayList<Uri> photos;
     private CardView open_gallery_button;
@@ -67,12 +74,12 @@ public class ManageItemActivity extends AppCompatActivity {
     private EditText serial_number_field;
     private CustomAddTagsField tag_input;
     private EditText description_field;
-
     private EditText make_field;
     private EditText model_field;
     private EditText comment_field;
     private RelativeLayout noImagePlaceholder;
     private static final int CAMERA_PERMISSION_REQUEST = 123;
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,12 +121,21 @@ public class ManageItemActivity extends AppCompatActivity {
             screen_name.setText(screen);
             if ("View / Edit".equals(screen)) {
                 name = intent.getStringExtra("name");
+                item_name_field.setText(name);
+                description = intent.getStringExtra("description");
+                description_field.setText(description);
                 make = intent.getStringExtra("make");
+                make_field.setText(make);
                 model = intent.getStringExtra("model");
+                model_field.setText(model);
                 serialNumber = intent.getStringExtra("serialNumber");
+                serial_number_field.setText(serialNumber);
                 estimatedValue = intent.getDoubleExtra("estimatedValue", 0.0);
-                purchaseDate =  new Date(intent.getLongExtra("purchaseDate", 0L));
+                value_field.setText(String.valueOf(estimatedValue));
+                purchaseDate =  dateFormat.format(new Date(intent.getLongExtra("purchaseDate", 0L)));
+                date_field.setText(purchaseDate);
                 comment = intent.getStringExtra("comment");
+                comment_field.setText(comment);
                 photos = intent.getParcelableArrayListExtra("photos");
             }
         }
@@ -207,8 +223,31 @@ public class ManageItemActivity extends AppCompatActivity {
         save_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isInputValid()) {
-                    // Perform actions when all input fields are valid
+                boolean isValid = isInputValid();
+                if (isValid) {
+                    name = item_name_field.getText().toString();
+                    description = description_field.getText().toString();
+                    make = make_field.getText().toString();
+                    model = model_field.getText().toString();
+                    serialNumber = serial_number_field.getText().toString();
+                    estimatedValue = Double.parseDouble(value_field.getText().toString().replace("$", ""));
+                    purchaseDate = date_field.getText().toString();
+                    comment = comment_field.getText().toString();
+                    try {
+                        Date parsedPurchaseDate = dateFormat.parse(purchaseDate);
+                        Timestamp purchaseDateTS = new Timestamp(parsedPurchaseDate);
+                        Item newItem = new Item(name, description, make, model, serialNumber, estimatedValue, purchaseDateTS, comment);
+                        db.collection("items").add(newItem);
+                        if ("Add Item".equals(screen_name.getText().toString())) {
+                            Toast.makeText(ManageItemActivity.this, "Successfully added new item.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(ManageItemActivity.this, "Successfully updated item.", Toast.LENGTH_SHORT).show();
+                        }
+                        Intent intent = new Intent(ManageItemActivity.this, MainActivity.class);
+                        startActivity(intent);
+                    } catch (ParseException err) {
+                        System.out.println("ERROR: invalid date format used.");
+                    }
                 }
             }
         });
