@@ -31,7 +31,9 @@ public class Item {
     private double estimatedValue;
     private Date purchaseDate;
     private String comment;
+    private Boolean selected = false;
     private ArrayList<URL> photos;
+    private String id;
 
     /* constructor for this class */
     public Item(String name, String description, String make, String model, String serialNumber, double estimatedValue, Date purchaseDate, String comment) {
@@ -43,7 +45,20 @@ public class Item {
         this.estimatedValue = estimatedValue;
         this.purchaseDate = purchaseDate;
         this.comment = comment;
+//        this.photos = new ArrayList<URL>(); // the photos array will be initialized as an empty array, but it can be added to and deleted from using the add and delete methods below
+    }
+
+    public Item(String name, String description, String make, String model, String serialNumber, double estimatedValue, Date purchaseDate, String comment, ArrayList<URL> photos, Boolean selected) {
+        this.name = name;
+        this.make = make;
+        this.description = description;
+        this.model = model;
+        this.serialNumber = serialNumber;
+        this.estimatedValue = estimatedValue;
+        this.purchaseDate = purchaseDate;
+        this.comment = comment;
         this.photos = new ArrayList<URL>(); // the photos array will be initialized as an empty array, but it can be added to and deleted from using the add and delete methods below
+        this.selected = selected;
     }
 
     /* no-arg constructor for this class */
@@ -116,8 +131,28 @@ public class Item {
         this.comment = comment;
     }
 
+    public String getItemId() {
+        return id;
+    }
+
+    public void setItemId(String id) {
+        this.id = id;
+    }
+
     public ArrayList<URL> getPhotos() {
         return photos;
+    }
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
+
+    public void toggleSelected() {
+        selected = !selected;
     }
 
     /* function to add a new image URL to the photo arraylist */
