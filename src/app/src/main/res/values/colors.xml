@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="green">#FF507351</color>
-    <color name="darkGreen">#224C24</color>
-    <color name="darkerGreen">#FF224624</color>
-    <color name="darkBrown">#FF755D3B</color>
+    <color name="dark_green">#224C24</color>
+    <color name="darker_green">#FF224624</color>
+    <color name="dark_brown">#FF755D3B</color>
     <color name="brown">#B58E55</color>
     <color name="beige">#FFE3CBA8</color>
     <color name="grey">#FF888888</color>
-    <color name="darkGrey">#FF444444</color>
+    <color name="dark_grey">#FF444444</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="red">#f53d3d</color>
