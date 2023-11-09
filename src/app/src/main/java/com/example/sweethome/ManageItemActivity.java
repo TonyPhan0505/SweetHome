@@ -112,7 +112,7 @@ public class ManageItemActivity extends AppCompatActivity {
         if (intent != null) {
             String screen = intent.getStringExtra("screen");
             screen_name.setText(screen);
-            if ("View / Edit Item".equals(screen)) {
+            if ("View / Edit".equals(screen)) {
                 name = intent.getStringExtra("name");
                 make = intent.getStringExtra("make");
                 model = intent.getStringExtra("model");
@@ -248,9 +248,7 @@ public class ManageItemActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == CAMERA_PERMISSION_REQUEST) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                takePhotoWithCamera();
-            } else {
+            if (grantResults.length <= 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "Please allow access to your camera.", Toast.LENGTH_SHORT).show();
             }
         }

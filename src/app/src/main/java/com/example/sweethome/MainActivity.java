@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, ManageItemActivity.class);
-                intent.putExtra("screen", "View / Edit Item");
+                intent.putExtra("screen", "View / Edit");
                 startActivity(intent);
             }
         });
