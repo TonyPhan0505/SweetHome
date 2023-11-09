@@ -28,6 +28,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.Spinner;
@@ -153,6 +155,23 @@ public class MainActivity extends AppCompatActivity {
         //TODO: Delete addItem() instances below when add button is implemented
 //        addItem(new Item("chair", "this is a wooden chair", "The Brick", "Birch 2000", "12345678", 54.45, new Date(),"No comment"));
 //        addItem(new Item("sofa", "this is soft aahh", "The Brick", "Birch 2000", "12345678", 54.45, new Date(),"No comment"));
+
+        LinearLayout filterPanel = findViewById(R.id.filter_panel);
+        ImageView filterIcon = findViewById(R.id.filter_button);
+        filterPanel.setVisibility(View.GONE);
+
+        filterIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (filterPanel.getVisibility() == View.VISIBLE) {
+                    filterPanel.setVisibility(View.GONE);
+                } else {
+                    filterPanel.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+
+
 
         /* find our add button on the frontend and set an onclicklistener for it */
         final FloatingActionButton tagActionButton = findViewById(R.id.tag_action_button);
