@@ -11,7 +11,6 @@ package com.example.sweethome;
  */
 
 /* necessary imports */
-
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
@@ -96,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements Filterable{
         /* retrieve all items from the database if there are any */
         getAllItemsFromDatabase();
 
-        //TODO: setUpActionButtonPanel();
+        //setUpActionButtonPanel();
 
         /* spinner selection listener */
         sortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -143,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements Filterable{
             public void onClick(View view) {
                 if (filterPanel.getVisibility() == View.VISIBLE) {
                     filterPanel.setVisibility(View.GONE);
+                    getAllItemsFromDatabase(); //clear all of the filters
                 } else {
                     filterPanel.setVisibility(View.VISIBLE);
                 }
@@ -210,7 +210,6 @@ public class MainActivity extends AppCompatActivity implements Filterable{
                 }
             }
         });
-
     }
 
     private void hidePanel() {
@@ -305,7 +304,8 @@ public class MainActivity extends AppCompatActivity implements Filterable{
                             Log.i("Firestore", String.format("Item %s fetched", item.getName())); //log the name of the item we successfully got from the db
                             itemList.add(item); //add the item object to our item list
                         }
-                        itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
+                        String currentSortOption = sortSpinner.getSelectedItem().toString(); //get the currently selected sort option
+                        sortDataList(currentSortOption); //sort the list accordingly and notify changes were made to update frontend
                         calculateTotalEstimatedValue(); //recalculate and display the total estimated value
                     }
                 }).addOnFailureListener(new OnFailureListener() {
