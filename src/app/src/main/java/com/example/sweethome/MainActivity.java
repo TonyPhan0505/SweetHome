@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
                 // Handle sorting based on selection
                 String selectedSortOption = parentView.getItemAtPosition(position).toString();
                 Toast.makeText(MainActivity.this, "Selected: " + selectedSortOption, Toast.LENGTH_SHORT).show();
-                getAllItems(selectedSortOption); // Sort and load data based on the selected option
+                getAllItems(selectedSortOption, itemsRef); // Sort and load data based on the selected option
             }
 
             @Override
@@ -151,8 +151,8 @@ public class MainActivity extends AppCompatActivity {
 //        Item item = (Item) getIntent().getSerializableExtra("item");
 
         //TODO: Delete addItem() instances below when add button is implemented
-//        addItem(new Item("chair", "this is a wooden chair", "The Brick", "Birch 2000", "12345678", 54.45, new Date(),"No comment"));
-//        addItem(new Item("sofa", "this is soft aahh", "The Brick", "Birch 2000", "12345678", 54.45, new Date(),"No comment"));
+//        addItem(new Item("refrigerator", "this is a fridge", "Samsung", "H-2023", "12345698", 998.45, new Date(),"No comment"), itemsRef);
+//        addItem(new Item("tv", "this is tv", "LG", "4K HD", "23456789", 699.99, new Date(),"high tech"), itemsRef);
 
         /* find our add button on the frontend and set an onclicklistener for it */
         final FloatingActionButton tagActionButton = findViewById(R.id.tag_action_button);
@@ -180,7 +180,6 @@ public class MainActivity extends AppCompatActivity {
                     selectedItems.add(item);
                 }
             }
-//            new DeleteItemFragment().show(getSupportFragmentManager(), "DELETE ITEM");
             final Dialog deleteDialog = new Dialog(context);
             deleteDialog.setContentView(R.layout.delete_popup);
             Button deleteButton = (Button) deleteDialog.findViewById(R.id.delete_button);
@@ -188,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
             deleteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    deleteItems(selectedItems);
+                    deleteItems(selectedItems, itemsRef);
                     deleteDialog.dismiss();
                 }
             });
@@ -212,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("Firestore",error.toString()); //if there was any error, log it
                 }
                 if (value != null) {
-                    getAllItems("Newest"); // Initial load sorted by Newest
+                    getAllItems("Newest", itemsRef); // Initial load sorted by Newest
                 }
             }
         });
@@ -256,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
      * Adds a new item to the items collection
      * @param item
      */
-    private void addItem(Item item){
+    public static void addItem(Item item, CollectionReference itemsRef){
         itemsRef.add(item) //add the item to our items collection
                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                     @Override
@@ -276,7 +275,7 @@ public class MainActivity extends AppCompatActivity {
      * Delete item/items
      * @param items list of item to delete
      */
-    private void deleteItems(ArrayList<Item> items) {
+    public static void deleteItems(ArrayList<Item> items, CollectionReference itemsRef) {
         for (Item item: items) {
             itemsRef.document(item.getItemId())
                     .delete()
@@ -299,8 +298,47 @@ public class MainActivity extends AppCompatActivity {
      * Gets all of the items in the items collection
      * and updates the frontend to display them in the list
      * order: oldest added items at the top
+     * @param sortBy
+     * @param itemsRef
+     * @return
+     *
      */
-    private void getAllItems(String sortBy) {
+    public void getAllItems(String sortBy, CollectionReference itemsRef) {
+        Query query = sortItems(sortBy, itemsRef);
+
+        query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                dataList.clear();
+                if (!queryDocumentSnapshots.isEmpty()) {
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        Item item = doc.toObject(Item.class);
+                        item.setItemId(doc.getId());
+                        Log.i("Firestore", String.format("Item %s fetched", item.getName()));
+                        dataList.add(item);
+                    }
+                    itemAdapter.notifyDataSetChanged();
+                    totalEstimatedValue();
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e("Firestore", "Error fetching sorted data", e);
+            }
+        });
+
+    }
+
+    /**
+     * Sorts item in the database and in the app's item list
+     * by the indicated sorting preference.
+     * @param sortBy
+     * @param itemsRef
+     * @return Query
+     *      a firebase Query about how the items must be sorted
+     */
+    public Query sortItems(String sortBy, CollectionReference itemsRef) {
         Query query;
 
         switch (sortBy) {
@@ -336,38 +374,14 @@ public class MainActivity extends AppCompatActivity {
                 query = itemsRef.orderBy("purchaseDate", Query.Direction.DESCENDING);
                 break;
         }
-
-        query.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                dataList.clear();
-                if (!queryDocumentSnapshots.isEmpty()) {
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        Item item = doc.toObject(Item.class);
-                        item.setItemId(doc.getId());
-                        Log.i("Firestore", String.format("Item %s fetched", item.getName()));
-                        dataList.add(item);
-                    }
-                    itemAdapter.notifyDataSetChanged();
-                    totalEstimatedValue();
-                }
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.e("Firestore", "Error fetching sorted data", e);
-            }
-        });
-
+        return query;
     }
-
-
 
     /**
      * Calculates the total estimated value of all the items in the items list
      * and updates the frontend to display the correct total
      */
-    private void totalEstimatedValue() {
+    public void totalEstimatedValue() {
         double total = 0.00; // initialize the total amount of the estimated value to zero
         for (int i = 0; i < dataList.size(); i++) { // for every item on our list
             Item item = (Item) dataList.get(i); // get the item
