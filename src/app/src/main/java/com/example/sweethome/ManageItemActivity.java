@@ -1,26 +1,34 @@
 package com.example.sweethome;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.Manifest;
+
+import java.io.ByteArrayOutputStream;
 import java.util.Calendar;
 import android.app.DatePickerDialog;
 import android.widget.DatePicker;
+import android.widget.Toast;
 
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -47,6 +55,7 @@ public class ManageItemActivity extends AppCompatActivity {
     private String comment;
     private ArrayList<Uri> photos;
     private CardView open_gallery_button;
+    private CardView open_camera_button;
     private Uri imageUri;
     private ImageSliderAdapter adapter;
     private ArrayList<ImageSliderData> sliderDataArrayList;
@@ -62,6 +71,8 @@ public class ManageItemActivity extends AppCompatActivity {
     private EditText make_field;
     private EditText model_field;
     private EditText comment_field;
+    private RelativeLayout noImagePlaceholder;
+    private static final int CAMERA_PERMISSION_REQUEST = 123;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,10 +88,9 @@ public class ManageItemActivity extends AppCompatActivity {
         date_field = findViewById(R.id.date_field);
         sliderViewFrame = findViewById(R.id.image_slider_frame);
         sliderView = findViewById(R.id.image_slider);
-        RelativeLayout noImagePlaceholder = findViewById(R.id.no_image_placeholder);
-        sliderDataArrayList = new ArrayList<>();
-        Intent intent = getIntent();
+        noImagePlaceholder = findViewById(R.id.no_image_placeholder);
         open_gallery_button = findViewById(R.id.open_gallery_button);
+        open_camera_button = findViewById(R.id.open_camera_button);
         save_button = findViewById(R.id.check_icon);
         item_name_field = findViewById(R.id.item_name_field);
         serial_number_field = findViewById(R.id.serial_number_field);
@@ -89,19 +99,29 @@ public class ManageItemActivity extends AppCompatActivity {
         make_field = findViewById(R.id.make_field);
         model_field = findViewById(R.id.model_field);
         comment_field = findViewById(R.id.comment_field);
+        sliderDataArrayList = new ArrayList<>();
+        adapter = new ImageSliderAdapter(this, sliderDataArrayList);
+        Intent intent = getIntent();
+
+        // check if the user has granted permission to access their camera
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST);
+        }
 
         // get item's information sent from home screen.
         if (intent != null) {
             String screen = intent.getStringExtra("screen");
             screen_name.setText(screen);
-            name = intent.getStringExtra("name");
-            make = intent.getStringExtra("make");
-            model = intent.getStringExtra("model");
-            serialNumber = intent.getStringExtra("serialNumber");
-            estimatedValue = intent.getDoubleExtra("estimatedValue", 0.0);
-            purchaseDate =  new Date(intent.getLongExtra("purchaseDate", 0L));
-            comment = intent.getStringExtra("comment");
-            photos = intent.getParcelableArrayListExtra("photos");
+            if ("View / Edit Item".equals(screen)) {
+                name = intent.getStringExtra("name");
+                make = intent.getStringExtra("make");
+                model = intent.getStringExtra("model");
+                serialNumber = intent.getStringExtra("serialNumber");
+                estimatedValue = intent.getDoubleExtra("estimatedValue", 0.0);
+                purchaseDate =  new Date(intent.getLongExtra("purchaseDate", 0L));
+                comment = intent.getStringExtra("comment");
+                photos = intent.getParcelableArrayListExtra("photos");
+            }
         }
 
         // populate the image slider if the item is associated with at least 1 photo.
@@ -109,15 +129,10 @@ public class ManageItemActivity extends AppCompatActivity {
             for (int i = 0; i < photos.size(); i++) {
                 sliderDataArrayList.add(new ImageSliderData(photos.get(i)));
             }
-        }
-
-        // check if there are any images associated with the item.
-        if (!sliderDataArrayList.isEmpty()) {
-            adapter = new ImageSliderAdapter(this, sliderDataArrayList);
+            adapter.notifyDataSetChanged();
             sliderView.setSliderAdapter(adapter);
             noImagePlaceholder.setVisibility(View.GONE);
             sliderViewFrame.setVisibility(View.VISIBLE);
-
         } else {
             sliderViewFrame.setVisibility(View.GONE);
             noImagePlaceholder.setVisibility(View.VISIBLE);
@@ -188,6 +203,7 @@ public class ManageItemActivity extends AppCompatActivity {
             }
         });
 
+        // save item's information and send them to the database
         save_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -196,8 +212,17 @@ public class ManageItemActivity extends AppCompatActivity {
                 }
             }
         });
+
+        // open device's camera when the user clicks on the open camera button
+        open_camera_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                takePhotoWithCamera();
+            }
+        });
     }
 
+    // open device's gallery to select 1 or multiple image(s)
     private void pickImageFromGallery() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
@@ -205,16 +230,62 @@ public class ManageItemActivity extends AppCompatActivity {
         startActivityForResult(intent, 1);
     }
 
+    // open device's camera to take a photo
+    private void takePhotoWithCamera() {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(intent, 2);
+    }
+
+    // convert photo's bitmap to an image uri to store in sliderDataArrayList
+    private Uri getImageUriFromBitmap(Bitmap bitmap) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+        String path = MediaStore.Images.Media.insertImage(getContentResolver(), bitmap, "Title", null);
+        return Uri.parse(path);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == CAMERA_PERMISSION_REQUEST) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                takePhotoWithCamera();
+            } else {
+                Toast.makeText(this, "Please allow access to your camera.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1 && resultCode == RESULT_OK && data != null && data.getClipData() != null) {
-            int count = data.getClipData().getItemCount();
-            for (int i = 0; i < count; i++) {
-                imageUri = data.getClipData().getItemAt(i).getUri();
+        if (requestCode == 1 && resultCode == RESULT_OK && data != null) {
+            if (data.getData() != null) {
+                imageUri = data.getData();
                 sliderDataArrayList.add(new ImageSliderData(imageUri));
-                adapter = new ImageSliderAdapter(this, sliderDataArrayList);
+            } else if (data.getClipData() != null) {
+                int count = data.getClipData().getItemCount();
+                for (int i = 0; i < count; i++) {
+                    imageUri = data.getClipData().getItemAt(i).getUri();
+                    sliderDataArrayList.add(new ImageSliderData(imageUri));
+                }
+            }
+            adapter.notifyDataSetChanged();
+            sliderView.setSliderAdapter(adapter);
+            noImagePlaceholder.setVisibility(View.GONE);
+            sliderViewFrame.setVisibility(View.VISIBLE);
+        } else if (requestCode == 2 && resultCode == RESULT_OK && data != null) {
+            Bundle extras = data.getExtras();
+            if (extras != null) {
+                Bitmap photo = (Bitmap) extras.get("data");
+                imageUri = getImageUriFromBitmap(photo);
+                if (imageUri != null) {
+                    sliderDataArrayList.add(new ImageSliderData(imageUri));
+                    adapter.notifyDataSetChanged();
+                }
                 sliderView.setSliderAdapter(adapter);
+                noImagePlaceholder.setVisibility(View.GONE);
+                sliderViewFrame.setVisibility(View.VISIBLE);
             }
         }
     }
@@ -258,7 +329,7 @@ public class ManageItemActivity extends AppCompatActivity {
         }
 
         if (value_field.getText().toString().isEmpty()) {
-            value_field.setError("Date is required");
+            value_field.setError("Value is required");
             isValid = false;
         }
 

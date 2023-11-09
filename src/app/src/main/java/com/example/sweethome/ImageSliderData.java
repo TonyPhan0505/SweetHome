@@ -10,7 +10,7 @@ public class ImageSliderData {
     }
 
     public Uri getImgUri() {
-        return imgUri;
+        return this.imgUri;
     }
 
     public void setImgUri(Uri imgUri) {

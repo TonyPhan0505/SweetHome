@@ -13,10 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ImageSliderAdapter extends SliderViewAdapter<ImageSliderAdapter.SliderAdapterViewHolder> {
-    private List<ImageSliderData> imageUrls;
+    private List<ImageSliderData> imageUris;
 
     public ImageSliderAdapter(Context context, ArrayList<ImageSliderData> sliderDataArrayList) {
-        this.imageUrls = sliderDataArrayList;
+        this.imageUris = sliderDataArrayList;
     }
 
     @Override
@@ -27,7 +27,7 @@ public class ImageSliderAdapter extends SliderViewAdapter<ImageSliderAdapter.Sli
 
     @Override
     public void onBindViewHolder(SliderAdapterViewHolder viewHolder, int position) {
-        ImageSliderData sliderItem = imageUrls.get(position);
+        ImageSliderData sliderItem = imageUris.get(position);
         Glide.with(viewHolder.itemView)
                 .load(sliderItem.getImgUri())
                 .fitCenter()
@@ -36,7 +36,7 @@ public class ImageSliderAdapter extends SliderViewAdapter<ImageSliderAdapter.Sli
 
     @Override
     public int getCount() {
-        return imageUrls.size();
+        return imageUris.size();
     }
 
     static class SliderAdapterViewHolder extends SliderViewAdapter.ViewHolder {
