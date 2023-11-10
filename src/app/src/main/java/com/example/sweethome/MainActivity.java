@@ -1,19 +1,21 @@
 package com.example.sweethome;
-/*
+/**
  * MainActivity
  *
  * This class controls the main activity of our SweetHome app.
  *
- * October 28, 2023
+ * November 10, 2023
  *
  * Sources: https://www.geeksforgeeks.org/how-to-delete-data-from-firebase-firestore-in-android/
  *
  */
 
 /* necessary imports */
+
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -24,6 +26,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -35,10 +38,13 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.util.Pair;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.Timestamp;
 import com.google.firebase.*;
 import com.google.firebase.Timestamp.*;
 import com.google.firebase.firestore.CollectionReference;
@@ -52,9 +58,10 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class MainActivity extends AppCompatActivity implements Filterable{
+public class MainActivity extends AppCompatActivity implements IFilterable {
     /* attributes of this class */
     private ArrayList<Item> itemList;
+    private ArrayList<Item> itemListCopy;
     private ListView itemListView;
     private TextView totalEstimatedValue;
     private ItemsCustomAdapter itemAdapter;
@@ -69,8 +76,23 @@ public class MainActivity extends AppCompatActivity implements Filterable{
     private PopupWindow popupWindow;
     private boolean isPanelShown = false; // keep track of action panel visibility
     final Context context = this;
+    private LinearLayout filterPanel;
+    private ImageView filterIcon;
+    private Button filterApplyButton;
+    private EditText keywordField;
+    private EditText makeField;
+    private static final String PREF_NAME = "DateRangePrefs";
+    private static final String START_DATE_KEY = "startDate";
+    private static final String END_DATE_KEY = "endDate";
+    // Declare MaterialDatePicker as a field
+    private MaterialDatePicker<Pair<Long, Long>> dateRangePicker;
+    private Long selectedStartDate;
+    private Long selectedEndDate;
+    private boolean filtered;
     /* constants */
     private final long ONE_DAY = 86400000;
+    private final long ONE_HOUR = 3600000;
+    private final long ONE_SECOND = 1000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,9 +138,6 @@ public class MainActivity extends AppCompatActivity implements Filterable{
         sortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sortSpinner.setAdapter(sortAdapter);
 
-        /* retrieve all items from the database if there are any */
-        getAllItemsFromDatabase(itemsRef);
-
         //setUpActionButtonPanel();
 
         /* spinner selection listener */
@@ -163,21 +182,98 @@ public class MainActivity extends AppCompatActivity implements Filterable{
 //        addItem(new Item("cooler", "this is a fridge", "Samsung", "H-2023", "12345698", 998.45, Timestamp.now(),"No comment"), itemsRef);
 //        addItem(new Item("tv", "this is tv", "LG", "4K HD", "23456789", 699.99, Timestamp.now() ,"high tech"), itemsRef);
 
-        LinearLayout filterPanel = findViewById(R.id.filter_panel);
-        ImageView filterIcon = findViewById(R.id.filter_button);
-        filterPanel.setVisibility(View.GONE);
 
+        /* find our frontend elements for filtering */
+        filterPanel = findViewById(R.id.filter_panel);
+        filterIcon = findViewById(R.id.filter_button);
+        filterApplyButton = findViewById(R.id.apply_filter_button);
+        makeField = findViewById(R.id.make_field);
+        keywordField = findViewById(R.id.keyword_field);
+
+        /* set the view of the filter panel and onclicklisteners for the icon and button */
+        filterPanel.setVisibility(View.GONE); //should be invisible until the filterIcon is pressed
         filterIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (filterPanel.getVisibility() == View.VISIBLE) {
-                    filterPanel.setVisibility(View.GONE);
-                    getAllItemsFromDatabase(itemsRef); //clear all of the filters
+                if (filterPanel.getVisibility() == View.VISIBLE) { //if the panel is already visible
+                    filterPanel.setVisibility(View.GONE); //then make it invisible
+                    /* clear the edit texts for the next time the user uses the panel */
+                    makeField.setText("");
+                    keywordField.setText("");
+                    getAllItemsFromDatabase(); //also clear all of the filters
                 } else {
-                    filterPanel.setVisibility(View.VISIBLE);
+                    filterPanel.setVisibility(View.VISIBLE); //otherwise just show the panel since it must currently be invisible
+                    filtered = false; //set the filtered flag as false
+                    selectedStartDate = 0L; //restart the start day
+                    selectedEndDate = 0L; //restart the end day
+                    dateRangePicker = createMaterialDatePicker(); //reset the picker
                 }
             }
         });
+        filterApplyButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String make = makeField.getText().toString();
+                String keyword = keywordField.getText().toString();
+                if (filtered) { //if it has been previously filtered, reset the list
+                    itemList.clear();
+                    itemList.addAll(itemListCopy);
+                } else { //otherwise if it has not been filtered, make a copy so we can reset the list later
+                    itemListCopy = new ArrayList<Item>();
+                    itemListCopy.addAll(itemList);
+                }
+                if (!make.trim().isEmpty()){ //apply filter by make if it was provided
+                    filterByMake(make);
+                    filtered = true;
+                }
+                if(!keyword.trim().isEmpty()) { //apply filter by keyword if it was provided
+                    filterByKeyword(keyword);
+                    filtered = true;
+                }
+                if(selectedEndDate!=0L && selectedStartDate!=0L) { //apply filter by date range if it was selected
+                    /* get the selected dates by the user, adding extra time due to epoch conversion error */
+                    Date dateStart = new Date(selectedStartDate + ONE_DAY - ((ONE_DAY / 4) *3) + ONE_HOUR);
+                    Date dateEnd = new Date(selectedEndDate + ONE_DAY + (ONE_DAY / 4) + ONE_HOUR - ONE_SECOND);
+                    /* let the user know the time constraints */
+                    Toast.makeText(MainActivity.this, "START: " + dateStart.toString() + " END: " + dateEnd.toString(), Toast.LENGTH_SHORT).show();
+                    /* convert them to timestamps like our items store purchaseDate as */
+                    Timestamp start = new Timestamp(dateStart);
+                    Timestamp end = new Timestamp(dateEnd);
+                    filterByDate(start, end);
+                    filtered = true;
+                }
+                if(make.trim().isEmpty() && keyword.trim().isEmpty() && (selectedEndDate==0L || selectedStartDate==0L)) { //if apply filter was selected but nothing is inputted
+                    getAllItemsFromDatabase();
+                }
+            }
+        });
+
+        // Initialize the date range values from SharedPreferences
+        displaySavedDateRange();
+
+
+        // Update the button text with the saved date range
+        Button calendarButton = findViewById(R.id.calendar_field);
+        updateButtonText(calendarButton, selectedStartDate, selectedEndDate);
+
+
+        // Date range picker
+        Button calendarField = findViewById(R.id.calendar_field);
+
+
+        // Set an OnClickListener to handle the button click
+        calendarField.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Create the MaterialDatePicker if not already created
+                if (dateRangePicker == null) {
+                    dateRangePicker = createMaterialDatePicker();
+                }
+                // Show the date range picker
+                dateRangePicker.show(getSupportFragmentManager(), dateRangePicker.toString());
+            }
+        });
+
 
         final FloatingActionButton tagActionButton = findViewById(R.id.tag_action_button);
         tagActionButton.setOnClickListener(view -> {
@@ -212,6 +308,13 @@ public class MainActivity extends AppCompatActivity implements Filterable{
                 @Override
                 public void onClick(View v) {
                     deleteItems(selectedItems,itemsRef);
+                    if (filterPanel.getVisibility() == View.VISIBLE) { //if the filter panel is visible
+                        filterPanel.setVisibility(View.GONE); //then make it invisible
+                        /* clear the edit texts for the next time the user uses the panel */
+                        makeField.setText("");
+                        keywordField.setText("");
+                        getAllItemsFromDatabase(); //also clear all of the filters
+                    }
                     deleteDialog.dismiss();
                 }
             });
@@ -251,6 +354,53 @@ public class MainActivity extends AppCompatActivity implements Filterable{
         });
     }
 
+    // Create the MaterialDatePicker with optional initial range
+    private MaterialDatePicker<Pair<Long, Long>> createMaterialDatePicker() {
+        MaterialDatePicker<Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker().build();
+
+        // Set a listener for when the user confirms the date range
+        builder.addOnPositiveButtonClickListener(selection -> {
+            // Get the selected date range
+            selectedStartDate = selection.first;
+            selectedEndDate = selection.second;
+            // Save the selected date range
+            saveDateRange(selectedStartDate, selectedEndDate);
+            // Update the button text
+            updateButtonText(findViewById(R.id.calendar_field), selectedStartDate, selectedEndDate);
+        });
+        return builder;
+    }
+
+    private void saveDateRange(Long startDate, Long endDate) {
+        SharedPreferences.Editor editor = getSharedPreferences(PREF_NAME, MODE_PRIVATE).edit();
+        editor.putLong(START_DATE_KEY, startDate);
+        editor.putLong(END_DATE_KEY, endDate);
+        editor.apply();
+    }
+
+    private void displaySavedDateRange() {
+        SharedPreferences sharedPreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+        selectedStartDate = sharedPreferences.getLong(START_DATE_KEY, 0);
+        selectedEndDate = sharedPreferences.getLong(END_DATE_KEY, 0);
+
+        // Display the saved date range on the button
+        updateButtonText(findViewById(R.id.calendar_field), selectedStartDate, selectedEndDate);
+    }
+
+    private void updateButtonText(Button button, Long startDate, Long endDate) {
+        if (startDate != 0 && endDate != 0) {
+            // Format the date range string
+            String formattedDateRange = formatDateRange(startDate, endDate);
+            button.setText(formattedDateRange);
+        }
+    }
+
+    private String formatDateRange(Long startDate, Long endDate) {
+        // You can customize the date format as needed
+        // This is just an example format, adjust it based on your preference
+        return String.format("%tF - %tF", startDate, endDate);
+    }
+
     private void hidePanel() {
 //        if (popupWindow != null && popupWindow.isShowing()) {
 //            isPanelShown = false;
@@ -273,7 +423,6 @@ public class MainActivity extends AppCompatActivity implements Filterable{
     }
 
     private void setUpActionButtonPanel() {
-
         // inflate layout for panel with 3 buttons
         @SuppressLint("InflateParams") View panelView = LayoutInflater.from(this).inflate(R.layout.action_button_panel, null);
 
@@ -282,10 +431,9 @@ public class MainActivity extends AppCompatActivity implements Filterable{
         popupWindow.setOutsideTouchable(false);
     }
 
-
-
     /**
      * Adds a new item to the items collection
+     * (used for testing)
      * @param item
      */
     public static void addItem(Item item, CollectionReference itemsRef){
@@ -393,25 +541,26 @@ public class MainActivity extends AppCompatActivity implements Filterable{
     /*
      * Given a start date and end date, filters the current item list
      * accordingly (ie. keeps items between start and end INCLUSIVE).
+     * @param startDate, endDate
      */
-    public void filterByDate(Date startDate, Date endDate) {
-//        Date inclusiveStart = new Date(startDate.getTime() - ONE_DAY); //remove a day from the start date so we filter inclusively
-//        ArrayList<Item> filteredList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
-//        for (int i = 0; i < itemList.size(); i++) { //for every item in the current list
-//            Item item = itemList.get(i); //get the item
-//            Date purchaseDate = item.getPurchaseDate(); //get the purchase date of the item
-//            if (purchaseDate.before(inclusiveStart) || item.getPurchaseDate().after(endDate)) { //if the purchase date does not fall within the given date range
-//                filteredList.add(item); //add it to the filtered list
-//            }
-//        }
-//        itemList.removeAll(filteredList); //remove all items that are to be filtered out from our current list ie. were not purchased in the provided time frame
-//        itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
-//        calculateTotalEstimatedValue(); //recalculate and display the total estimated value
+    public void filterByDate(Timestamp startDate, Timestamp endDate) {
+        ArrayList<Item> filteredList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
+        for (int i = 0; i < itemList.size(); i++) { //for every item in the current list
+            Item item = itemList.get(i); //get the item
+            Timestamp purchaseDate = item.getPurchaseDate(); //get the purchase date of the item
+            if (purchaseDate.toDate().before(startDate.toDate()) || purchaseDate.toDate().after(endDate.toDate())) { //if the purchase date does not fall within the given date range
+                filteredList.add(item); //add it to the filtered list
+            }
+        }
+        itemList.removeAll(filteredList); //remove all items that are to be filtered out from our current list ie. were not purchased in the provided time frame
+        itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
+        calculateTotalEstimatedValue(); //recalculate and display the total estimated value
     }
 
     /*
      * Given a make, filters the current item list
      * accordingly (ie. keeps items with the specified make).
+     * @param make
      */
     public void filterByMake(String make) {
         ArrayList<Item> filteredList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
@@ -427,11 +576,12 @@ public class MainActivity extends AppCompatActivity implements Filterable{
         calculateTotalEstimatedValue(); //recalculate and display the total estimated value
     }
 
-    /*
+    /**
      * Given a description keyword, filters the current item list
      * accordingly (ie. keeps items with the specified keyword).
+     * @param keyword
      */
-    public void filterbyKeyword(String keyword) {
+    public void filterByKeyword(String keyword) {
         keyword = keyword.toLowerCase(); //change the keyword to lowercase so we can be case insensitive
         ArrayList<Item> filteredList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
         for (int i = 0; i < itemList.size(); i++) { //for every item in the current list
@@ -446,15 +596,16 @@ public class MainActivity extends AppCompatActivity implements Filterable{
         calculateTotalEstimatedValue(); //recalculate and display the total estimated value
     }
 
-    /*
+    /**
      * Given a tag, filters the current item list accordingly
      * (ie. keeps items associated with the specified tag).
+     * @param tag
      */
-    public void filterByTag(String tag) { //currently unavailable so let them know
+    public void filterByTag(String tag) { //currently unavailable
         Toast.makeText(MainActivity.this, R.string.no_tag_filter_msg, Toast.LENGTH_SHORT).show();
     }
 
-    /*
+    /**
      * Calculates the total estimated value of all the items currently in the list
      * and updates the frontend to display the correct total
      */
@@ -468,5 +619,4 @@ public class MainActivity extends AppCompatActivity implements Filterable{
         String totalText = String.format("%.2f", total); //format the total we calculated as a string
         totalEstimatedValue.setText(this.getString(R.string.total) + totalText); //and updated our frontend to display the updated amount
     }
-
 }
