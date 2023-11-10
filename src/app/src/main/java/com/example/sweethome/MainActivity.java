@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements Filterable{
 
         /* set up a connection to our db and a reference to the items collection */
         db = FirebaseFirestore.getInstance();
-        itemsRef = db.collection("myItems");
+        itemsRef = db.collection("items");
 
         /* set up our list of items, find the list on our frontend layout, and set the corresponding array adapter */
         itemList = new ArrayList<Item>();
