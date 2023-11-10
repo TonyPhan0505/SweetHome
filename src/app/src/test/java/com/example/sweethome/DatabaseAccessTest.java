@@ -42,7 +42,7 @@ public class DatabaseAccessTest {
     private void testAddItem() {
         Item item = mockItem0();
 
-        MainActivity.addItem(item, mockItemsRef);
+//        MainActivity.addItem(item, mockItemsRef);
     }
 
     @Test

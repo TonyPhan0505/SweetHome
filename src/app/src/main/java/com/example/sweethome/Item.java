@@ -17,7 +17,7 @@ package com.example.sweethome;
  */
 
 /* necessary imports */
-import java.net.URL;
+
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -45,20 +45,7 @@ public class Item {
         this.estimatedValue = estimatedValue;
         this.purchaseDate = purchaseDate;
         this.comment = comment;
-        this.photos = new ArrayList<String>(); // the photos array will be initialized as an empty array, but it can be added to and deleted from using the add and delete methods below
-    }
-
-    public Item(String name, String description, String make, String model, String serialNumber, double estimatedValue, Date purchaseDate, String comment, Boolean selected) {
-        this.name = name;
-        this.make = make;
-        this.description = description;
-        this.model = model;
-        this.serialNumber = serialNumber;
-        this.estimatedValue = estimatedValue;
-        this.purchaseDate = purchaseDate;
-        this.comment = comment;
-        this.photos = new ArrayList<String>(); // the photos array will be initialized as an empty array, but it can be added to and deleted from using the add and delete methods below
-        this.selected = selected;
+        //this.photos = new ArrayList<String>(); // the photos array will be initialized as an empty array, but it can be added to and deleted from using the add and delete methods below
     }
 
     /* no-arg constructor for this class */
@@ -161,7 +148,7 @@ public class Item {
     }
 
     /* function to delete an image URL from the photo arraylist */
-    public void deletePhotos(String photo) {
+    public void deletePhoto(String photo) {
         this.photos.remove(photo);
     }
 }
