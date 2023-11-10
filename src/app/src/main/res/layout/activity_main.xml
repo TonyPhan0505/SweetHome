@@ -7,12 +7,295 @@
     tools:context=".MainActivity">
 
     <TextView
-        android:layout_width="wrap_content"
+        android:id="@+id/app_header"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:gravity="center"
+        android:padding="10dp"
+        android:text="@string/app_name"
+        android:textColor="@color/dark_grey"
+        android:textSize="24sp"
+        android:typeface="serif"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+    </TextView>
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:id="@+id/line1"
+        android:background="@color/dark_grey"
+        app:layout_constraintBottom_toTopOf="@+id/search_add_container"
+        app:layout_constraintTop_toBottomOf="@+id/app_header">
+    </View>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/search_add_container"
+        app:layout_constraintTop_toBottomOf="@id/line1">
+        <EditText
+            android:id="@+id/search_input"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:background="@drawable/search_bg"
+            android:drawableStart="@android:drawable/ic_menu_search"
+            android:drawablePadding="5dp"
+            android:hint="@string/search_hint"
+            android:imeOptions="actionSearch"
+            android:inputType="text" />
+        <Button
+            android:id="@+id/add_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:text="@string/add_item"
+            android:padding="5dp"
+            android:minHeight="0dp"
+            android:minWidth="0dp"
+            android:textAllCaps="false"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/sort_filter_container"
+        app:layout_constraintTop_toBottomOf="@id/search_add_container">
+        <Spinner
+            android:id="@+id/spinner_sort_options"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:background="@drawable/spinner_bg"
+            android:dropDownSelector="@drawable/spinner_bg"
+            android:gravity="center"
+            android:layout="@layout/custom_spinner"
+            android:popupBackground="@drawable/spinner_bg"
+            android:spinnerMode="dropdown"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/search_add_container" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+        </View>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/filter_button"
+            android:layout_width="30sp"
+            android:layout_height="20sp"
+            android:layout_margin="5dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="@android:drawable/ic_menu_sort_by_size"
+            app:backgroundTint="@android:color/white"
+            app:borderWidth="3dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/filter_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@+id/sort_filter_container"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_margin="5dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/calendar_textview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Date range"
+                android:textColor="@color/black"
+                android:layout_marginStart="8dp"
+                android:layout_gravity="center_vertical" />
+            <Button
+                android:id="@+id/calendar_field"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_gravity="center_vertical"
+                android:backgroundTint="@color/white"
+                android:clickable="true"
+                android:drawableLeft="@android:drawable/ic_menu_my_calendar"
+                app:cornerRadius="20dp"
+                app:strokeColor="@color/grey"
+                app:strokeWidth="1dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_margin="5dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/keyword_textview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Keywords"
+                android:paddingBottom="4dp"
+                android:textColor="@color/black"
+                android:layout_marginStart="8dp"
+                android:layout_gravity="center_vertical" />
+            <EditText
+                android:id="@+id/keyword_field"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:layout_gravity="center_vertical"
+                android:autoSizeMinTextSize="8sp"
+                android:background="@drawable/search_bg"
+                android:drawableLeft="@android:drawable/ic_menu_search"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:padding="5dp"
+                app:cornerRadius="10dp"
+                app:strokeColor="@color/black"
+                app:strokeWidth="1dp" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_margin="5dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/make_textview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Make"
+                android:paddingBottom="4dp"
+                android:textColor="@color/black"
+                android:layout_marginStart="8dp"
+                android:layout_gravity="center_vertical" />
+            <EditText
+                android:id="@+id/make_field"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:layout_gravity="center_vertical"
+                android:background="@drawable/search_bg"
+                android:drawableLeft="@android:drawable/ic_menu_search"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:maxLength="20"
+                android:padding="5dp"
+                app:cornerRadius="10dp"
+                app:strokeColor="@color/black"
+                app:strokeWidth="1dp" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_margin="5dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/tags_textview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tags"
+                android:paddingBottom="4dp"
+                android:textColor="@color/black"
+                android:layout_gravity="center_vertical" />
+            <Spinner
+                android:id="@+id/tag_field"
+                android:layout_width="match_parent"
+                android:layout_height="31dp"
+                android:layout_gravity="center_vertical"
+                android:background="@drawable/search_bg"
+                android:dropDownSelector="@drawable/search_bg"
+                android:popupBackground="@drawable/search_bg"
+                android:spinnerMode="dropdown"
+                app:cornerRadius="20dp"
+                app:strokeColor="@color/black"
+                app:strokeWidth="1dp" />
+            <Button
+                android:id="@+id/apply_filter_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:layout_gravity="end"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:padding="5dp"
+                android:text="@string/apply_filter"
+                android:textAllCaps="false"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/item_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:paddingLeft="30dp"
+        android:paddingRight="30dp"
+        app:layout_constraintBottom_toTopOf="@id/line2"
+        app:layout_constraintTop_toBottomOf="@+id/filter_panel"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+    </ListView>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:id="@+id/line2"
+        android:background="@color/dark_grey"
+        app:layout_constraintTop_toTopOf="@+id/total_estimated_value_footer">
+    </View>
+
+    <TextView
+        android:id="@+id/total_estimated_value_footer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:text="@string/total"
+        android:textColor="@color/dark_grey"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:typeface="serif"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+    </TextView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/tag_action_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="3dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="@android:drawable/ic_menu_edit"
+        android:foregroundGravity="center"
+        android:foregroundTint="@color/beige"
+        android:foregroundTintMode="src_atop"
+        app:backgroundTint="@color/dark_green"
+        app:layout_constraintBottom_toTopOf="@+id/line2"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/delete_action_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="3dp"
+        android:clickable="true"
+        android:foreground="@android:drawable/ic_menu_delete"
+        android:foregroundGravity="center"
+        android:foregroundTint="@color/beige"
+        android:foregroundTintMode="src_atop"
+        app:backgroundTint="#BC0416"
+        app:layout_constraintBottom_toTopOf="@+id/tag_action_button"
+        app:layout_constraintEnd_toEndOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
