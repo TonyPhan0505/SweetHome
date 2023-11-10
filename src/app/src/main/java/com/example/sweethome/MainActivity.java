@@ -2,7 +2,11 @@ package com.example.sweethome;
 /**
  * MainActivity
  *
- * This class controls the main activity of our SweetHome app.
+ * This class serves as an entry point to the SweetHome application. It extends the
+ * AppCompatActivity class and handles the main screen of the application. From here, users can
+ * interact with various features in the app.
+ * <p>The “screen” extra can be set to “Add Item” or “View / Edit” to indicate the desired screen
+ * mode in the {@link ManageItemActivity}.</p>
  *
  * November 10, 2023
  *
@@ -12,11 +16,13 @@ package com.example.sweethome;
 
 /* necessary imports */
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -38,15 +44,16 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.util.Pair;
+import android.Manifest;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.Timestamp;
-import com.google.firebase.*;
-import com.google.firebase.Timestamp.*;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.EventListener;
@@ -93,11 +100,17 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private final long ONE_DAY = 86400000;
     private final long ONE_HOUR = 3600000;
     private final long ONE_SECOND = 1000;
+    private static final int CAMERA_PERMISSION_REQUEST = 123;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // check if the user has granted permission to access their camera
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST);
+        }
 
         /* set up a connection to our db and a reference to the items collection */
         db = FirebaseFirestore.getInstance();
@@ -155,33 +168,12 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             }
         });
 
-        //TODO: Link the add button to ManageItemActivity
-//        addItemButton = findViewById(R.id.add_button);
-//        addItemButton.setOnClickListener(view -> {
-//            Intent i = new Intent(context, ManageItemActivity.class;
-//            context.startActivity(i);
-//        });
-
-        itemListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Item item = (Item) itemListView.getItemAtPosition(position);
-                Intent i = new Intent(MainActivity.this, ManageItemActivity.class);
-                i.putExtra("item", item); // TODO: make sure that ManageItemActivity implements Serializable
-                context.startActivity(i);
-            }
+        addItemButton = findViewById(R.id.add_button);
+        addItemButton.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, ManageItemActivity.class);
+            intent.putExtra("screen", "Add Item");
+            startActivity(intent);
         });
-
-        //TODO: Implement the following in the ManageItemActivity
-//        Item item = (Item) getIntent().getSerializableExtra("item");
-
-
-
-
-//        //TODO: Delete addItem() instances below when add button is implemented
-//        addItem(new Item("cooler", "this is a fridge", "Samsung", "H-2023", "12345698", 998.45, Timestamp.now(),"No comment"), itemsRef);
-//        addItem(new Item("tv", "this is tv", "LG", "4K HD", "23456789", 699.99, Timestamp.now() ,"high tech"), itemsRef);
-
 
         /* find our frontend elements for filtering */
         filterPanel = findViewById(R.id.filter_panel);
@@ -200,7 +192,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                     /* clear the edit texts for the next time the user uses the panel */
                     makeField.setText("");
                     keywordField.setText("");
-                    getAllItemsFromDatabase(); //also clear all of the filters
+                    getAllItemsFromDatabase(itemsRef); //also clear all of the filters
                 } else {
                     filterPanel.setVisibility(View.VISIBLE); //otherwise just show the panel since it must currently be invisible
                     filtered = false; //set the filtered flag as false
@@ -243,7 +235,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                     filtered = true;
                 }
                 if(make.trim().isEmpty() && keyword.trim().isEmpty() && (selectedEndDate==0L || selectedStartDate==0L)) { //if apply filter was selected but nothing is inputted
-                    getAllItemsFromDatabase();
+                    getAllItemsFromDatabase(itemsRef);
                 }
             }
         });
@@ -313,7 +305,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                         /* clear the edit texts for the next time the user uses the panel */
                         makeField.setText("");
                         keywordField.setText("");
-                        getAllItemsFromDatabase(); //also clear all of the filters
+                        getAllItemsFromDatabase(itemsRef); //also clear all of the filters
                     }
                     deleteDialog.dismiss();
                 }
@@ -618,5 +610,22 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         totalEstimatedValue = findViewById(R.id.total_estimated_value_footer); //find our total estimated value textview from our frontend layout
         String totalText = String.format("%.2f", total); //format the total we calculated as a string
         totalEstimatedValue.setText(this.getString(R.string.total) + totalText); //and updated our frontend to display the updated amount
+    }
+
+    /**
+     * Handles the result of the permission request for accessing the camera.
+     *
+     * @param requestCode The request code passed to requestPermissions.
+     * @param permissions The requested permissions.
+     * @param grantResults The grant results for the corresponding permissions.
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == CAMERA_PERMISSION_REQUEST) {
+            if (grantResults.length <= 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Please allow access to your camera.", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }

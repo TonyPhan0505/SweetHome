@@ -1,7 +1,13 @@
 package com.example.sweethome;
-
+/**
+ * The Tag class represents a tag with a name and a color. Tags can be associated with items
+ * to provide additional categorization or information.
+ *
+ * November 10, 2023
+ *
+ */
 public class Tag {
-
+    /* attributes for this class */
     private String tagName;
     private String tagColor;
 

@@ -4,7 +4,6 @@
     <string name="date_format">yyyy-MM-dd</string>
     <string name="cad_currency">CAD $</string>
     <string name="add_item">Add New</string>
-    <string name="apply_filter">APPLY</string>
     <string name="total">Total Estimated Value:\t\t\t\t\t CAD $</string>
     <string name="no_adding_msg">oops no adding yet</string>
     <string name="no_tag_sort_msg">oops no sorting by tags yet</string>

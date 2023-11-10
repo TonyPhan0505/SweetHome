@@ -36,9 +36,10 @@ public class Item implements Serializable {
     private Boolean selected = false;
     private ArrayList<String> photos;
     private String id;
+    private ArrayList<String> tags;
 
     /* constructor for this class */
-    public Item(String id, String name, String description, String make, String model, String serialNumber, double estimatedValue, Timestamp purchaseDate, String comment, ArrayList<String> photos) {
+    public Item(String id, String name, String description, String make, String model, String serialNumber, double estimatedValue, Timestamp purchaseDate, String comment, ArrayList<String> photos, ArrayList<String> tags) {
         this.id = id;
         this.name = name;
         this.make = make;
@@ -49,9 +50,10 @@ public class Item implements Serializable {
         this.purchaseDate = purchaseDate;
         this.comment = comment;
         this.photos = new ArrayList<>(photos);
+        this.tags = new ArrayList<>(tags);
     }
 
-    public Item(String id, String name, String description, String make, String model, String serialNumber, double estimatedValue, Timestamp purchaseDate, String comment, ArrayList<String> photos, Boolean selected) {
+    public Item(String id, String name, String description, String make, String model, String serialNumber, double estimatedValue, Timestamp purchaseDate, String comment, ArrayList<String> photos, ArrayList<String> tags, Boolean selected) {
         this.id = id;
         this.name = name;
         this.make = make;
@@ -63,6 +65,7 @@ public class Item implements Serializable {
         this.comment = comment;
         this.photos = new ArrayList<>(photos);
         this.selected = selected;
+        this.tags = new ArrayList<>(tags);
     }
 
     /* no-arg constructor for this class */
@@ -167,5 +170,12 @@ public class Item implements Serializable {
     /* function to delete an image URL from the photo arraylist */
     public void deletePhotos(String photo) {
         this.photos.remove(photo);
+    }
+
+    public ArrayList<String> getTags() {
+        return this.tags;
+    }
+    public void setTags(ArrayList<String> tags) {
+        this.tags = tags;
     }
 }

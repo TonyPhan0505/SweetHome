@@ -79,7 +79,6 @@ public class ItemsCustomAdapter extends ArrayAdapter<Item> {
                     CheckBox checkbox = (CheckBox) v;
                     Item item = (Item) checkbox.getTag();
                     item.setSelected(checkbox.isChecked());
-
                 }
             });
 
@@ -89,9 +88,7 @@ public class ItemsCustomAdapter extends ArrayAdapter<Item> {
                     Context context = v.getContext();
                     ShapeableImageView image = (ShapeableImageView) v;
                     Item item = (Item) image.getTag();
-//                    ManageItemActivity.itemObject = item;
                     Intent intent = new Intent(context, ManageItemActivity.class);
-//                    Item itemToUpdate = new Item("jD2fXqry8okFHgTDlmhZ", "Robot", "A powerful bot that will take over the world.", "Google", "GB2", "RGB123", 1500, Timestamp.now(), "This bot can be so much smarter if you train it.", new ArrayList<>());
                     intent.putExtra("screen", "View / Edit");
                     intent.putExtra("id", item.getItemId());
                     intent.putExtra("name", item.getName());
@@ -103,8 +100,8 @@ public class ItemsCustomAdapter extends ArrayAdapter<Item> {
                     intent.putExtra("purchaseDate", item.getPurchaseDate().toDate());
                     intent.putExtra("comment", item.getComment());
                     intent.putExtra("photos", item.getPhotos());
+                    intent.putExtra("tags", item.getTags());
                     context.startActivity(intent);
-
                 }
             });
         } else {

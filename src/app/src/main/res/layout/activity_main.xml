@@ -13,7 +13,7 @@
         android:gravity="center"
         android:padding="10dp"
         android:text="@string/app_name"
-        android:textColor="@color/dark_grey"
+        android:textColor="@color/black"
         android:textSize="24sp"
         android:typeface="serif"
         app:layout_constraintEnd_toEndOf="parent"
@@ -44,6 +44,7 @@
             android:background="@drawable/search_bg"
             android:drawableStart="@android:drawable/ic_menu_search"
             android:drawablePadding="5dp"
+            android:textColor="@color/black"
             android:hint="@string/search_hint"
             android:imeOptions="actionSearch"
             android:inputType="text" />
