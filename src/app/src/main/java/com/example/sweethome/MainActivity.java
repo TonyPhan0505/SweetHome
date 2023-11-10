@@ -2,7 +2,11 @@ package com.example.sweethome;
 /**
  * MainActivity
  *
- * This class controls the main activity of our SweetHome app.
+ * This class serves as an entry point to the SweetHome application. It extends the
+ * AppCompatActivity class and handles the main screen of the application. From here, users can
+ * interact with various features in the app.
+ * <p>The “screen” extra can be set to “Add Item” or “View / Edit” to indicate the desired screen
+ * mode in the {@link ManageItemActivity}.</p>
  *
  * November 10, 2023
  *

@@ -1,5 +1,15 @@
 package com.example.sweethome;
+/**
+ * The ManageItemActivity class represents the activity for managing items, including adding new
+ * item or View/Edit existing ones. The activity includes functionalities for adding tags,
+ * capturing and displaying images, and managing item details such as name, description, make,
+ * model, serial number, estimated value, purchased date, and comments.
+ *
+ * November 10, 2023
+ *
+ */
 
+/* Necessary imports */
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
@@ -55,6 +65,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 public class ManageItemActivity extends AppCompatActivity {
+    /* attributes and variables of this class */
     private StorageReference photosStorageRef = FirebaseStorage.getInstance().getReference();
     private StorageReference photosRef = photosStorageRef.child("images");
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -103,6 +114,12 @@ public class ManageItemActivity extends AppCompatActivity {
     private int numOfAddedPhotos = 0;
     private int numOfExistingPhotos = 0;
 
+    /**
+     * Called when the activity is first created. Initializes UI components, sets up listeners,
+     * and retrieves item information if editing an existing item.
+     *
+     * @param savedInstanceState A Bundle containing the saved state of the activity.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -403,7 +420,9 @@ public class ManageItemActivity extends AppCompatActivity {
         });
     }
 
-    // open device's gallery to select 1 or multiple image(s)
+    /**
+     * Opens the device's gallery to allow the user to select one or multiple images.
+     */
     private void pickImageFromGallery() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
@@ -411,13 +430,20 @@ public class ManageItemActivity extends AppCompatActivity {
         startActivityForResult(intent, 1);
     }
 
-    // open device's camera to take a photo
+    /**
+     * Opens the device's camera to allow the user to take a photo.
+     */
     private void takePhotoWithCamera() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult(intent, 2);
     }
 
-    // convert photo's bitmap to an image uri to store in sliderDataArrayList
+    /**
+     * Converts a photo's bitmap to an image URI to store in the sliderDataArrayList.
+     *
+     * @param bitmap The Bitmap representation of the photo.
+     * @return The URI of the image.
+     */
     private Uri getImageUriFromBitmap(Bitmap bitmap) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
@@ -425,6 +451,13 @@ public class ManageItemActivity extends AppCompatActivity {
         return Uri.parse(path);
     }
 
+    /**
+     * Handles the result of the permission request for accessing the camera.
+     *
+     * @param requestCode The request code passed to requestPermissions.
+     * @param permissions The requested permissions.
+     * @param grantResults The grant results for the corresponding permissions.
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -435,7 +468,13 @@ public class ManageItemActivity extends AppCompatActivity {
         }
     }
 
-    // handle effects after selecting photos from gallery and taking photo with camera
+    /**
+     * Handles the result after selecting photos from the gallery or taking a photo with the camera.
+     *
+     * @param requestCode The request code passed to startActivityForResult.
+     * @param resultCode The result code returned by the child activity.
+     * @param data The data returned by the child activity.
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -478,6 +517,11 @@ public class ManageItemActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Checks whether the user input for item details is valid.
+     *
+     * @return True if the input is valid; false otherwise.
+     */
     private boolean isInputValid() {
         boolean isValid = true;
 

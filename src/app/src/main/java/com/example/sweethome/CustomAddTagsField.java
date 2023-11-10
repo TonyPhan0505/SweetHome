@@ -1,5 +1,21 @@
 package com.example.sweethome;
+/**
+ * This class extends the AppCompatEdittext class to use EditText component for adding and
+ * displaying tags. It includes addTag method to add tags when the user presses the Enter key or
+ * when the input action is done. The added tags are displayed as individual items with distinctive
+ * colors and can removed.
+ * <p>This class also maintains an internal list of added tag names, which can be retrieved
+ * using the getAddedTagNames method.</p>
+ * <p>This class utilizes a {@link ColorGenerator } to generate random background colors for the
+ * tags and determine suitable text color that contrasts well with the background color.</p>
+ * <p>Note: The layout for each tag is defined under the “tag_item.xml” layout resource file,
+ * referenced by R.layout.tag_item identifier <p>
+ *
+ *     November 10, 2023
+ *
+ */
 
+/* necessary imports */
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Typeface;
@@ -15,13 +31,14 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.appcompat.widget.AppCompatEditText;
-
 import java.util.ArrayList;
 
 public class CustomAddTagsField extends AppCompatEditText {
+    /* attributes of this class */
     private LinearLayout tags_container;
     private ArrayList<String> addedTagNames = new ArrayList<>();
 
+    /* constructors for this class */
     public CustomAddTagsField(Context context) {
         super(context);
         init();
@@ -37,6 +54,7 @@ public class CustomAddTagsField extends AppCompatEditText {
         init();
     }
 
+    /* initialize the CustomAddTagsField */
     private void init() {
         tags_container = new LinearLayout(getContext());
         tags_container.setOrientation(LinearLayout.HORIZONTAL);
@@ -51,6 +69,7 @@ public class CustomAddTagsField extends AppCompatEditText {
             }
             return false;
         });
+        /* add an editor action listener for "Done" or "Next" actions */
         this.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
@@ -67,6 +86,7 @@ public class CustomAddTagsField extends AppCompatEditText {
                 return false;
             }
         });
+        /* add a text changed listener to change the typeface when the text is changed */
         addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
@@ -83,6 +103,11 @@ public class CustomAddTagsField extends AppCompatEditText {
         });
     }
 
+    /**
+     * Add a tag to the CustomAddTagsField.
+     *
+     * @param tagName The name of the tag to be added.
+     */
     public void addTag(String tagName) {
         if (!tagName.isEmpty()) {
             this.addedTagNames.add(tagName);
@@ -108,6 +133,11 @@ public class CustomAddTagsField extends AppCompatEditText {
         }
     }
 
+    /**
+     * Get the list of added tag names.
+     *
+     * @return ArrayList containing the added tag names.
+     */
     public ArrayList<String> getAddedTagNames() {
         return this.addedTagNames;
     }
