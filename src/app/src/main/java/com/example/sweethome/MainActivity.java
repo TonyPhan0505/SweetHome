@@ -6,7 +6,7 @@ package com.example.sweethome;
  * AppCompatActivity class and handles the main screen of the application. From here, users can
  * interact with various features in the app.
  * <p>The “screen” extra can be set to “Add Item” or “View / Edit” to indicate the desired screen
- * mode in the {@link ManageItemActivity}.</p>
+ * mode in the {@link com.example.sweethome.ManageItemActivity}.</p>
  *
  * November 10, 2023
  *
@@ -15,13 +15,12 @@ package com.example.sweethome;
  */
 
 /* necessary imports */
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
@@ -47,7 +46,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.util.Pair;
-import android.Manifest;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -467,9 +465,13 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         }
     }
 
-    /*
+    /**
      * Given a selected sorting option, sorts the current item
      * list according to the selected criteria.
+     * @param selectedSortOption
+     * @param itemList
+     * @param itemAdapter
+     * @param context
      */
     public static void sortDataList(String selectedSortOption, ArrayList<Item> itemList, ItemsCustomAdapter itemAdapter, Context context) {
         if (selectedSortOption.equals(context.getString(R.string.sort_least_recent))) { //if we are sorting items by oldest to newest acquired
@@ -505,6 +507,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     /**
      * Gets all of the items in the items collection
      * and updates the frontend to display them in the list
+     * @param itemsRef
      */
     private void getAllItemsFromDatabase(CollectionReference itemsRef){
         itemsRef.get()
@@ -530,10 +533,11 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 });
     }
 
-    /*
+    /**
      * Given a start date and end date, filters the current item list
      * accordingly (ie. keeps items between start and end INCLUSIVE).
-     * @param startDate, endDate
+     * @param startDate
+     * @param endDate
      */
     public void filterByDate(Timestamp startDate, Timestamp endDate) {
         ArrayList<Item> filteredList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
@@ -549,7 +553,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         calculateTotalEstimatedValue(); //recalculate and display the total estimated value
     }
 
-    /*
+    /**
      * Given a make, filters the current item list
      * accordingly (ie. keeps items with the specified make).
      * @param make
