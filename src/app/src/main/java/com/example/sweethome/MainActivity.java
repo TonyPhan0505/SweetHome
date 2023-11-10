@@ -84,8 +84,8 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private static final String END_DATE_KEY = "endDate";
     // Declare MaterialDatePicker as a field
     private MaterialDatePicker<Pair<Long, Long>> dateRangePicker;
-    private Long selectedStartDate = 0L;
-    private Long selectedEndDate = 0L;
+    private Long selectedStartDate;
+    private Long selectedEndDate;
     private boolean filtered;
     /* constants */
     private final long ONE_DAY = 86400000;
@@ -173,6 +173,8 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 } else {
                     filterPanel.setVisibility(View.VISIBLE); //otherwise just show the panel since it must currently be invisible
                     filtered = false;
+                    selectedStartDate = 0L;
+                    selectedEndDate = 0L;
                 }
             }
         });
@@ -201,6 +203,14 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                     Timestamp start = new Timestamp(dateStart);
                     Date dateEnd = new Date(selectedStartDate);
                     Timestamp end = new Timestamp(dateEnd);
+                    Toast.makeText(MainActivity.this, "START: " + start.toString() + " END: " + end.toString(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "START: " + start.toDate().toString() + " END: " + end.toDate().toString(), Toast.LENGTH_SHORT).show();
+                    filterByDate(start, end);
+                    filtered = true;
+//                    Date dateStart = new Date(selectedStartDate);
+//                    Date dateEnd = new Date(selectedStartDate);
+//                    filterByD(dateStart, dateEnd);
+//                    filtered = true;
                 }
             }
         });
@@ -305,12 +315,8 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             // Get the selected date range
             selectedStartDate = selection.first;
             selectedEndDate = selection.second;
-
-
             // Save the selected date range
             saveDateRange(selectedStartDate, selectedEndDate);
-
-
             // Update the button text
             updateButtonText(findViewById(R.id.calendar_field), selectedStartDate, selectedEndDate);
         });
@@ -496,18 +502,64 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
     }
 
+//    /*
+//     * Given a start date and end date, filters the current item list
+//     * accordingly (ie. keeps items between start and end INCLUSIVE).
+//     * @param startDate, endDate
+//     */
+//    public void filterByDate(Timestamp startDate, Timestamp endDate) {
+//        Date inclusiveStart = new Date(startDate.getSeconds()*1000 - ONE_DAY); //remove a day from the start date so we filter inclusively
+//        ArrayList<Item> filteredList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
+//        for (int i = 0; i < itemList.size(); i++) { //for every item in the current list
+//            Item item = itemList.get(i); //get the item
+//            Timestamp purchaseDate = item.getPurchaseDate(); //get the purchase date of the item
+//            if (purchaseDate.toDate().before(inclusiveStart) || purchaseDate.toDate().after(endDate.toDate())) { //if the purchase date does not fall within the given date range
+//                filteredList.add(item); //add it to the filtered list
+//            }
+//        }
+//        itemList.removeAll(filteredList); //remove all items that are to be filtered out from our current list ie. were not purchased in the provided time frame
+//        itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
+//        calculateTotalEstimatedValue(); //recalculate and display the total estimated value
+//    }
+
     /*
      * Given a start date and end date, filters the current item list
      * accordingly (ie. keeps items between start and end INCLUSIVE).
      * @param startDate, endDate
      */
     public void filterByDate(Timestamp startDate, Timestamp endDate) {
-        Date inclusiveStart = new Date(startDate.getSeconds()*1000 - ONE_DAY); //remove a day from the start date so we filter inclusively
+        itemsRef.whereLessThanOrEqualTo("purchaseDate", endDate)
+                .whereGreaterThanOrEqualTo("purchaseDate", startDate)
+                .get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        itemList.clear(); //clear whatever data we currently have stored in our item list
+                        for (QueryDocumentSnapshot doc : queryDocumentSnapshots){ //get everything that is stored in our db at the moment
+                            Item item = doc.toObject(Item.class); //convert the contents of each document in the items collection to an item object
+                            item.setItemId(doc.getId()); //set the item ID
+                            Log.i("Firestore", String.format("Item %s fetched for filtering by date", item.getName())); //log the name of the item we successfully got from the db
+                            itemList.add(item); //add the item object to our item list
+                        }
+                        String currentSortOption = sortSpinner.getSelectedItem().toString(); //get the currently selected sort option
+                        sortDataList(currentSortOption); //sort the list accordingly and notify changes were made to update frontend
+                        calculateTotalEstimatedValue(); //recalculate and display the total estimated value
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("Firestore", "Error fetching data", e);
+                    }
+                });
+    }
+
+    public void filterByD(Date startDate, Date endDate) {
+        Date inclusiveStart = new Date(startDate.getTime() - ONE_DAY); //remove a day from the start date so we filter inclusively
         ArrayList<Item> filteredList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
         for (int i = 0; i < itemList.size(); i++) { //for every item in the current list
             Item item = itemList.get(i); //get the item
             Timestamp purchaseDate = item.getPurchaseDate(); //get the purchase date of the item
-            if (purchaseDate.toDate().before(inclusiveStart) || purchaseDate.toDate().after(endDate.toDate())) { //if the purchase date does not fall within the given date range
+            if (purchaseDate.toDate().before(inclusiveStart) || purchaseDate.toDate().after(endDate)) { //if the purchase date does not fall within the given date range
                 filteredList.add(item); //add it to the filtered list
             }
         }
