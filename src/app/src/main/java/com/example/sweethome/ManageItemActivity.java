@@ -12,6 +12,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -43,17 +44,21 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.smarteist.autoimageslider.SliderView;
+
+import org.checkerframework.checker.units.qual.A;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 import javax.annotation.Nullable;
 
 public class ManageItemActivity extends AppCompatActivity {
-    private FirebaseStorage imageStorage = FirebaseStorage.getInstance();
-    private StorageReference imageStorageRef = imageStorage.getReference();
+    private StorageReference photosStorageRef = FirebaseStorage.getInstance().getReference();
+    private StorageReference photosRef = photosStorageRef.child("images");
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference itemsCollection = db.collection("items");
     private CustomAddTagsField add_tags_field;
@@ -70,7 +75,8 @@ public class ManageItemActivity extends AppCompatActivity {
     private Double estimatedValue;
     private String purchaseDate;
     private String comment;
-    private ArrayList<Uri> photos;
+    private ArrayList<Uri> photoUris = new ArrayList<>();
+    private ArrayList<String> photoUrls = new ArrayList<>();
     private CardView open_gallery_button;
     private CardView open_camera_button;
     private Uri imageUri;
@@ -133,32 +139,31 @@ public class ManageItemActivity extends AppCompatActivity {
             String screen = intent.getStringExtra("screen");
             screen_name.setText(screen);
             if (edit_screen_name.equals(screen)) {
-                Item item = (Item) intent.getSerializableExtra("item");
-                itemId = item.getItemId();
-                name = item.getName();
+                itemId = intent.getStringExtra("id");
+                name = intent.getStringExtra("name");
                 item_name_field.setText(name);
-                description = item.getDescription();
+                description = intent.getStringExtra("description");
                 description_field.setText(description);
-                make = item.getMake();
+                make = intent.getStringExtra("make");
                 make_field.setText(make);
-                model = item.getModel();
+                model = intent.getStringExtra("model");
                 model_field.setText(model);
-                serialNumber = item.getSerialNumber();
+                serialNumber = intent.getStringExtra("serialNumber");
                 serial_number_field.setText(serialNumber);
-                estimatedValue = item.getEstimatedValue();
+                estimatedValue = intent.getDoubleExtra("estimatedValue", 0.0);
                 value_field.setText(String.valueOf(estimatedValue));
-                purchaseDate =  dateFormat.format(item.getPurchaseDate().toDate());
+                purchaseDate = dateFormat.format((Date) intent.getSerializableExtra("purchaseDate"));
                 date_field.setText(purchaseDate);
-                comment = item.getComment();
+                comment = intent.getStringExtra("comment");
                 comment_field.setText(comment);
-                photos = intent.getParcelableArrayListExtra("photos");
+                photoUrls = (ArrayList<String>) intent.getSerializableExtra("photos");
             }
         }
 
         // populate the image slider if the item is associated with at least 1 photo.
-        if (photos != null) {
-            for (int i = 0; i < photos.size(); i++) {
-                sliderDataArrayList.add(new ImageSliderData(photos.get(i)));
+        if (photoUrls.size() > 0) {
+            for (int i = 0; i < photoUrls.size(); i++) {
+                sliderDataArrayList.add(new ImageSliderData(Uri.parse(photoUrls.get(i))));
             }
             adapter.notifyDataSetChanged();
             sliderView.setSliderAdapter(adapter);
@@ -183,7 +188,11 @@ public class ManageItemActivity extends AppCompatActivity {
                     Double estimatedValue = documentSnapshot.getDouble("estimatedValue");
                     Timestamp purchaseDate = documentSnapshot.getTimestamp("purchaseDate");
                     String comment = documentSnapshot.getString("comment");
-                    Item newItem = new Item(id, name, description, make, model, serialNumber, estimatedValue, purchaseDate, comment);
+                    ArrayList<String> associatedPhotos = (ArrayList<String>) documentSnapshot.get("photos");
+                    if (associatedPhotos == null) {
+                        associatedPhotos = new ArrayList<>();
+                    }
+                    Item newItem = new Item(id, name, description, make, model, serialNumber, estimatedValue, purchaseDate, comment, associatedPhotos);
                     itemsList.add(newItem);
                 }
             }
@@ -280,10 +289,26 @@ public class ManageItemActivity extends AppCompatActivity {
                         itemInfo.put("estimatedValue", estimatedValue);
                         itemInfo.put("purchaseDate", purchaseDateTS);
                         itemInfo.put("comment", comment);
+                        itemInfo.put("tags", add_tags_field.getAddedTagNames());
+                        for (Uri photoUri : photoUris) {
+                            String timestamp = String.valueOf(System.currentTimeMillis());
+                            String fileName = "photo_" + timestamp + ".jpg";
+                            StorageReference photoRef = photosRef.child(fileName);
+                            photoRef.putFile(photoUri).addOnSuccessListener(taskSnapshot -> {
+                                photoRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                                    String downloadUrl = uri.toString();
+                                    photoUrls.add(downloadUrl);
+                                    Log.d("FirebaseUpload", "Photo uploaded successfully: " + fileName);
+                                });
+                            }).addOnFailureListener(e -> {
+                                Log.e("FirebaseUpload", "Photo upload failed for: " + fileName, e);
+                            });
+                        }
+                        itemInfo.put("photos", photoUrls);
                         if (add_screen_name.equals(screen_name.getText().toString())) {
                             DocumentReference newItem = itemsCollection.document();
                             newItem.set(itemInfo);
-                            itemsList.add(new Item(newItem.getId(), name, description, make, model, serialNumber, estimatedValue, purchaseDateTS, comment));
+                            itemsList.add(new Item(newItem.getId(), name, description, make, model, serialNumber, estimatedValue, purchaseDateTS, comment, photoUrls));
                             Toast.makeText(ManageItemActivity.this, "Successfully added new item.", Toast.LENGTH_SHORT).show();
                         } else {
                             DocumentReference curItem = itemsCollection.document(itemId);
@@ -298,6 +323,7 @@ public class ManageItemActivity extends AppCompatActivity {
                                     item.setEstimatedValue(estimatedValue);
                                     item.setPurchaseDate(purchaseDateTS);
                                     item.setComment(comment);
+                                    item.setPhotos(photoUrls);
                                     break;
                                 }
                             }
@@ -365,6 +391,7 @@ public class ManageItemActivity extends AppCompatActivity {
                 int count = data.getClipData().getItemCount();
                 for (int i = 0; i < count; i++) {
                     imageUri = data.getClipData().getItemAt(i).getUri();
+                    photoUris.add(imageUri);
                     sliderDataArrayList.add(new ImageSliderData(imageUri));
                 }
             }
@@ -378,6 +405,7 @@ public class ManageItemActivity extends AppCompatActivity {
                 Bitmap photo = (Bitmap) extras.get("data");
                 imageUri = getImageUriFromBitmap(photo);
                 if (imageUri != null) {
+                    photoUris.add(imageUri);
                     sliderDataArrayList.add(new ImageSliderData(imageUri));
                     adapter.notifyDataSetChanged();
                 }
