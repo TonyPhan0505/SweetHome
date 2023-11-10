@@ -1,10 +1,10 @@
 package com.example.sweethome;
-/*
+/**
  * MainActivity
  *
  * This class controls the main activity of our SweetHome app.
  *
- * October 28, 2023
+ * November 10, 2023
  *
  * Sources: https://www.geeksforgeeks.org/how-to-delete-data-from-firebase-firestore-in-android/
  *
@@ -184,10 +184,10 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             public void onClick(View view) {
                 String make = makeField.getText().toString();
                 String keyword = keywordField.getText().toString();
-                if (filtered) {
+                if (filtered) { //if it has been previously filtered, reset the list
                     itemList.clear();
                     itemList.addAll(itemListCopy);
-                } else {
+                } else { //otherwise if it has not been filtered, make a copy so we can reset the list later
                     itemListCopy = new ArrayList<Item>();
                     itemListCopy.addAll(itemList);
                 }
@@ -211,7 +211,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                     filterByDate(start, end);
                     filtered = true;
                 }
-                if(make.trim().isEmpty() && keyword.trim().isEmpty() && (selectedEndDate==0L || selectedStartDate==0L)) {
+                if(make.trim().isEmpty() && keyword.trim().isEmpty() && (selectedEndDate==0L || selectedStartDate==0L)) { //if apply filter was selected but nothing is inputted
                     getAllItemsFromDatabase();
                 }
             }
@@ -311,7 +311,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private MaterialDatePicker<Pair<Long, Long>> createMaterialDatePicker() {
         MaterialDatePicker<Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker().build();
 
-
         // Set a listener for when the user confirms the date range
         builder.addOnPositiveButtonClickListener(selection -> {
             // Get the selected date range
@@ -322,8 +321,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             // Update the button text
             updateButtonText(findViewById(R.id.calendar_field), selectedStartDate, selectedEndDate);
         });
-
-
         return builder;
     }
 
@@ -334,17 +331,14 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         editor.apply();
     }
 
-
     private void displaySavedDateRange() {
         SharedPreferences sharedPreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
         selectedStartDate = sharedPreferences.getLong(START_DATE_KEY, 0);
         selectedEndDate = sharedPreferences.getLong(END_DATE_KEY, 0);
 
-
         // Display the saved date range on the button
         updateButtonText(findViewById(R.id.calendar_field), selectedStartDate, selectedEndDate);
     }
-
 
     private void updateButtonText(Button button, Long startDate, Long endDate) {
         if (startDate != 0 && endDate != 0) {
@@ -354,16 +348,11 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         }
     }
 
-
     private String formatDateRange(Long startDate, Long endDate) {
         // You can customize the date format as needed
         // This is just an example format, adjust it based on your preference
         return String.format("%tF - %tF", startDate, endDate);
     }
-
-
-
-
 
     private void hidePanel() {
 //        if (popupWindow != null && popupWindow.isShowing()) {
@@ -387,7 +376,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     }
 
     private void setUpActionButtonPanel() {
-
         // inflate layout for panel with 3 buttons
         @SuppressLint("InflateParams") View panelView = LayoutInflater.from(this).inflate(R.layout.action_button_panel, null);
 
@@ -396,10 +384,9 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         popupWindow.setOutsideTouchable(false);
     }
 
-
-
     /**
      * Adds a new item to the items collection
+     * (used for testing)
      * @param item
      */
     private void addItem(Item item){
@@ -542,7 +529,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         calculateTotalEstimatedValue(); //recalculate and display the total estimated value
     }
 
-    /*
+    /**
      * Given a description keyword, filters the current item list
      * accordingly (ie. keeps items with the specified keyword).
      * @param keyword
@@ -562,7 +549,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         calculateTotalEstimatedValue(); //recalculate and display the total estimated value
     }
 
-    /*
+    /**
      * Given a tag, filters the current item list accordingly
      * (ie. keeps items associated with the specified tag).
      * @param tag
@@ -571,7 +558,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         Toast.makeText(MainActivity.this, R.string.no_tag_filter_msg, Toast.LENGTH_SHORT).show();
     }
 
-    /*
+    /**
      * Calculates the total estimated value of all the items currently in the list
      * and updates the frontend to display the correct total
      */
@@ -585,5 +572,4 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         String totalText = String.format("%.2f", total); //format the total we calculated as a string
         totalEstimatedValue.setText(this.getString(R.string.total) + totalText); //and updated our frontend to display the updated amount
     }
-
 }
