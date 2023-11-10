@@ -25,9 +25,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.firebase.Timestamp;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class ItemsCustomAdapter extends ArrayAdapter<Item> {
     /* attributes for this class */
@@ -93,6 +95,7 @@ public class ItemsCustomAdapter extends ArrayAdapter<Item> {
         /* then set them to be the correct corresponding value for each element of the item (ie. name, purchase date, estimated value) */
         nameView.setText(item.getName());
         SimpleDateFormat df = new SimpleDateFormat(context.getString(R.string.date_format)); //create a new format for the date to be in YYYY/MM/DD format
+//        Timestamp timestamp = item.getPurchaseDate();
         String date = df.format(item.getPurchaseDate()); //convert the date to a string in the specified format
         purchaseDateView.setText(date);
         String value = String.format("%.2f", item.getEstimatedValue()); //ensure there are only 2 places after the decimal when formatting the string

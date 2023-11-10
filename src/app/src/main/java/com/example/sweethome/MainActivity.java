@@ -38,7 +38,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.firebase.Timestamp;
+import com.google.firebase.*;
+import com.google.firebase.Timestamp.*;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.EventListener;
@@ -155,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements Filterable{
 //        Item item = (Item) getIntent().getSerializableExtra("item");
 
         //TODO: Delete addItem() instances below when add button is implemented
-        addItem(new Item("refrigerator", "this is a fridge", "Samsung", "H-2023", "12345698", 998.45, new Date(),"No comment"), itemsRef);
+        addItem(new Item("cooler", "this is a fridge", "Samsung", "H-2023", "12345698", 998.45, new Date(),"No comment"), itemsRef);
         addItem(new Item("tv", "this is tv", "LG", "4K HD", "23456789", 699.99, new Date(),"high tech"), itemsRef);
 
         LinearLayout filterPanel = findViewById(R.id.filter_panel);
@@ -380,18 +381,18 @@ public class MainActivity extends AppCompatActivity implements Filterable{
      * accordingly (ie. keeps items between start and end INCLUSIVE).
      */
     public void filterByDate(Date startDate, Date endDate) {
-        Date inclusiveStart = new Date(startDate.getTime() - ONE_DAY); //remove a day from the start date so we filter inclusively
-        ArrayList<Item> filteredList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
-        for (int i = 0; i < itemList.size(); i++) { //for every item in the current list
-            Item item = itemList.get(i); //get the item
-            Date purchaseDate = item.getPurchaseDate(); //get the purchase date of the item
-            if (purchaseDate.before(inclusiveStart) || item.getPurchaseDate().after(endDate)) { //if the purchase date does not fall within the given date range
-                filteredList.add(item); //add it to the filtered list
-            }
-        }
-        itemList.removeAll(filteredList); //remove all items that are to be filtered out from our current list ie. were not purchased in the provided time frame
-        itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
-        calculateTotalEstimatedValue(); //recalculate and display the total estimated value
+//        Date inclusiveStart = new Date(startDate.getTime() - ONE_DAY); //remove a day from the start date so we filter inclusively
+//        ArrayList<Item> filteredList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
+//        for (int i = 0; i < itemList.size(); i++) { //for every item in the current list
+//            Item item = itemList.get(i); //get the item
+//            Date purchaseDate = item.getPurchaseDate(); //get the purchase date of the item
+//            if (purchaseDate.before(inclusiveStart) || item.getPurchaseDate().after(endDate)) { //if the purchase date does not fall within the given date range
+//                filteredList.add(item); //add it to the filtered list
+//            }
+//        }
+//        itemList.removeAll(filteredList); //remove all items that are to be filtered out from our current list ie. were not purchased in the provided time frame
+//        itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
+//        calculateTotalEstimatedValue(); //recalculate and display the total estimated value
     }
 
     /*
