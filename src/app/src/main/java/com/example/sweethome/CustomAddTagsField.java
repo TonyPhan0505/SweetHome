@@ -54,7 +54,7 @@ public class CustomAddTagsField extends AppCompatEditText {
         this.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_NEXT) {
                     addTag(getText().toString().trim().replace(",", ""));
                     setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
                     Context context = textView.getContext();
@@ -83,7 +83,7 @@ public class CustomAddTagsField extends AppCompatEditText {
         });
     }
 
-    private void addTag(String tagName) {
+    public void addTag(String tagName) {
         if (!tagName.isEmpty()) {
             this.addedTagNames.add(tagName);
             setTypeface(Typeface.defaultFromStyle(Typeface.NORMAL));

@@ -1,3 +1,20 @@
+<<<<<<< HEAD
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+=======
 # for macs
 .DS_Store
 
@@ -23,3 +40,4 @@ local.properties
 # Android library and module .aar/.jar files
 *.aar
 *.jar
+>>>>>>> 17cc9fbf3acb3fd4c09437df9bcbd93fe3369835

@@ -26,6 +26,7 @@ import android.widget.TextView;
 import android.Manifest;
 
 import java.io.ByteArrayOutputStream;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -37,15 +38,12 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.smarteist.autoimageslider.SliderView;
-
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -77,6 +75,7 @@ public class ManageItemActivity extends AppCompatActivity {
     private String comment;
     private ArrayList<Uri> photoUris = new ArrayList<>();
     private ArrayList<String> photoUrls = new ArrayList<>();
+    private ArrayList<String> tags;
     private CardView open_gallery_button;
     private CardView open_camera_button;
     private Uri imageUri;
@@ -99,6 +98,10 @@ public class ManageItemActivity extends AppCompatActivity {
     private ArrayList<com.example.sweethome.Item> itemsList = new ArrayList<>();
     private String edit_screen_name = "View / Edit";
     private String add_screen_name = "Add Item";
+    private int successfulUploads = 0;
+    private boolean addedMorePhotos = false;
+    private int numOfAddedPhotos = 0;
+    private int numOfExistingPhotos = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -157,12 +160,18 @@ public class ManageItemActivity extends AppCompatActivity {
                 comment = intent.getStringExtra("comment");
                 comment_field.setText(comment);
                 photoUrls = (ArrayList<String>) intent.getSerializableExtra("photos");
+                tags = (ArrayList<String>) intent.getSerializableExtra("tags");
+                for (String tagName : tags) {
+                    add_tags_field.addTag(tagName);
+                }
             }
         }
 
         // populate the image slider if the item is associated with at least 1 photo.
         if (photoUrls.size() > 0) {
             for (int i = 0; i < photoUrls.size(); i++) {
+                photoUris.add(Uri.parse(photoUrls.get(i)));
+                numOfExistingPhotos += 1;
                 sliderDataArrayList.add(new ImageSliderData(Uri.parse(photoUrls.get(i))));
             }
             adapter.notifyDataSetChanged();
@@ -188,11 +197,12 @@ public class ManageItemActivity extends AppCompatActivity {
                     Double estimatedValue = documentSnapshot.getDouble("estimatedValue");
                     Timestamp purchaseDate = documentSnapshot.getTimestamp("purchaseDate");
                     String comment = documentSnapshot.getString("comment");
+                    ArrayList<String> tags = (ArrayList<String>) documentSnapshot.get("tags");
                     ArrayList<String> associatedPhotos = (ArrayList<String>) documentSnapshot.get("photos");
                     if (associatedPhotos == null) {
                         associatedPhotos = new ArrayList<>();
                     }
-                    Item newItem = new Item(id, name, description, make, model, serialNumber, estimatedValue, purchaseDate, comment, associatedPhotos);
+                    Item newItem = new Item(id, name, description, make, model, serialNumber, estimatedValue, purchaseDate, comment, associatedPhotos, tags);
                     itemsList.add(newItem);
                 }
             }
@@ -223,7 +233,11 @@ public class ManageItemActivity extends AppCompatActivity {
         // the 2 listeners below listen to the user's keyboard. Add a dollar sign at the front after they click the "Enter", "Done", "Next" or any unspecified key.
         value_field.setOnKeyListener((v, keyCode, event) -> {
             if ((keyCode == KeyEvent.KEYCODE_ENTER)) {
-                value_field.setText("$" + value_field.getText().toString().replace("$", ""));
+                String input = value_field.getText().toString().replace("$", "");
+                double inputNumber = Double.parseDouble(input);
+                DecimalFormat decimalFormat = new DecimalFormat("#0.00");
+                String formattedNumber = decimalFormat.format(inputNumber);
+                value_field.setText("$" + formattedNumber);
                 InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
                 if (imm != null) {
                     imm.hideSoftInputFromWindow(value_field.getWindowToken(), 0);
@@ -236,7 +250,11 @@ public class ManageItemActivity extends AppCompatActivity {
             @Override
             public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
                 if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_NEXT || actionId == EditorInfo.IME_ACTION_UNSPECIFIED) {
-                    value_field.setText("$" + value_field.getText().toString().replace("$", ""));
+                    String input = value_field.getText().toString().replace("$", "");
+                    double inputNumber = Double.parseDouble(input);
+                    DecimalFormat decimalFormat = new DecimalFormat("#0.00");
+                    String formattedNumber = decimalFormat.format(inputNumber);
+                    value_field.setText("$" + formattedNumber);
                     InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
                     if (imm != null) {
                         imm.hideSoftInputFromWindow(value_field.getWindowToken(), 0);
@@ -277,6 +295,7 @@ public class ManageItemActivity extends AppCompatActivity {
                     estimatedValue = Double.parseDouble(value_field.getText().toString().replace("$", ""));
                     purchaseDate = date_field.getText().toString();
                     comment = comment_field.getText().toString();
+                    tags = add_tags_field.getAddedTagNames();
                     try {
                         Date parsedPurchaseDate = dateFormat.parse(purchaseDate);
                         Timestamp purchaseDateTS = new Timestamp(parsedPurchaseDate);
@@ -289,48 +308,85 @@ public class ManageItemActivity extends AppCompatActivity {
                         itemInfo.put("estimatedValue", estimatedValue);
                         itemInfo.put("purchaseDate", purchaseDateTS);
                         itemInfo.put("comment", comment);
-                        itemInfo.put("tags", add_tags_field.getAddedTagNames());
-                        for (Uri photoUri : photoUris) {
-                            String timestamp = String.valueOf(System.currentTimeMillis());
-                            String fileName = "photo_" + timestamp + ".jpg";
-                            StorageReference photoRef = photosRef.child(fileName);
-                            photoRef.putFile(photoUri).addOnSuccessListener(taskSnapshot -> {
-                                photoRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                                    String downloadUrl = uri.toString();
-                                    photoUrls.add(downloadUrl);
-                                    Log.d("FirebaseUpload", "Photo uploaded successfully: " + fileName);
+                        itemInfo.put("tags", tags);
+                        List<Uri> addedPhotoUris = photoUris.subList(numOfExistingPhotos, numOfExistingPhotos + numOfAddedPhotos);
+                        if (addedMorePhotos) {
+                            for (Uri photoUri : addedPhotoUris) {
+                                String timestamp = String.valueOf(System.currentTimeMillis());
+                                String fileName = "photo_" + timestamp + ".jpg";
+                                StorageReference photoRef = photosRef.child(fileName);
+                                photoRef.putFile(photoUri).addOnSuccessListener(taskSnapshot -> {
+                                    photoRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                                        String downloadUrl = uri.toString();
+                                        photoUrls.add(downloadUrl);
+                                        successfulUploads++;
+                                        if (successfulUploads == numOfAddedPhotos) {
+                                            Log.d("FirebaseUpload", "Photo uploaded successfully: " + fileName);
+                                            itemInfo.put("photos", photoUrls);
+                                            if (add_screen_name.equals(screen_name.getText().toString())) {
+                                                DocumentReference newItem = itemsCollection.document();
+                                                newItem.set(itemInfo);
+                                                itemsList.add(new Item(newItem.getId(), name, description, make, model, serialNumber, estimatedValue, purchaseDateTS, comment, photoUrls, tags));
+                                                Toast.makeText(ManageItemActivity.this, "Successfully added new item.", Toast.LENGTH_SHORT).show();
+                                            } else {
+                                                DocumentReference curItem = itemsCollection.document(itemId);
+                                                curItem.update(itemInfo);
+                                                for (Item item : itemsList) {
+                                                    if (item.getItemId().equals(itemId)) {
+                                                        item.setName(name);
+                                                        item.setDescription(description);
+                                                        item.setMake(make);
+                                                        item.setModel(model);
+                                                        item.setSerialNumber(serialNumber);
+                                                        item.setEstimatedValue(estimatedValue);
+                                                        item.setPurchaseDate(purchaseDateTS);
+                                                        item.setComment(comment);
+                                                        item.setPhotos(photoUrls);
+                                                        item.setTags(tags);
+                                                        break;
+                                                    }
+                                                }
+                                                Toast.makeText(ManageItemActivity.this, "Successfully updated item.", Toast.LENGTH_SHORT).show();
+                                            }
+                                            successfulUploads = 0;
+                                            Intent intent = new Intent(ManageItemActivity.this, MainActivity.class);
+                                            startActivity(intent);
+                                        }
+                                    });
+                                }).addOnFailureListener(e -> {
+                                    Log.e("FirebaseUpload", "Photo upload failed for: " + fileName, e);
                                 });
-                            }).addOnFailureListener(e -> {
-                                Log.e("FirebaseUpload", "Photo upload failed for: " + fileName, e);
-                            });
-                        }
-                        itemInfo.put("photos", photoUrls);
-                        if (add_screen_name.equals(screen_name.getText().toString())) {
-                            DocumentReference newItem = itemsCollection.document();
-                            newItem.set(itemInfo);
-                            itemsList.add(new Item(newItem.getId(), name, description, make, model, serialNumber, estimatedValue, purchaseDateTS, comment, photoUrls));
-                            Toast.makeText(ManageItemActivity.this, "Successfully added new item.", Toast.LENGTH_SHORT).show();
-                        } else {
-                            DocumentReference curItem = itemsCollection.document(itemId);
-                            curItem.update(itemInfo);
-                            for (Item item : itemsList) {
-                                if (item.getItemId().equals(itemId)) {
-                                    item.setName(name);
-                                    item.setDescription(description);
-                                    item.setMake(make);
-                                    item.setModel(model);
-                                    item.setSerialNumber(serialNumber);
-                                    item.setEstimatedValue(estimatedValue);
-                                    item.setPurchaseDate(purchaseDateTS);
-                                    item.setComment(comment);
-                                    item.setPhotos(photoUrls);
-                                    break;
-                                }
                             }
-                            Toast.makeText(ManageItemActivity.this, "Successfully updated item.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            itemInfo.put("photos", photoUrls);
+                            if (add_screen_name.equals(screen_name.getText().toString())) {
+                                DocumentReference newItem = itemsCollection.document();
+                                newItem.set(itemInfo);
+                                itemsList.add(new Item(newItem.getId(), name, description, make, model, serialNumber, estimatedValue, purchaseDateTS, comment, photoUrls, tags));
+                                Toast.makeText(ManageItemActivity.this, "Successfully added new item.", Toast.LENGTH_SHORT).show();
+                            } else {
+                                DocumentReference curItem = itemsCollection.document(itemId);
+                                curItem.update(itemInfo);
+                                for (Item item : itemsList) {
+                                    if (item.getItemId().equals(itemId)) {
+                                        item.setName(name);
+                                        item.setDescription(description);
+                                        item.setMake(make);
+                                        item.setModel(model);
+                                        item.setSerialNumber(serialNumber);
+                                        item.setEstimatedValue(estimatedValue);
+                                        item.setPurchaseDate(purchaseDateTS);
+                                        item.setComment(comment);
+                                        item.setPhotos(photoUrls);
+                                        item.setTags(tags);
+                                        break;
+                                    }
+                                }
+                                Toast.makeText(ManageItemActivity.this, "Successfully updated item.", Toast.LENGTH_SHORT).show();
+                            }
+                            Intent intent = new Intent(ManageItemActivity.this, MainActivity.class);
+                            startActivity(intent);
                         }
-                        Intent intent = new Intent(ManageItemActivity.this, MainActivity.class);
-                        startActivity(intent);
                     } catch (ParseException err) {
                         System.out.println("ERROR: invalid date format used.");
                     }
@@ -384,11 +440,15 @@ public class ManageItemActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1 && resultCode == RESULT_OK && data != null) {
+            addedMorePhotos = true;
             if (data.getData() != null) {
                 imageUri = data.getData();
+                numOfAddedPhotos += 1;
+                photoUris.add(imageUri);
                 sliderDataArrayList.add(new ImageSliderData(imageUri));
             } else if (data.getClipData() != null) {
                 int count = data.getClipData().getItemCount();
+                numOfAddedPhotos += count;
                 for (int i = 0; i < count; i++) {
                     imageUri = data.getClipData().getItemAt(i).getUri();
                     photoUris.add(imageUri);
@@ -401,11 +461,13 @@ public class ManageItemActivity extends AppCompatActivity {
             sliderViewFrame.setVisibility(View.VISIBLE);
         } else if (requestCode == 2 && resultCode == RESULT_OK && data != null) {
             Bundle extras = data.getExtras();
+            addedMorePhotos = true;
             if (extras != null) {
                 Bitmap photo = (Bitmap) extras.get("data");
                 imageUri = getImageUriFromBitmap(photo);
                 if (imageUri != null) {
                     photoUris.add(imageUri);
+                    numOfAddedPhotos += 1;
                     sliderDataArrayList.add(new ImageSliderData(imageUri));
                     adapter.notifyDataSetChanged();
                 }

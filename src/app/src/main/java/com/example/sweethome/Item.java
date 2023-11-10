@@ -19,10 +19,11 @@ package com.example.sweethome;
 /* necessary imports */
 import com.google.firebase.Timestamp;
 
+import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class Item {
+public class Item implements Serializable {
     /* attributes of this class */
     private String name;
     private String description;
@@ -35,9 +36,10 @@ public class Item {
     private Boolean selected = false;
     private ArrayList<String> photos;
     private String id;
+    private ArrayList<String> tags;
 
     /* constructor for this class */
-    public Item(String id, String name, String description, String make, String model, String serialNumber, double estimatedValue, Timestamp purchaseDate, String comment, ArrayList<String> photos) {
+    public Item(String id, String name, String description, String make, String model, String serialNumber, double estimatedValue, Timestamp purchaseDate, String comment, ArrayList<String> photos, ArrayList<String> tags) {
         this.id = id;
         this.name = name;
         this.make = make;
@@ -48,9 +50,10 @@ public class Item {
         this.purchaseDate = purchaseDate;
         this.comment = comment;
         this.photos = new ArrayList<>(photos);
+        this.tags = new ArrayList<>(tags);
     }
 
-    public Item(String id, String name, String description, String make, String model, String serialNumber, double estimatedValue, Timestamp purchaseDate, String comment, ArrayList<String> photos, Boolean selected) {
+    public Item(String id, String name, String description, String make, String model, String serialNumber, double estimatedValue, Timestamp purchaseDate, String comment, ArrayList<String> photos, ArrayList<String> tags, Boolean selected) {
         this.id = id;
         this.name = name;
         this.make = make;
@@ -62,6 +65,7 @@ public class Item {
         this.comment = comment;
         this.photos = new ArrayList<>(photos);
         this.selected = selected;
+        this.tags = new ArrayList<>(tags);
     }
 
     /* no-arg constructor for this class */
@@ -166,5 +170,12 @@ public class Item {
     /* function to delete an image URL from the photo arraylist */
     public void deletePhotos(String photo) {
         this.photos.remove(photo);
+    }
+
+    public ArrayList<String> getTags() {
+        return this.tags;
+    }
+    public void setTags(ArrayList<String> tags) {
+        this.tags = tags;
     }
 }

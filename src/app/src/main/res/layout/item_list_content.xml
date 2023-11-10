@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:app="http://schemas.android.com/apk/res-auto"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:background="@color/white"
+android:orientation="horizontal">
+
+<!--
+* Code for the ShapeableImageView was adapted from the following source:
+* The original post was made by Gabriele Mariotti. (2020, May 27). The post was edited. (2021, March 5). StackOverflow. https://stackoverflow.com/a/62039192.
+* The content of the posts on StackOverflow are licensed under Creative Commons Attribution-ShareAlike.
+-->
+<com.google.android.material.imageview.ShapeableImageView
+    android:id="@+id/item_image"
+    android:layout_width="match_parent"
+    android:layout_height="150dp"
+    android:layout_weight="1"
+    android:background="@color/beige"
+    android:padding="10dp"
+    android:scaleType="center"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:shapeAppearanceOverlay="@style/roundedCorners"
+    app:srcCompat="@android:drawable/ic_menu_report_image"
+    app:strokeColor="@color/beige">
+</com.google.android.material.imageview.ShapeableImageView>
+
+
+    <TextView
+        android:id="@+id/item_tag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:background="@drawable/tag_background"
+        android:padding="5dp"
+        android:text="@string/item_tag"
+        android:textAllCaps="true"
+        android:textColor="@color/white"
+        android:typeface="serif"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/description_container" />
+
+<LinearLayout
+    android:id="@+id/description_container"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    app:layout_constraintTop_toBottomOf="@id/item_image"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toStartOf="@id/item_checkBox">
+
+    <TextView
+        android:id="@+id/item_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:padding="5dp"
+        android:text="@string/item_name"
+        android:singleLine="true"
+        android:textAllCaps="false"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:typeface="serif" />
+
+    <TextView
+        android:id="@+id/item_purchase_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.75"
+        android:padding="5dp"
+        android:singleLine="true"
+        android:textAllCaps="true"
+        android:text="@string/date_format"
+        android:textColor="@color/grey"
+        android:textStyle="bold"
+        android:typeface="serif" />
+
+    <TextView
+        android:id="@+id/item_estimated_value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:padding="5dp"
+        android:autoSizeMinTextSize="7sp"
+        android:text="@string/cad_currency"
+        android:textColor="@color/dark_grey"
+        android:textStyle="bold"
+        android:typeface="serif" />
+
+</LinearLayout>
+
+    <CheckBox
+        android:id="@+id/item_checkBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@+id/description_container"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/description_container"
+        app:layout_constraintTop_toTopOf="@+id/description_container"></CheckBox>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
