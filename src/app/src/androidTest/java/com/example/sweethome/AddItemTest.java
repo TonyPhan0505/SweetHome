@@ -47,7 +47,7 @@ public class AddItemTest {
         Thread.sleep(5000);
     }
     @Test
-    public void tesAddItem() throws InterruptedException{
+    public void testAddItem() throws InterruptedException{
         onView(withId(R.id.add_button)).perform(click());
         onView(withId(R.id.item_name_field)).perform(ViewActions.typeText("AddItemTest"));
         Thread.sleep(3000);
