@@ -17,11 +17,13 @@ package com.example.sweethome;
  */
 
 /* necessary imports */
+import com.google.firebase.Timestamp;
 
+import java.io.Serializable;
+import java.net.URL;
 import java.util.ArrayList;
-import java.util.Date;
 
-public class Item {
+public class Item implements Serializable {
     /* attributes of this class */
     private String name;
     private String description;
@@ -29,14 +31,15 @@ public class Item {
     private String model;
     private String serialNumber;
     private double estimatedValue;
-    private Date purchaseDate;
+    private Timestamp purchaseDate;
     private String comment;
     private Boolean selected = false;
     private ArrayList<String> photos;
     private String id;
 
     /* constructor for this class */
-    public Item(String name, String description, String make, String model, String serialNumber, double estimatedValue, Date purchaseDate, String comment) {
+    public Item(String id, String name, String description, String make, String model, String serialNumber, double estimatedValue, Timestamp purchaseDate, String comment, ArrayList<String> photos) {
+        this.id = id;
         this.name = name;
         this.make = make;
         this.description = description;
@@ -45,7 +48,21 @@ public class Item {
         this.estimatedValue = estimatedValue;
         this.purchaseDate = purchaseDate;
         this.comment = comment;
-        //this.photos = new ArrayList<String>(); // the photos array will be initialized as an empty array, but it can be added to and deleted from using the add and delete methods below
+        this.photos = new ArrayList<>(photos);
+    }
+
+    public Item(String id, String name, String description, String make, String model, String serialNumber, double estimatedValue, Timestamp purchaseDate, String comment, ArrayList<String> photos, Boolean selected) {
+        this.id = id;
+        this.name = name;
+        this.make = make;
+        this.description = description;
+        this.model = model;
+        this.serialNumber = serialNumber;
+        this.estimatedValue = estimatedValue;
+        this.purchaseDate = purchaseDate;
+        this.comment = comment;
+        this.photos = new ArrayList<>(photos);
+        this.selected = selected;
     }
 
     /* no-arg constructor for this class */
@@ -102,11 +119,11 @@ public class Item {
         this.estimatedValue = estimatedValue;
     }
 
-    public Date getPurchaseDate() {
+    public Timestamp getPurchaseDate() {
         return purchaseDate;
     }
 
-    public void setPurchaseDate(Date purchaseDate) {
+    public void setPurchaseDate(Timestamp purchaseDate) {
         this.purchaseDate = purchaseDate;
     }
 
@@ -143,12 +160,12 @@ public class Item {
     }
 
     /* function to add a new image URL to the photo arraylist */
-    public void addPhotos(String photo) {
-        this.photos.add(photo);
+    public void setPhotos(ArrayList<String> photos) {
+        this.photos = new ArrayList<>(photos);
     }
 
     /* function to delete an image URL from the photo arraylist */
-    public void deletePhoto(String photo) {
+    public void deletePhotos(String photo) {
         this.photos.remove(photo);
     }
 }

@@ -2,6 +2,7 @@ package com.example.sweethome;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -26,24 +27,24 @@ public class DatabaseAccessTest {
         return itemArrayList;
     }
 
-    private Item mockItem0() {
-        return new Item("UnitTest0", "My mama gave it", "LG", "X2020", "45199121", 120.75, new Date(), "Nice equipment" );
-    }
+//    private Item mockItem0() {
+//        return new Item(null,"UnitTest0", "My mama gave it", "LG", "X2020", "45199121", 120.75, Timestamp.now(), "Nice equipment" );
+//    }
+//
+//    private Item mockItem1() {
+//        return new Item(null, "UnitTest1", "A brand new one.", "Samsung", "I43", "6789432", 278.99, Timestamp.now(), "Heats up nice" );
+//    }
+//
+//    private Item mockItem2() {
+//        return new Item(null, "UnitTest2", "Intel 12th", "Lenovo", "ThinkPad T14s", "62720010", 899.99, Timestamp.now(), "Bought in boxing day 2021" );
+//    }
 
-    private Item mockItem1() {
-        return new Item("UnitTest1", "A brand new one.", "Samsung", "I43", "6789432", 278.99, new Date(), "Heats up nice" );
-    }
-
-    private Item mockItem2() {
-        return new Item("UnitTest2", "Intel 12th", "Lenovo", "ThinkPad T14s", "62720010", 899.99, new Date(), "Bought in boxing day 2021" );
-    }
-
-    @Test
-    private void testAddItem() {
-        Item item = mockItem0();
-
-//        MainActivity.addItem(item, mockItemsRef);
-    }
+//    @Test
+//    private void testAddItem() {
+//        Item item = mockItem0();
+//
+////        MainActivity.addItem(item, mockItemsRef);
+//    }
 
     @Test
     private void testDeleteItem() {

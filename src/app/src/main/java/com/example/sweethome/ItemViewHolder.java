@@ -15,18 +15,22 @@ package com.example.sweethome;
 import android.widget.TextView;
 import android.widget.CheckBox;
 
+import com.google.android.material.imageview.ShapeableImageView;
+
 public class ItemViewHolder {
     private TextView itemNameView;
     private TextView itemPurchaseDateView;
 //    private ShapeableImageView itemImageView;
     private TextView itemValueView;
     private CheckBox itemCheckBox;
+    private ShapeableImageView itemImageView;
 
-    public ItemViewHolder(TextView itemNameView, TextView itemPurchaseDateView, TextView itemValueView, CheckBox itemCheckBox) {
+    public ItemViewHolder(TextView itemNameView, TextView itemPurchaseDateView, TextView itemValueView, CheckBox itemCheckBox, ShapeableImageView itemImageView) {
         this.itemNameView = itemNameView;
         this.itemPurchaseDateView = itemPurchaseDateView;
         this.itemValueView = itemValueView;
         this.itemCheckBox = itemCheckBox;
+        this.itemImageView = itemImageView;
 //        this.itemNameView = itemImageView;
     }
 
@@ -49,13 +53,13 @@ public class ItemViewHolder {
     }
 
 
-//    public TextView getItemImageView() {
-//        return itemImageView;
-//    }
-//
-//    public void setItemImageView(TextView itemImageView) {
-//        this.itemImageView = itemImageView;
-//    }
+    public ShapeableImageView getItemImageView() {
+        return itemImageView;
+    }
+
+    public void setItemImageView(ShapeableImageView itemImageView) {
+        this.itemImageView = itemImageView;
+    }
 
     public TextView getItemValueView() {
         return itemValueView;

@@ -14,6 +14,7 @@ package com.example.sweethome;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -71,7 +72,6 @@ public class MainActivity extends AppCompatActivity implements Filterable{
     /* constants */
     private final long ONE_DAY = 86400000;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements Filterable{
 
         /* set up a connection to our db and a reference to the items collection */
         db = FirebaseFirestore.getInstance();
-        itemsRef = db.collection("items");
+        itemsRef = db.collection("myItems");
 
         /* set up our list of items, find the list on our frontend layout, and set the corresponding array adapter */
         itemList = new ArrayList<Item>();
@@ -143,21 +143,25 @@ public class MainActivity extends AppCompatActivity implements Filterable{
 //            context.startActivity(i);
 //        });
 
-//        itemListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                Item item = itemListView.get(position);
-//                Intent i = new Intent(context, Tag.class);
-//                i.putExtra("item", item); // TODO: make sure that ManageItemActivity implements Serializable
-//            }
-//        });
+        itemListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Item item = (Item) itemListView.getItemAtPosition(position);
+                Intent i = new Intent(MainActivity.this, ManageItemActivity.class);
+                i.putExtra("item", item); // TODO: make sure that ManageItemActivity implements Serializable
+                context.startActivity(i);
+            }
+        });
 
         //TODO: Implement the following in the ManageItemActivity
 //        Item item = (Item) getIntent().getSerializableExtra("item");
 
-        //TODO: Delete addItem() instances below when add button is implemented
-        addItem(new Item("cooler", "this is a fridge", "Samsung", "H-2023", "12345698", 998.45, new Date(),"No comment"), itemsRef);
-        addItem(new Item("tv", "this is tv", "LG", "4K HD", "23456789", 699.99, new Date(),"high tech"), itemsRef);
+
+
+
+//        //TODO: Delete addItem() instances below when add button is implemented
+//        addItem(new Item("cooler", "this is a fridge", "Samsung", "H-2023", "12345698", 998.45, Timestamp.now(),"No comment"), itemsRef);
+//        addItem(new Item("tv", "this is tv", "LG", "4K HD", "23456789", 699.99, Timestamp.now() ,"high tech"), itemsRef);
 
         LinearLayout filterPanel = findViewById(R.id.filter_panel);
         ImageView filterIcon = findViewById(R.id.filter_button);
@@ -228,11 +232,21 @@ public class MainActivity extends AppCompatActivity implements Filterable{
             @Override
             public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
                 if (error != null) {
-                    Log.e("Firestore",error.toString()); //if there was any error, log it
+                    Log.e("Firestore", error.toString()); //if there was any error, log it
                 }
                 if (value != null) {
                     getAllItemsFromDatabase(itemsRef); //otherwise get all items currently in the items collection and display them in our list
                 }
+                // Button to open Edit Item screen
+                Button addItemButton = findViewById(R.id.add_button);
+                addItemButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent intent = new Intent(MainActivity.this, ManageItemActivity.class);
+                        intent.putExtra("screen", "Add Item");
+                        startActivity(intent);
+                    }
+                });
             }
         });
     }
@@ -317,7 +331,7 @@ public class MainActivity extends AppCompatActivity implements Filterable{
      * Given a selected sorting option, sorts the current item
      * list according to the selected criteria.
      */
-    private static void sortDataList(String selectedSortOption, ArrayList<Item> itemList, ItemsCustomAdapter itemAdapter, Context context) {
+    public static void sortDataList(String selectedSortOption, ArrayList<Item> itemList, ItemsCustomAdapter itemAdapter, Context context) {
         if (selectedSortOption.equals(context.getString(R.string.sort_least_recent))) { //if we are sorting items by oldest to newest acquired
             itemList.sort((item1, item2) -> item1.getPurchaseDate().compareTo(item2.getPurchaseDate()));
         }
