@@ -89,6 +89,8 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private boolean filtered;
     /* constants */
     private final long ONE_DAY = 86400000;
+    private final long ONE_HOUR = 3600000;
+    private final long ONE_SECOND = 1000;
 
 
     @Override
@@ -113,7 +115,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         sortSpinner.setAdapter(sortAdapter);
 
         //setUpActionButtonPanel();
-        //getAllItemsFromDatabase();
 
         /* spinner selection listener */
         sortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -172,9 +173,9 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                     getAllItemsFromDatabase(); //also clear all of the filters
                 } else {
                     filterPanel.setVisibility(View.VISIBLE); //otherwise just show the panel since it must currently be invisible
-                    filtered = false;
-                    selectedStartDate = 0L;
-                    selectedEndDate = 0L;
+                    filtered = false; //set the filtered flag as false
+                    selectedStartDate = 0L; //restart the start day
+                    selectedEndDate = 0L; //restart the end day
                 }
             }
         });
@@ -198,13 +199,15 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                     filterByKeyword(keyword);
                     filtered = true;
                 }
-                if(selectedEndDate!=0L && selectedStartDate!=0L) {
-                    Date dateStart = new Date(selectedStartDate);
+                if(selectedEndDate!=0L && selectedStartDate!=0L) { //apply filter by date range if it was selected
+                    /* get the selected dates by the user, adding extra time due to epoch conversion error */
+                    Date dateStart = new Date(selectedStartDate + ONE_DAY - ((ONE_DAY / 4) *3) + ONE_HOUR);
+                    Date dateEnd = new Date(selectedEndDate + ONE_DAY + (ONE_DAY / 4) + ONE_HOUR - ONE_SECOND);
+                    /* let the user know the time constraints */
+                    Toast.makeText(MainActivity.this, "START: " + dateStart.toString() + " END: " + dateEnd.toString(), Toast.LENGTH_SHORT).show();
+                    /* convert them to timestamps like our items store purchaseDate as */
                     Timestamp start = new Timestamp(dateStart);
-                    Date dateEnd = new Date(selectedEndDate);
                     Timestamp end = new Timestamp(dateEnd);
-                    Toast.makeText(MainActivity.this, "DATE START: " + dateStart.toString() + " DATE END: " + dateEnd.toString(), Toast.LENGTH_SHORT).show();
-                    Toast.makeText(MainActivity.this, "START: " + start.toDate().toString() + " END: " + end.toDate().toString(), Toast.LENGTH_SHORT).show();
                     filterByDate(start, end);
                     filtered = true;
                 }
@@ -507,12 +510,11 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
      * @param startDate, endDate
      */
     public void filterByDate(Timestamp startDate, Timestamp endDate) {
-        Date inclusiveStart = new Date(startDate.getSeconds()*1000 - ONE_DAY); //subtract a day from the start date so we filter inclusively (before() is exclusive)
         ArrayList<Item> filteredList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
         for (int i = 0; i < itemList.size(); i++) { //for every item in the current list
             Item item = itemList.get(i); //get the item
             Timestamp purchaseDate = item.getPurchaseDate(); //get the purchase date of the item
-            if (purchaseDate.toDate().before(inclusiveStart) || purchaseDate.toDate().after(endDate.toDate())) { //if the purchase date does not fall within the given date range
+            if (purchaseDate.toDate().before(startDate.toDate()) || purchaseDate.toDate().after(endDate.toDate())) { //if the purchase date does not fall within the given date range
                 filteredList.add(item); //add it to the filtered list
             }
         }
