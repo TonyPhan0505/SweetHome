@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">SweetHome</string>
     <string name="item_name">Item Name</string>
-    <string name="date_format">yyyy/MM/dd</string>
+    <string name="date_format">yyyy-MM-dd</string>
     <string name="cad_currency">CAD $</string>
     <string name="add_item">Add New</string>
     <string name="apply_filter">APPLY</string>
@@ -25,6 +25,7 @@
     <string name="sort_description_za">Description: Z - A</string>
     <string name="sort_tags_az">Tags: A - Z</string>
     <string name="sort_tags_za">Tags: Z - A</string>
+    <string name="apply_filter">Apply</string>
     <string-array name="sort_options">
         <item>@string/sort_most_recent</item>
         <item>@string/sort_least_recent</item>

@@ -16,6 +16,7 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -44,6 +45,8 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.Timestamp;
+import com.google.firebase.*;
+import com.google.firebase.Timestamp.*;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.EventListener;
@@ -62,7 +65,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private ListView itemListView;
     private TextView totalEstimatedValue;
     private ItemsCustomAdapter itemAdapter;
-    private ArrayList<Item> selectedItem;
     private View itemView;
     private CheckBox itemCheckBox;
     private FirebaseFirestore db;
@@ -92,7 +94,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private final long ONE_HOUR = 3600000;
     private final long ONE_SECOND = 1000;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -107,7 +108,30 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         itemListView = findViewById(R.id.item_list);
         itemAdapter = new ItemsCustomAdapter(this, itemList);
         itemListView.setAdapter(itemAdapter);
-        
+
+        /* Retrieve all existing items(if there are any) from Firestore Database */
+        itemsRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                itemList.clear();
+                if (!queryDocumentSnapshots.isEmpty()) {
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        Item item = doc.toObject(Item.class);
+                        item.setItemId(doc.getId());
+                        Log.i("Firestore", String.format("Item %s fetched", item.getName()));
+                        itemList.add(item);
+                    }
+                    itemAdapter.notifyDataSetChanged();
+                    calculateTotalEstimatedValue();
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e("Firestore", "Error fetching sorted data", e);
+            }
+        });
+
         /* setup the sort spinner */
         sortSpinner = findViewById(R.id.spinner_sort_options);
         sortAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, getResources().getStringArray(R.array.sort_options));
@@ -120,8 +144,10 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         sortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                String selectedSortOption = parentView.getItemAtPosition(position).toString(); // get the selected sort option
-                sortDataList(selectedSortOption); //handle sorting based on selection
+                // Handle sorting based on selection
+                String selectedSortOption = parentView.getItemAtPosition(position).toString();
+                Toast.makeText(MainActivity.this, "Selected: " + selectedSortOption, Toast.LENGTH_SHORT).show();
+                sortDataList(selectedSortOption, itemList, itemAdapter, getApplicationContext()); // Sort and load data based on the selected option
             }
             @Override
             public void onNothingSelected(AdapterView<?> parentView) {
@@ -136,21 +162,25 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
 //            context.startActivity(i);
 //        });
 
-//        itemListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                Item item = itemListView.get(position);
-//                Intent i = new Intent(context, Tag.class);
-//                i.putExtra("item", item); // TODO: make sure that ManageItemActivity implements Serializable
-//            }
-//        });
+        itemListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Item item = (Item) itemListView.getItemAtPosition(position);
+                Intent i = new Intent(MainActivity.this, ManageItemActivity.class);
+                i.putExtra("item", item); // TODO: make sure that ManageItemActivity implements Serializable
+                context.startActivity(i);
+            }
+        });
 
         //TODO: Implement the following in the ManageItemActivity
 //        Item item = (Item) getIntent().getSerializableExtra("item");
 
-        //TODO: Delete addItem() instances below when add button is implemented
-//        addItem(new Item("chair", "this is a wooden chair", "The Brick", "Birch 2000", "12345678", 54.45, new Date(),"No comment"));
-//        addItem(new Item("sofa", "this is soft aahh", "The Brick", "Birch 2000", "12345678", 54.45, new Date(),"No comment"));
+
+
+
+//        //TODO: Delete addItem() instances below when add button is implemented
+//        addItem(new Item("cooler", "this is a fridge", "Samsung", "H-2023", "12345698", 998.45, Timestamp.now(),"No comment"), itemsRef);
+//        addItem(new Item("tv", "this is tv", "LG", "4K HD", "23456789", 699.99, Timestamp.now() ,"high tech"), itemsRef);
 
 
         /* find our frontend elements for filtering */
@@ -270,7 +300,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                     selectedItems.add(item);
                 }
             }
-//            new DeleteItemFragment().show(getSupportFragmentManager(), "DELETE ITEM");
             final Dialog deleteDialog = new Dialog(context);
             deleteDialog.setContentView(R.layout.delete_popup);
             Button deleteButton = (Button) deleteDialog.findViewById(R.id.delete_button);
@@ -278,7 +307,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             deleteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    deleteItems(selectedItems);
+                    deleteItems(selectedItems,itemsRef);
                     if (filterPanel.getVisibility() == View.VISIBLE) { //if the filter panel is visible
                         filterPanel.setVisibility(View.GONE); //then make it invisible
                         /* clear the edit texts for the next time the user uses the panel */
@@ -306,11 +335,21 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             @Override
             public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
                 if (error != null) {
-                    Log.e("Firestore",error.toString()); //if there was any error, log it
+                    Log.e("Firestore", error.toString()); //if there was any error, log it
                 }
                 if (value != null) {
-                    getAllItemsFromDatabase(); //otherwise get all items currently in the items collection and display them in our list
+                    getAllItemsFromDatabase(itemsRef); //otherwise get all items currently in the items collection and display them in our list
                 }
+                // Button to open Edit Item screen
+                Button addItemButton = findViewById(R.id.add_button);
+                addItemButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent intent = new Intent(MainActivity.this, ManageItemActivity.class);
+                        intent.putExtra("screen", "Add Item");
+                        startActivity(intent);
+                    }
+                });
             }
         });
     }
@@ -397,7 +436,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
      * (used for testing)
      * @param item
      */
-    private void addItem(Item item){
+    public static void addItem(Item item, CollectionReference itemsRef){
         itemsRef.add(item) //add the item to our items collection
                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                     @Override
@@ -417,7 +456,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
      * Delete item/items
      * @param items list of item to delete
      */
-    private void deleteItems(ArrayList<Item> items) {
+    public static void deleteItems(ArrayList<Item> items, CollectionReference itemsRef) {
         for (Item item: items) {
             itemsRef.document(item.getItemId())
                     .delete()
@@ -436,11 +475,46 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         }
     }
 
+    /*
+     * Given a selected sorting option, sorts the current item
+     * list according to the selected criteria.
+     */
+    public static void sortDataList(String selectedSortOption, ArrayList<Item> itemList, ItemsCustomAdapter itemAdapter, Context context) {
+        if (selectedSortOption.equals(context.getString(R.string.sort_least_recent))) { //if we are sorting items by oldest to newest acquired
+            itemList.sort((item1, item2) -> item1.getPurchaseDate().compareTo(item2.getPurchaseDate()));
+        }
+        else if (selectedSortOption.equals(context.getString(R.string.sort_most_recent))) { //if we are sorting items by newest to oldest acquired
+            itemList.sort((item1, item2) -> item2.getPurchaseDate().compareTo(item1.getPurchaseDate()));
+        }
+        else if (selectedSortOption.equals(context.getString(R.string.sort_highest_value))) { //if we are sorting items by highest to lowest value
+            itemList.sort((item1, item2) -> Double.compare(item2.getEstimatedValue(), item1.getEstimatedValue()));
+        }
+        else if (selectedSortOption.equals(context.getString(R.string.sort_lowest_value))) { //if we are sorting items by lowest to highest value
+            itemList.sort((item1, item2) -> Double.compare(item1.getEstimatedValue(), item2.getEstimatedValue()));
+        }
+        else if (selectedSortOption.equals(context.getString(R.string.sort_make_az))) { //if we are sorting items by make alphabetically
+            itemList.sort((item1, item2) -> item1.getMake().compareTo(item2.getMake()));
+        }
+        else if (selectedSortOption.equals(context.getString(R.string.sort_make_za))) { //if we are sorting items by make reverse alphabetically
+            itemList.sort((item1, item2) -> item2.getMake().compareTo(item1.getMake()));
+        }
+        else if (selectedSortOption.equals(context.getString(R.string.sort_description_az))) { //if we are sorting items by description reverse alphabetically
+            itemList.sort((item1, item2) -> item1.getDescription().compareTo(item2.getDescription()));
+        }
+        else if (selectedSortOption.equals(context.getString(R.string.sort_description_za))) { //if we are sorting items by description reverse alphabetically
+            itemList.sort((item1, item2) -> item2.getDescription().compareTo(item1.getDescription()));
+        }
+        else { //if they want to sort by tags let them know this function is not yet available
+            Toast.makeText(context, R.string.no_tag_sort_msg, Toast.LENGTH_SHORT).show();
+        }
+        itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
+    }
+
     /**
      * Gets all of the items in the items collection
      * and updates the frontend to display them in the list
      */
-    private void getAllItemsFromDatabase(){
+    private void getAllItemsFromDatabase(CollectionReference itemsRef){
         itemsRef.get()
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                     @Override
@@ -453,7 +527,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                             itemList.add(item); //add the item object to our item list
                         }
                         String currentSortOption = sortSpinner.getSelectedItem().toString(); //get the currently selected sort option
-                        sortDataList(currentSortOption); //sort the list accordingly and notify changes were made to update frontend
+                        sortDataList(currentSortOption, itemList, itemAdapter, getApplicationContext()); //sort the list accordingly and notify changes were made to update frontend
                         calculateTotalEstimatedValue(); //recalculate and display the total estimated value
                     }
                 }).addOnFailureListener(new OnFailureListener() {
@@ -462,41 +536,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                         Log.e("Firestore", "Error fetching data", e);
                     }
                 });
-    }
-
-    /*
-     * Given a selected sorting option, sorts the current item
-     * list according to the selected criteria.
-     */
-    private void sortDataList(String selectedSortOption) {
-        if (selectedSortOption.equals(this.getString(R.string.sort_least_recent))) { //if we are sorting items by oldest to newest acquired
-            itemList.sort((item1, item2) -> item1.getPurchaseDate().compareTo(item2.getPurchaseDate()));
-        }
-        else if (selectedSortOption.equals(this.getString(R.string.sort_most_recent))) { //if we are sorting items by newest to oldest acquired
-            itemList.sort((item1, item2) -> item2.getPurchaseDate().compareTo(item1.getPurchaseDate()));
-        }
-        else if (selectedSortOption.equals(this.getString(R.string.sort_highest_value))) { //if we are sorting items by highest to lowest value
-            itemList.sort((item1, item2) -> Double.compare(item2.getEstimatedValue(), item1.getEstimatedValue()));
-        }
-        else if (selectedSortOption.equals(this.getString(R.string.sort_lowest_value))) { //if we are sorting items by lowest to highest value
-            itemList.sort((item1, item2) -> Double.compare(item1.getEstimatedValue(), item2.getEstimatedValue()));
-        }
-        else if (selectedSortOption.equals(this.getString(R.string.sort_make_az))) { //if we are sorting items by make alphabetically
-            itemList.sort((item1, item2) -> item1.getMake().compareTo(item2.getMake()));
-        }
-        else if (selectedSortOption.equals(this.getString(R.string.sort_make_za))) { //if we are sorting items by make reverse alphabetically
-            itemList.sort((item1, item2) -> item2.getMake().compareTo(item1.getMake()));
-        }
-        else if (selectedSortOption.equals(this.getString(R.string.sort_description_az))) { //if we are sorting items by description reverse alphabetically
-            itemList.sort((item1, item2) -> item1.getDescription().compareTo(item2.getDescription()));
-        }
-        else if (selectedSortOption.equals(this.getString(R.string.sort_description_za))) { //if we are sorting items by description reverse alphabetically
-            itemList.sort((item1, item2) -> item2.getDescription().compareTo(item1.getDescription()));
-        }
-        else { //if they want to sort by tags let them know this function is not yet available
-            Toast.makeText(MainActivity.this, R.string.no_tag_sort_msg, Toast.LENGTH_SHORT).show();
-        }
-        itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
     }
 
     /*
