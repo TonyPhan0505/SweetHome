@@ -13,6 +13,7 @@ package com.example.sweethome;
  */
 
 /* necessary imports */
+
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,7 +25,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.google.android.material.imageview.ShapeableImageView;
+import com.google.firebase.Timestamp;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -97,7 +98,8 @@ public class ItemsCustomAdapter extends ArrayAdapter<Item> {
         /* then set them to be the correct corresponding value for each element of the item (ie. name, purchase date, estimated value) */
         nameView.setText(item.getName());
         SimpleDateFormat df = new SimpleDateFormat(context.getString(R.string.date_format)); //create a new format for the date to be in YYYY/MM/DD format
-        String date = df.format(item.getPurchaseDate()); //convert the date to a string in the specified format
+        Timestamp timestamp = item.getPurchaseDate();
+        String date = df.format(timestamp.toDate()); //convert the date to a string in the specified format
         purchaseDateView.setText(date);
         String value = String.format("%.2f", item.getEstimatedValue()); //ensure there are only 2 places after the decimal when formatting the string
         estimatedValueView.setText(context.getString(R.string.cad_currency) + value); //format the estimated value to include the currency ie. CAD$*.xx

@@ -43,6 +43,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.EventListener;
@@ -57,6 +58,7 @@ import java.util.Date;
 public class MainActivity extends AppCompatActivity implements IFilterable {
     /* attributes of this class */
     private ArrayList<Item> itemList;
+    private ArrayList<Item> itemListCopy;
     private ListView itemListView;
     private TextView totalEstimatedValue;
     private ItemsCustomAdapter itemAdapter;
@@ -84,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private MaterialDatePicker<Pair<Long, Long>> dateRangePicker;
     private Long selectedStartDate = 0L;
     private Long selectedEndDate = 0L;
+    private boolean filtered;
     /* constants */
     private final long ONE_DAY = 86400000;
 
@@ -169,6 +172,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                     getAllItemsFromDatabase(); //also clear all of the filters
                 } else {
                     filterPanel.setVisibility(View.VISIBLE); //otherwise just show the panel since it must currently be invisible
+                    filtered = false;
                 }
             }
         });
@@ -177,12 +181,26 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             public void onClick(View view) {
                 String make = makeField.getText().toString();
                 String keyword = keywordField.getText().toString();
-                getAllItemsFromDatabase(); //fetch everything before applying the filters
+                if (filtered) {
+                    itemList.clear();
+                    itemList.addAll(itemListCopy);
+                } else {
+                    itemListCopy = new ArrayList<Item>();
+                    itemListCopy.addAll(itemList);
+                }
                 if (!make.trim().isEmpty()){ //apply filter by make if it was provided
                     filterByMake(make);
+                    filtered = true;
                 }
                 if(!keyword.trim().isEmpty()) { //apply filter by keyword if it was provided
                     filterByKeyword(keyword);
+                    filtered = true;
+                }
+                if(selectedEndDate!=0L && selectedStartDate!=0L) {
+                    Date dateStart = new Date(selectedStartDate);
+                    Timestamp start = new Timestamp(dateStart);
+                    Date dateEnd = new Date(selectedStartDate);
+                    Timestamp end = new Timestamp(dateEnd);
                 }
             }
         });
@@ -208,8 +226,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 if (dateRangePicker == null) {
                     dateRangePicker = createMaterialDatePicker();
                 }
-
-
                 // Show the date range picker
                 dateRangePicker.show(getSupportFragmentManager(), dateRangePicker.toString());
             }
@@ -483,14 +499,15 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     /*
      * Given a start date and end date, filters the current item list
      * accordingly (ie. keeps items between start and end INCLUSIVE).
+     * @param startDate, endDate
      */
-    public void filterByDate(Date startDate, Date endDate) {
-        Date inclusiveStart = new Date(startDate.getTime() - ONE_DAY); //remove a day from the start date so we filter inclusively
+    public void filterByDate(Timestamp startDate, Timestamp endDate) {
+        Date inclusiveStart = new Date(startDate.getSeconds()*1000 - ONE_DAY); //remove a day from the start date so we filter inclusively
         ArrayList<Item> filteredList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
         for (int i = 0; i < itemList.size(); i++) { //for every item in the current list
             Item item = itemList.get(i); //get the item
-            Date purchaseDate = item.getPurchaseDate(); //get the purchase date of the item
-            if (purchaseDate.before(inclusiveStart) || item.getPurchaseDate().after(endDate)) { //if the purchase date does not fall within the given date range
+            Timestamp purchaseDate = item.getPurchaseDate(); //get the purchase date of the item
+            if (purchaseDate.toDate().before(inclusiveStart) || purchaseDate.toDate().after(endDate.toDate())) { //if the purchase date does not fall within the given date range
                 filteredList.add(item); //add it to the filtered list
             }
         }
@@ -502,6 +519,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     /*
      * Given a make, filters the current item list
      * accordingly (ie. keeps items with the specified make).
+     * @param make
      */
     public void filterByMake(String make) {
         ArrayList<Item> filteredList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
@@ -520,6 +538,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     /*
      * Given a description keyword, filters the current item list
      * accordingly (ie. keeps items with the specified keyword).
+     * @param keyword
      */
     public void filterByKeyword(String keyword) {
         keyword = keyword.toLowerCase(); //change the keyword to lowercase so we can be case insensitive
