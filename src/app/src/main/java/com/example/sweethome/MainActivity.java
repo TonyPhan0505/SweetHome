@@ -279,6 +279,13 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 @Override
                 public void onClick(View v) {
                     deleteItems(selectedItems);
+                    if (filterPanel.getVisibility() == View.VISIBLE) { //if the filter panel is visible
+                        filterPanel.setVisibility(View.GONE); //then make it invisible
+                        /* clear the edit texts for the next time the user uses the panel */
+                        makeField.setText("");
+                        keywordField.setText("");
+                        getAllItemsFromDatabase(); //also clear all of the filters
+                    }
                     deleteDialog.dismiss();
                 }
             });
