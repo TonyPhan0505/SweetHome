@@ -16,11 +16,13 @@ package com.example.sweethome;
 
 /* necessary imports */
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -42,15 +44,16 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.util.Pair;
+import android.Manifest;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.Timestamp;
-import com.google.firebase.*;
-import com.google.firebase.Timestamp.*;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.EventListener;
@@ -97,11 +100,17 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private final long ONE_DAY = 86400000;
     private final long ONE_HOUR = 3600000;
     private final long ONE_SECOND = 1000;
+    private static final int CAMERA_PERMISSION_REQUEST = 123;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // check if the user has granted permission to access their camera
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST);
+        }
 
         /* set up a connection to our db and a reference to the items collection */
         db = FirebaseFirestore.getInstance();
@@ -601,5 +610,22 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         totalEstimatedValue = findViewById(R.id.total_estimated_value_footer); //find our total estimated value textview from our frontend layout
         String totalText = String.format("%.2f", total); //format the total we calculated as a string
         totalEstimatedValue.setText(this.getString(R.string.total) + totalText); //and updated our frontend to display the updated amount
+    }
+
+    /**
+     * Handles the result of the permission request for accessing the camera.
+     *
+     * @param requestCode The request code passed to requestPermissions.
+     * @param permissions The requested permissions.
+     * @param grantResults The grant results for the corresponding permissions.
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == CAMERA_PERMISSION_REQUEST) {
+            if (grantResults.length <= 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Please allow access to your camera.", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }

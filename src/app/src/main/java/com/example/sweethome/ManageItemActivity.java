@@ -13,7 +13,6 @@ package com.example.sweethome;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.content.Intent;
@@ -33,7 +32,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.Manifest;
 
 import java.io.ByteArrayOutputStream;
 import java.text.DecimalFormat;
@@ -83,6 +81,7 @@ public class ManageItemActivity extends AppCompatActivity {
     private String serialNumber;
     private Double estimatedValue;
     private String purchaseDate;
+    private Timestamp purchaseDateTS;
     private String comment;
     private ArrayList<Uri> photoUris = new ArrayList<>();
     private ArrayList<String> photoUrls = new ArrayList<>();
@@ -104,7 +103,6 @@ public class ManageItemActivity extends AppCompatActivity {
     private EditText model_field;
     private EditText comment_field;
     private RelativeLayout noImagePlaceholder;
-    private static final int CAMERA_PERMISSION_REQUEST = 123;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
     private ArrayList<com.example.sweethome.Item> itemsList = new ArrayList<>();
     private String edit_screen_name = "View / Edit";
@@ -113,6 +111,7 @@ public class ManageItemActivity extends AppCompatActivity {
     private boolean addedMorePhotos = false;
     private int numOfAddedPhotos = 0;
     private int numOfExistingPhotos = 0;
+    private Map<String, Object> itemInfo;
 
     /**
      * Called when the activity is first created. Initializes UI components, sets up listeners,
@@ -148,11 +147,6 @@ public class ManageItemActivity extends AppCompatActivity {
         sliderDataArrayList = new ArrayList<>();
         adapter = new ImageSliderAdapter(this, sliderDataArrayList);
         Intent intent = getIntent();
-
-        // check if the user has granted permission to access their camera
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST);
-        }
 
         // get item's information sent from home screen.
         if (intent != null) {
@@ -302,6 +296,7 @@ public class ManageItemActivity extends AppCompatActivity {
         save_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Toast.makeText(ManageItemActivity.this, "Please wait for a couple of seconds.", Toast.LENGTH_SHORT).show();
                 boolean isValid = isInputValid();
                 if (isValid) {
                     name = item_name_field.getText().toString();
@@ -315,8 +310,8 @@ public class ManageItemActivity extends AppCompatActivity {
                     tags = add_tags_field.getAddedTagNames();
                     try {
                         Date parsedPurchaseDate = dateFormat.parse(purchaseDate);
-                        Timestamp purchaseDateTS = new Timestamp(parsedPurchaseDate);
-                        Map<String, Object> itemInfo = new HashMap<>();
+                        purchaseDateTS = new Timestamp(parsedPurchaseDate);
+                        itemInfo = new HashMap<>();
                         itemInfo.put("name", name);
                         itemInfo.put("description", description);
                         itemInfo.put("make", make);
@@ -339,35 +334,7 @@ public class ManageItemActivity extends AppCompatActivity {
                                         successfulUploads++;
                                         if (successfulUploads == numOfAddedPhotos) {
                                             Log.d("FirebaseUpload", "Photo uploaded successfully: " + fileName);
-                                            itemInfo.put("photos", photoUrls);
-                                            if (add_screen_name.equals(screen_name.getText().toString())) {
-                                                DocumentReference newItem = itemsCollection.document();
-                                                newItem.set(itemInfo);
-                                                itemsList.add(new Item(newItem.getId(), name, description, make, model, serialNumber, estimatedValue, purchaseDateTS, comment, photoUrls, tags));
-                                                Toast.makeText(ManageItemActivity.this, "Successfully added new item.", Toast.LENGTH_SHORT).show();
-                                            } else {
-                                                DocumentReference curItem = itemsCollection.document(itemId);
-                                                curItem.update(itemInfo);
-                                                for (Item item : itemsList) {
-                                                    if (item.getItemId().equals(itemId)) {
-                                                        item.setName(name);
-                                                        item.setDescription(description);
-                                                        item.setMake(make);
-                                                        item.setModel(model);
-                                                        item.setSerialNumber(serialNumber);
-                                                        item.setEstimatedValue(estimatedValue);
-                                                        item.setPurchaseDate(purchaseDateTS);
-                                                        item.setComment(comment);
-                                                        item.setPhotos(photoUrls);
-                                                        item.setTags(tags);
-                                                        break;
-                                                    }
-                                                }
-                                                Toast.makeText(ManageItemActivity.this, "Successfully updated item.", Toast.LENGTH_SHORT).show();
-                                            }
-                                            successfulUploads = 0;
-                                            Intent intent = new Intent(ManageItemActivity.this, MainActivity.class);
-                                            startActivity(intent);
+                                            manageItem();
                                         }
                                     });
                                 }).addOnFailureListener(e -> {
@@ -375,34 +342,7 @@ public class ManageItemActivity extends AppCompatActivity {
                                 });
                             }
                         } else {
-                            itemInfo.put("photos", photoUrls);
-                            if (add_screen_name.equals(screen_name.getText().toString())) {
-                                DocumentReference newItem = itemsCollection.document();
-                                newItem.set(itemInfo);
-                                itemsList.add(new Item(newItem.getId(), name, description, make, model, serialNumber, estimatedValue, purchaseDateTS, comment, photoUrls, tags));
-                                Toast.makeText(ManageItemActivity.this, "Successfully added new item.", Toast.LENGTH_SHORT).show();
-                            } else {
-                                DocumentReference curItem = itemsCollection.document(itemId);
-                                curItem.update(itemInfo);
-                                for (Item item : itemsList) {
-                                    if (item.getItemId().equals(itemId)) {
-                                        item.setName(name);
-                                        item.setDescription(description);
-                                        item.setMake(make);
-                                        item.setModel(model);
-                                        item.setSerialNumber(serialNumber);
-                                        item.setEstimatedValue(estimatedValue);
-                                        item.setPurchaseDate(purchaseDateTS);
-                                        item.setComment(comment);
-                                        item.setPhotos(photoUrls);
-                                        item.setTags(tags);
-                                        break;
-                                    }
-                                }
-                                Toast.makeText(ManageItemActivity.this, "Successfully updated item.", Toast.LENGTH_SHORT).show();
-                            }
-                            Intent intent = new Intent(ManageItemActivity.this, MainActivity.class);
-                            startActivity(intent);
+                            manageItem();
                         }
                     } catch (ParseException err) {
                         System.out.println("ERROR: invalid date format used.");
@@ -452,23 +392,6 @@ public class ManageItemActivity extends AppCompatActivity {
     }
 
     /**
-     * Handles the result of the permission request for accessing the camera.
-     *
-     * @param requestCode The request code passed to requestPermissions.
-     * @param permissions The requested permissions.
-     * @param grantResults The grant results for the corresponding permissions.
-     */
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == CAMERA_PERMISSION_REQUEST) {
-            if (grantResults.length <= 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Please allow access to your camera.", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    /**
      * Handles the result after selecting photos from the gallery or taking a photo with the camera.
      *
      * @param requestCode The request code passed to startActivityForResult.
@@ -515,6 +438,44 @@ public class ManageItemActivity extends AppCompatActivity {
                 sliderViewFrame.setVisibility(View.VISIBLE);
             }
         }
+    }
+
+    /**
+     * save a new or updated item into firestore database.
+     * save any newly added photos into firebase storage.
+     * get downloadable urls for the photos and store them in an array field with the item in the database.
+     * navigate back to MainActivity when it's done.
+     */
+    private void manageItem() {
+        itemInfo.put("photos", photoUrls);
+        if (add_screen_name.equals(screen_name.getText().toString())) {
+            DocumentReference newItem = itemsCollection.document();
+            newItem.set(itemInfo);
+            itemsList.add(new Item(newItem.getId(), name, description, make, model, serialNumber, estimatedValue, purchaseDateTS, comment, photoUrls, tags));
+            Toast.makeText(ManageItemActivity.this, "Successfully added new item.", Toast.LENGTH_SHORT).show();
+        } else {
+            DocumentReference curItem = itemsCollection.document(itemId);
+            curItem.update(itemInfo);
+            for (Item item : itemsList) {
+                if (item.getItemId().equals(itemId)) {
+                    item.setName(name);
+                    item.setDescription(description);
+                    item.setMake(make);
+                    item.setModel(model);
+                    item.setSerialNumber(serialNumber);
+                    item.setEstimatedValue(estimatedValue);
+                    item.setPurchaseDate(purchaseDateTS);
+                    item.setComment(comment);
+                    item.setPhotos(photoUrls);
+                    item.setTags(tags);
+                    break;
+                }
+            }
+            Toast.makeText(ManageItemActivity.this, "Successfully updated item.", Toast.LENGTH_SHORT).show();
+        }
+        successfulUploads = 0;
+        Intent intent = new Intent(ManageItemActivity.this, MainActivity.class);
+        startActivity(intent);
     }
 
     /**

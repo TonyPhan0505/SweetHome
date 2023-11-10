@@ -122,6 +122,7 @@ public class CustomAddTagsField extends AppCompatEditText {
             ImageView remove_tag_button = tag_item.findViewById(R.id.remove_tag_button);
             tag_name_field.setText(tagName);
             tag_name_field.setTextColor(tag_name_color);
+            remove_tag_button.setColorFilter(tag_name_color);
             tags_container = ((Activity) getContext()).findViewById(R.id.tags_container);
             if (tags_container != null) {
                 tags_container.addView(tag_item);
