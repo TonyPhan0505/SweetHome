@@ -15,6 +15,7 @@ package com.example.sweethome;
  */
 
 /* necessary imports */
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
@@ -53,7 +54,6 @@ import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -419,27 +419,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         // create PopupWindow
         popupWindow = new PopupWindow(panelView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
         popupWindow.setOutsideTouchable(false);
-    }
-
-    /**
-     * Adds a new item to the items collection
-     * (used for testing)
-     * @param item
-     */
-    public static void addItem(Item item, CollectionReference itemsRef){
-        itemsRef.add(item) //add the item to our items collection
-                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                    @Override
-                    public void onSuccess(DocumentReference documentReference) {
-                        Log.i("Firestore", "db write succeeded"); //log if we were successful in adding the new item
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.e("Firestore", "db write fails"); //log if we were unsuccessful in adding the new item
-                    }
-                });
     }
 
     /**
