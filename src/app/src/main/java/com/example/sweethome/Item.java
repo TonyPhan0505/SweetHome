@@ -18,6 +18,9 @@ package com.example.sweethome;
 
 /* necessary imports */
 
+import com.google.firebase.Timestamp;
+
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -29,14 +32,15 @@ public class Item {
     private String model;
     private String serialNumber;
     private double estimatedValue;
-    private Date purchaseDate;
+    private Timestamp purchaseDate;
     private String comment;
     private Boolean selected = false;
     private ArrayList<String> photos;
     private String id;
 
     /* constructor for this class */
-    public Item(String name, String description, String make, String model, String serialNumber, double estimatedValue, Date purchaseDate, String comment) {
+    public Item(String id, String name, String description, String make, String model, String serialNumber, double estimatedValue, Timestamp purchaseDate, String comment) {
+        this.id = id;
         this.name = name;
         this.make = make;
         this.description = description;
@@ -102,11 +106,11 @@ public class Item {
         this.estimatedValue = estimatedValue;
     }
 
-    public Date getPurchaseDate() {
+    public Timestamp getPurchaseDate() {
         return purchaseDate;
     }
 
-    public void setPurchaseDate(Date purchaseDate) {
+    public void setPurchaseDate(Timestamp purchaseDate) {
         this.purchaseDate = purchaseDate;
     }
 
@@ -143,7 +147,7 @@ public class Item {
     }
 
     /* function to add a new image URL to the photo arraylist */
-    public void addPhotos(String photo) {
+    public void addPhoto(String photo) {
         this.photos.add(photo);
     }
 
