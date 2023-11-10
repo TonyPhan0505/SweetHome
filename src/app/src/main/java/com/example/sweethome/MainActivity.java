@@ -11,6 +11,7 @@ package com.example.sweethome;
  */
 
 /* necessary imports */
+
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
@@ -23,6 +24,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -67,6 +69,11 @@ public class MainActivity extends AppCompatActivity implements Filterable{
     private PopupWindow popupWindow;
     private boolean isPanelShown = false; // keep track of action panel visibility
     final Context context = this;
+    private LinearLayout filterPanel;
+    private ImageView filterIcon;
+    private Button filterApplyButton;
+    private EditText keywordField;
+    private EditText makeField;
     /* constants */
     private final long ONE_DAY = 86400000;
 
@@ -92,10 +99,8 @@ public class MainActivity extends AppCompatActivity implements Filterable{
         sortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sortSpinner.setAdapter(sortAdapter);
 
-        /* retrieve all items from the database if there are any */
-        getAllItemsFromDatabase();
-
         //setUpActionButtonPanel();
+        //getAllItemsFromDatabase();
 
         /* spinner selection listener */
         sortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -133,18 +138,41 @@ public class MainActivity extends AppCompatActivity implements Filterable{
 //        addItem(new Item("chair", "this is a wooden chair", "The Brick", "Birch 2000", "12345678", 54.45, new Date(),"No comment"));
 //        addItem(new Item("sofa", "this is soft aahh", "The Brick", "Birch 2000", "12345678", 54.45, new Date(),"No comment"));
 
-        LinearLayout filterPanel = findViewById(R.id.filter_panel);
-        ImageView filterIcon = findViewById(R.id.filter_button);
-        filterPanel.setVisibility(View.GONE);
 
+        /* find our frontend elements for filtering */
+        filterPanel = findViewById(R.id.filter_panel);
+        filterIcon = findViewById(R.id.filter_button);
+        filterApplyButton = findViewById(R.id.apply_filter_button);
+        makeField = findViewById(R.id.make_field);
+        keywordField = findViewById(R.id.keyword_field);
+
+        /* set the view of the filter panel and onclicklisteners for the icon and button */
+        filterPanel.setVisibility(View.GONE); //should be invisible until the filterIcon is pressed
         filterIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (filterPanel.getVisibility() == View.VISIBLE) {
-                    filterPanel.setVisibility(View.GONE);
-                    getAllItemsFromDatabase(); //clear all of the filters
+                if (filterPanel.getVisibility() == View.VISIBLE) { //if the panel is already visible
+                    filterPanel.setVisibility(View.GONE); //then make it invisible
+                    /* clear the edit texts for the next time the user uses the panel */
+                    makeField.setText("");
+                    keywordField.setText("");
+                    getAllItemsFromDatabase(); //also clear all of the filters
                 } else {
-                    filterPanel.setVisibility(View.VISIBLE);
+                    filterPanel.setVisibility(View.VISIBLE); //otherwise just show the panel since it must currently be invisible
+                }
+            }
+        });
+        filterApplyButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String make = makeField.getText().toString();
+                String keyword = keywordField.getText().toString();
+                getAllItemsFromDatabase(); //fetch everything before applying the filters
+                if (!make.trim().isEmpty()){ //apply filter by make if it was provided
+                    filterByMake(make);
+                }
+                if(!keyword.trim().isEmpty()) { //apply filter by keyword if it was provided
+                    filterByKeyword(keyword);
                 }
             }
         });
@@ -392,7 +420,7 @@ public class MainActivity extends AppCompatActivity implements Filterable{
      * Given a description keyword, filters the current item list
      * accordingly (ie. keeps items with the specified keyword).
      */
-    public void filterbyKeyword(String keyword) {
+    public void filterByKeyword(String keyword) {
         keyword = keyword.toLowerCase(); //change the keyword to lowercase so we can be case insensitive
         ArrayList<Item> filteredList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
         for (int i = 0; i < itemList.size(); i++) { //for every item in the current list

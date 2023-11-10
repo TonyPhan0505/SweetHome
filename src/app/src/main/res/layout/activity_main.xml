@@ -121,7 +121,6 @@
                 android:textColor="@color/black"
                 android:layout_marginStart="8dp"
                 android:layout_gravity="center_vertical" />
-
             <Button
                 android:id="@+id/calendar_field"
                 android:layout_width="match_parent"
@@ -150,7 +149,6 @@
                 android:textColor="@color/black"
                 android:layout_marginStart="8dp"
                 android:layout_gravity="center_vertical" />
-
             <EditText
                 android:id="@+id/keyword_field"
                 android:layout_width="match_parent"
