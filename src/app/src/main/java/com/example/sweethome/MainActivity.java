@@ -176,6 +176,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                     filtered = false; //set the filtered flag as false
                     selectedStartDate = 0L; //restart the start day
                     selectedEndDate = 0L; //restart the end day
+                    dateRangePicker = createMaterialDatePicker(); //reset the picker
                 }
             }
         });
