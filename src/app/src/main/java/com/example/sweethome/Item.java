@@ -37,7 +37,8 @@ public class Item {
     private String id;
 
     /* constructor for this class */
-    public Item(String name, String description, String make, String model, String serialNumber, double estimatedValue, Timestamp purchaseDate, String comment) {
+    public Item(String id, String name, String description, String make, String model, String serialNumber, double estimatedValue, Timestamp purchaseDate, String comment) {
+        this.id = id;
         this.name = name;
         this.make = make;
         this.description = description;
@@ -49,7 +50,8 @@ public class Item {
 //        this.photos = new ArrayList<URL>(); // the photos array will be initialized as an empty array, but it can be added to and deleted from using the add and delete methods below
     }
 
-    public Item(String name, String description, String make, String model, String serialNumber, double estimatedValue, Timestamp purchaseDate, String comment, ArrayList<String> photos, Boolean selected) {
+    public Item(String id, String name, String description, String make, String model, String serialNumber, double estimatedValue, Timestamp purchaseDate, String comment, ArrayList<String> photos, Boolean selected) {
+        this.id = id;
         this.name = name;
         this.make = make;
         this.description = description;
@@ -157,7 +159,7 @@ public class Item {
     }
 
     /* function to add a new image URL to the photo arraylist */
-    public void addPhotos(String photo) {
+    public void addPhoto(String photo) {
         this.photos.add(photo);
     }
 

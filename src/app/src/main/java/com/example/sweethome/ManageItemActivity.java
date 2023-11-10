@@ -35,6 +35,8 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -131,22 +133,23 @@ public class ManageItemActivity extends AppCompatActivity {
             String screen = intent.getStringExtra("screen");
             screen_name.setText(screen);
             if (edit_screen_name.equals(screen)) {
-                itemId = intent.getStringExtra("itemId");
-                name = intent.getStringExtra("name");
+                Item item = (Item) intent.getSerializableExtra("item");
+                itemId = item.getItemId();
+                name = item.getName();
                 item_name_field.setText(name);
-                description = intent.getStringExtra("description");
+                description = item.getDescription();
                 description_field.setText(description);
-                make = intent.getStringExtra("make");
+                make = item.getMake();
                 make_field.setText(make);
-                model = intent.getStringExtra("model");
+                model = item.getModel();
                 model_field.setText(model);
-                serialNumber = intent.getStringExtra("serialNumber");
+                serialNumber = item.getSerialNumber();
                 serial_number_field.setText(serialNumber);
-                estimatedValue = intent.getDoubleExtra("estimatedValue", 0.0);
+                estimatedValue = item.getEstimatedValue();
                 value_field.setText(String.valueOf(estimatedValue));
-                purchaseDate =  dateFormat.format(new Date(intent.getLongExtra("purchaseDate", 0L)));
+                purchaseDate =  dateFormat.format(item.getPurchaseDate().toDate());
                 date_field.setText(purchaseDate);
-                comment = intent.getStringExtra("comment");
+                comment = item.getComment();
                 comment_field.setText(comment);
                 photos = intent.getParcelableArrayListExtra("photos");
             }
@@ -171,6 +174,7 @@ public class ManageItemActivity extends AppCompatActivity {
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                 itemsList.clear();
                 for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                    String id = documentSnapshot.getId();
                     String name = documentSnapshot.getString("name");
                     String description = documentSnapshot.getString("description");
                     String make = documentSnapshot.getString("make");
@@ -179,7 +183,8 @@ public class ManageItemActivity extends AppCompatActivity {
                     Double estimatedValue = documentSnapshot.getDouble("estimatedValue");
                     Timestamp purchaseDate = documentSnapshot.getTimestamp("purchaseDate");
                     String comment = documentSnapshot.getString("comment");
-                    itemsList.add(new Item(name, description, make, model, serialNumber, estimatedValue, purchaseDate, comment));
+                    Item newItem = new Item(id, name, description, make, model, serialNumber, estimatedValue, purchaseDate, comment);
+                    itemsList.add(newItem);
                 }
             }
         });
@@ -266,20 +271,36 @@ public class ManageItemActivity extends AppCompatActivity {
                     try {
                         Date parsedPurchaseDate = dateFormat.parse(purchaseDate);
                         Timestamp purchaseDateTS = new Timestamp(parsedPurchaseDate);
-                        Item newItem = new Item(name, description, make, model, serialNumber, estimatedValue, purchaseDateTS, comment);
+                        Map<String, Object> itemInfo = new HashMap<>();
+                        itemInfo.put("name", name);
+                        itemInfo.put("description", description);
+                        itemInfo.put("make", make);
+                        itemInfo.put("model", model);
+                        itemInfo.put("serialNumber", serialNumber);
+                        itemInfo.put("estimatedValue", estimatedValue);
+                        itemInfo.put("purchaseDate", purchaseDateTS);
+                        itemInfo.put("comment", comment);
                         if (add_screen_name.equals(screen_name.getText().toString())) {
-                            itemsCollection.add(newItem);
+                            DocumentReference newItem = itemsCollection.document();
+                            newItem.set(itemInfo);
+                            itemsList.add(new Item(newItem.getId(), name, description, make, model, serialNumber, estimatedValue, purchaseDateTS, comment));
                             Toast.makeText(ManageItemActivity.this, "Successfully added new item.", Toast.LENGTH_SHORT).show();
                         } else {
-                            Map<String, Object> updates = new HashMap<>();
-                            updates.put("name", name);
-                            updates.put("description", description);
-                            updates.put("make", make);
-                            updates.put("model", model);
-                            updates.put("serialNumber", serialNumber);
-                            updates.put("estimatedValue", estimatedValue);
-                            updates.put("purchaseDate", purchaseDate);
-                            updates.put("comment", comment);
+                            DocumentReference curItem = itemsCollection.document(itemId);
+                            curItem.update(itemInfo);
+                            for (Item item : itemsList) {
+                                if (item.getItemId().equals(itemId)) {
+                                    item.setName(name);
+                                    item.setDescription(description);
+                                    item.setMake(make);
+                                    item.setModel(model);
+                                    item.setSerialNumber(serialNumber);
+                                    item.setEstimatedValue(estimatedValue);
+                                    item.setPurchaseDate(purchaseDateTS);
+                                    item.setComment(comment);
+                                    break;
+                                }
+                            }
                             Toast.makeText(ManageItemActivity.this, "Successfully updated item.", Toast.LENGTH_SHORT).show();
                         }
                         Intent intent = new Intent(ManageItemActivity.this, MainActivity.class);
@@ -378,7 +399,7 @@ public class ManageItemActivity extends AppCompatActivity {
         if (!serial_number_field.getText().toString().isEmpty()) {
             for (com.example.sweethome.Item item : itemsList) {
                 String serialNumber = item.getSerialNumber();
-                if (serialNumber.equals(serial_number_field.getText().toString())) {
+                if (!item.getItemId().equals(itemId) && serialNumber.equals(serial_number_field.getText().toString())) {
                     isValid = false;
                     serial_number_field.setError("Serial number already exists.");
                     break;
