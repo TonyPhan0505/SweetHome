@@ -15,6 +15,7 @@ package com.example.sweethome;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,6 +26,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -36,9 +38,11 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.util.Pair;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
@@ -48,10 +52,9 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
-import java.util.ArrayList;
 import java.util.Date;
 
-public class MainActivity extends AppCompatActivity implements Filterable{
+public class MainActivity extends AppCompatActivity implements Filterable {
     /* attributes of this class */
     private ArrayList<Item> itemList;
     private ListView itemListView;
@@ -74,6 +77,13 @@ public class MainActivity extends AppCompatActivity implements Filterable{
     private Button filterApplyButton;
     private EditText keywordField;
     private EditText makeField;
+    private static final String PREF_NAME = "DateRangePrefs";
+    private static final String START_DATE_KEY = "startDate";
+    private static final String END_DATE_KEY = "endDate";
+    // Declare MaterialDatePicker as a field
+    private MaterialDatePicker<Pair<Long, Long>> dateRangePicker;
+    private Long selectedStartDate = 0L;
+    private Long selectedEndDate = 0L;
     /* constants */
     private final long ONE_DAY = 86400000;
 
@@ -177,6 +187,35 @@ public class MainActivity extends AppCompatActivity implements Filterable{
             }
         });
 
+        // Initialize the date range values from SharedPreferences
+        displaySavedDateRange();
+
+
+        // Update the button text with the saved date range
+        Button calendarButton = findViewById(R.id.calendar_field);
+        updateButtonText(calendarButton, selectedStartDate, selectedEndDate);
+
+
+        // Date range picker
+        Button calendarField = findViewById(R.id.calendar_field);
+
+
+        // Set an OnClickListener to handle the button click
+        calendarField.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Create the MaterialDatePicker if not already created
+                if (dateRangePicker == null) {
+                    dateRangePicker = createMaterialDatePicker();
+                }
+
+
+                // Show the date range picker
+                dateRangePicker.show(getSupportFragmentManager(), dateRangePicker.toString());
+            }
+        });
+
+
         final FloatingActionButton tagActionButton = findViewById(R.id.tag_action_button);
         tagActionButton.setOnClickListener(view -> {
             if (popupWindow == null) {
@@ -239,6 +278,68 @@ public class MainActivity extends AppCompatActivity implements Filterable{
             }
         });
     }
+
+    // Create the MaterialDatePicker with optional initial range
+    private MaterialDatePicker<Pair<Long, Long>> createMaterialDatePicker() {
+        MaterialDatePicker<Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker().build();
+
+
+        // Set a listener for when the user confirms the date range
+        builder.addOnPositiveButtonClickListener(selection -> {
+            // Get the selected date range
+            selectedStartDate = selection.first;
+            selectedEndDate = selection.second;
+
+
+            // Save the selected date range
+            saveDateRange(selectedStartDate, selectedEndDate);
+
+
+            // Update the button text
+            updateButtonText(findViewById(R.id.calendar_field), selectedStartDate, selectedEndDate);
+        });
+
+
+        return builder;
+    }
+
+    private void saveDateRange(Long startDate, Long endDate) {
+        SharedPreferences.Editor editor = getSharedPreferences(PREF_NAME, MODE_PRIVATE).edit();
+        editor.putLong(START_DATE_KEY, startDate);
+        editor.putLong(END_DATE_KEY, endDate);
+        editor.apply();
+    }
+
+
+    private void displaySavedDateRange() {
+        SharedPreferences sharedPreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+        selectedStartDate = sharedPreferences.getLong(START_DATE_KEY, 0);
+        selectedEndDate = sharedPreferences.getLong(END_DATE_KEY, 0);
+
+
+        // Display the saved date range on the button
+        updateButtonText(findViewById(R.id.calendar_field), selectedStartDate, selectedEndDate);
+    }
+
+
+    private void updateButtonText(Button button, Long startDate, Long endDate) {
+        if (startDate != 0 && endDate != 0) {
+            // Format the date range string
+            String formattedDateRange = formatDateRange(startDate, endDate);
+            button.setText(formattedDateRange);
+        }
+    }
+
+
+    private String formatDateRange(Long startDate, Long endDate) {
+        // You can customize the date format as needed
+        // This is just an example format, adjust it based on your preference
+        return String.format("%tF - %tF", startDate, endDate);
+    }
+
+
+
+
 
     private void hidePanel() {
 //        if (popupWindow != null && popupWindow.isShowing()) {
