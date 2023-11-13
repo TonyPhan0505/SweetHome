@@ -116,6 +116,7 @@
             android:layout_height="26dp"
             android:src="@drawable/filter_icon"
             app:tint="@color/black"
+            android:clickable="true"
             android:contentDescription="filter icon" />
     </LinearLayout>
 
