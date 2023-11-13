@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private boolean isPanelShown = false; // keep track of action panel visibility
     final Context context = this;
     private LinearLayout filterPanel;
-    private LinearLayout filterIcon;
+    private ImageView filterIcon;
     private Button filterApplyButton;
     private EditText keywordField;
     private EditText makeField;
