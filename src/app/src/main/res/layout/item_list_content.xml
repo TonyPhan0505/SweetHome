@@ -33,12 +33,13 @@ android:orientation="horizontal">
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
+        android:textSize="12sp"
         android:background="@drawable/tag_background"
-        android:padding="5dp"
+        android:paddingVertical="5dp"
+        android:paddingHorizontal="17dp"
         android:text="@string/item_tag"
         android:textAllCaps="true"
         android:textColor="@color/white"
-        android:typeface="serif"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/description_container" />
@@ -62,8 +63,8 @@ android:orientation="horizontal">
         android:singleLine="true"
         android:textAllCaps="false"
         android:textColor="@color/black"
-        android:textStyle="bold"
-        android:typeface="serif" />
+        android:textSize="17sp"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/item_purchase_date"
@@ -75,8 +76,7 @@ android:orientation="horizontal">
         android:textAllCaps="true"
         android:text="@string/date_format"
         android:textColor="@color/grey"
-        android:textStyle="bold"
-        android:typeface="serif" />
+        android:textSize="17sp" />
 
     <TextView
         android:id="@+id/item_estimated_value"
@@ -86,9 +86,8 @@ android:orientation="horizontal">
         android:padding="5dp"
         android:autoSizeMinTextSize="7sp"
         android:text="@string/cad_currency"
-        android:textColor="@color/dark_grey"
-        android:textStyle="bold"
-        android:typeface="serif" />
+        android:textColor="@color/black"
+        android:textSize="17sp" />
 
 </LinearLayout>
 

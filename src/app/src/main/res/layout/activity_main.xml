@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:padding="10dp"
+        android:padding="15dp"
         android:text="@string/app_name"
         android:textColor="@color/black"
         android:textSize="24sp"
@@ -32,29 +32,47 @@
 
     <LinearLayout
         android:layout_width="match_parent"
+        android:layout_marginHorizontal="10dp"
+        android:layout_marginTop="16dp"
         android:layout_height="wrap_content"
         android:id="@+id/search_add_container"
         app:layout_constraintTop_toBottomOf="@id/line1">
-        <EditText
-            android:id="@+id/search_input"
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:background="@drawable/search_bg"
-            android:drawableStart="@android:drawable/ic_menu_search"
-            android:drawablePadding="5dp"
-            android:textColor="@color/black"
-            android:hint="@string/search_hint"
-            android:imeOptions="actionSearch"
-            android:inputType="text" />
+            android:layout_height="30dp"
+            android:layout_marginTop="11dp"
+            android:background="@drawable/search_bg">
+            <ImageView
+                android:layout_width="17dp"
+                android:layout_height="17dp"
+                android:layout_marginStart="15dp"
+                android:layout_marginTop="6dp"
+                android:src="@drawable/search_icon"
+                android:contentDescription="camera icon"
+                android:clickable="true" />
+            <EditText
+                android:id="@+id/search_input"
+                android:layout_width="0dp"
+                android:paddingHorizontal="10dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:textColor="@color/black"
+                android:maxLines="1"
+                android:textSize="17sp"
+                android:hint="@string/search_hint"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:background="@android:color/transparent"/>
+        </LinearLayout>
         <Button
             android:id="@+id/add_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginLeft="8dp"
             android:text="@string/add_item"
-            android:padding="5dp"
+            android:paddingVertical="7dp"
             android:minHeight="0dp"
             android:minWidth="0dp"
             android:textAllCaps="false"
@@ -65,20 +83,26 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/sort_filter_container"
+        android:layout_marginTop="20dp"
+        android:layout_marginHorizontal="10dp"
         app:layout_constraintTop_toBottomOf="@id/search_add_container">
-        <Spinner
-            android:id="@+id/spinner_sort_options"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:background="@drawable/spinner_bg"
-            android:dropDownSelector="@drawable/spinner_bg"
-            android:gravity="center"
-            android:layout="@layout/custom_spinner"
-            android:popupBackground="@drawable/spinner_bg"
-            android:spinnerMode="dropdown"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/search_add_container" />
+            android:orientation="horizontal"
+            android:layout_marginBottom="15dp"
+            android:paddingStart="6dp"
+            android:background="@drawable/filter_border">
+            <Spinner
+                android:id="@+id/spinner_sort_options"
+                android:layout_width="110dp"
+                android:layout_height="34dp"
+                android:dropDownSelector="@drawable/spinner_bg"
+                android:popupBackground="@drawable/spinner_bg"
+                android:spinnerMode="dropdown"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/search_add_container" />
+        </LinearLayout>
 
         <View
             android:layout_width="0dp"
@@ -86,20 +110,29 @@
             android:layout_weight="1">
         </View>
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
+        <LinearLayout
             android:id="@+id/filter_button"
-            android:layout_width="30sp"
-            android:layout_height="20sp"
-            android:layout_margin="5dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:orientation="vertical"
+            android:background="@drawable/rounded_icon"
+            android:layout_marginBottom="15dp"
             android:clickable="true"
-            android:focusable="true"
-            android:foreground="@android:drawable/ic_menu_sort_by_size"
-            app:backgroundTint="@android:color/white"
-            app:borderWidth="3dp" />
+            >
+            <ImageView
+                android:layout_width="23dp"
+                android:layout_height="23dp"
+                android:layout_marginTop="4dp"
+                android:src="@drawable/filter_icon"
+                android:layout_gravity="center"
+                app:tint="@color/black"
+                android:contentDescription="filter icon" />
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/filter_panel"
+        android:layout_marginHorizontal="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
@@ -109,94 +142,136 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
-            android:layout_margin="5dp"
             android:layout_width="0dp"
             android:layout_weight="1"
+            android:layout_marginEnd="5dp"
             android:layout_height="wrap_content"
             android:orientation="vertical">
             <TextView
                 android:id="@+id/calendar_textview"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:text="Date range"
+                android:text="Date"
                 android:textColor="@color/black"
-                android:layout_marginStart="8dp"
-                android:layout_gravity="center_vertical" />
-            <Button
-                android:id="@+id/calendar_field"
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
                 android:layout_gravity="center_vertical"
-                android:backgroundTint="@color/white"
-                android:clickable="true"
-                android:drawableLeft="@android:drawable/ic_menu_my_calendar"
-                app:cornerRadius="20dp"
-                app:strokeColor="@color/grey"
-                app:strokeWidth="1dp" />
+                android:textStyle="bold"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:orientation="horizontal"
+                android:layout_marginTop="7dp"
+                android:background="@drawable/filter_border">
+                <ImageView
+                    android:id="@+id/calendar_button"
+                    android:clickable="true"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginStart="12dp"
+                    android:src="@drawable/calendar_icon"
+                    android:layout_gravity="center"
+                    android:contentDescription="calendar icon" />
+                <TextView
+                    android:id="@+id/calendar_data"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:scrollHorizontally="true"
+                    android:singleLine="true"
+                    android:ellipsize="marquee"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginStart="7dp"
+                    android:textColor="@color/black"
+                    android:text="hello"
+                    android:textSize="14sp"/>
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
-            android:layout_margin="5dp"
+            android:layout_marginStart="5dp"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:layout_marginEnd="5dp">
             <TextView
                 android:id="@+id/keyword_textview"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:text="Keywords"
-                android:paddingBottom="4dp"
+                android:text="Keyword"
                 android:textColor="@color/black"
-                android:layout_marginStart="8dp"
-                android:layout_gravity="center_vertical" />
-            <EditText
-                android:id="@+id/keyword_field"
+                android:layout_gravity="center_vertical"
+                android:textStyle="bold"/>
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="30dp"
-                android:layout_gravity="center_vertical"
-                android:autoSizeMinTextSize="8sp"
-                android:background="@drawable/search_bg"
-                android:drawableLeft="@android:drawable/ic_menu_search"
-                android:imeOptions="actionSearch"
-                android:inputType="text"
-                android:padding="5dp"
-                app:cornerRadius="10dp"
-                app:strokeColor="@color/black"
-                app:strokeWidth="1dp" />
+                android:orientation="horizontal"
+                android:layout_marginTop="7dp"
+                android:background="@drawable/filter_border">
+                <ImageView
+                    android:clickable="true"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginStart="12dp"
+                    android:src="@drawable/search_icon"
+                    android:layout_gravity="center"
+                    android:contentDescription="search icon" />
+                <EditText
+                    android:id="@+id/keyword_field"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:layout_gravity="center_vertical"
+                    android:autoSizeMinTextSize="8sp"
+                    android:imeOptions="actionSearch"
+                    android:inputType="text"
+                    android:padding="5dp"
+                    android:textSize="14sp"
+                    android:background="@android:color/transparent"/>
+            </LinearLayout>
         </LinearLayout>
+
         <LinearLayout
-            android:layout_margin="5dp"
+            android:layout_marginStart="5dp"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:layout_marginEnd="5dp">
             <TextView
                 android:id="@+id/make_textview"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:text="Make"
-                android:paddingBottom="4dp"
                 android:textColor="@color/black"
-                android:layout_marginStart="8dp"
-                android:layout_gravity="center_vertical" />
-            <EditText
-                android:id="@+id/make_field"
+                android:layout_gravity="center_vertical"
+                android:textStyle="bold"/>
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="30dp"
-                android:layout_gravity="center_vertical"
-                android:background="@drawable/search_bg"
-                android:drawableLeft="@android:drawable/ic_menu_search"
-                android:imeOptions="actionSearch"
-                android:inputType="text"
-                android:maxLength="20"
-                android:padding="5dp"
-                app:cornerRadius="10dp"
-                app:strokeColor="@color/black"
-                app:strokeWidth="1dp" />
+                android:orientation="horizontal"
+                android:layout_marginTop="7dp"
+                android:background="@drawable/filter_border">
+                <ImageView
+                    android:clickable="true"
+                    android:layout_width="19dp"
+                    android:layout_height="19dp"
+                    android:layout_marginStart="12dp"
+                    android:src="@drawable/make_icon"
+                    android:layout_gravity="center"
+                    android:contentDescription="search icon" />
+                <EditText
+                    android:id="@+id/make_field"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:layout_gravity="center_vertical"
+                    android:imeOptions="actionSearch"
+                    android:inputType="text"
+                    android:maxLength="20"
+                    android:padding="5dp"
+                    android:background="@android:color/transparent"/>
+            </LinearLayout>
         </LinearLayout>
+
         <LinearLayout
-            android:layout_margin="5dp"
+            android:layout_marginStart="5dp"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
@@ -206,30 +281,34 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Tags"
-                android:paddingBottom="4dp"
                 android:textColor="@color/black"
-                android:layout_gravity="center_vertical" />
-            <Spinner
-                android:id="@+id/tag_field"
-                android:layout_width="match_parent"
-                android:layout_height="31dp"
                 android:layout_gravity="center_vertical"
-                android:background="@drawable/search_bg"
-                android:dropDownSelector="@drawable/search_bg"
-                android:popupBackground="@drawable/search_bg"
-                android:spinnerMode="dropdown"
-                app:cornerRadius="20dp"
-                app:strokeColor="@color/black"
-                app:strokeWidth="1dp" />
+                android:textStyle="bold"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:orientation="horizontal"
+                android:layout_marginTop="7dp"
+                android:background="@drawable/filter_border">
+                <Spinner
+                    android:id="@+id/tag_field"
+                    android:layout_width="match_parent"
+                    android:layout_height="31dp"
+                    android:layout_gravity="center_vertical"
+                    android:dropDownSelector="@drawable/spinner_bg"
+                    android:popupBackground="@drawable/spinner_bg"
+                    android:spinnerMode="dropdown" />
+            </LinearLayout>
             <Button
                 android:id="@+id/apply_filter_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="20dp"
                 android:layout_gravity="end"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
-                android:padding="5dp"
+                android:paddingVertical="7dp"
                 android:text="@string/apply_filter"
                 android:textAllCaps="false"
                 android:textSize="12sp" />
@@ -262,10 +341,9 @@
         android:layout_height="wrap_content"
         android:padding="10dp"
         android:text="@string/total"
-        android:textColor="@color/dark_grey"
+        android:textColor="@color/black"
         android:textSize="16sp"
         android:textStyle="bold"
-        android:typeface="serif"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -275,28 +353,28 @@
         android:id="@+id/tag_action_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="3dp"
+        android:layout_margin="10dp"
         android:clickable="true"
         android:focusable="true"
-        android:foreground="@android:drawable/ic_menu_edit"
+        android:src="@drawable/modify_icon"
+        app:tint="@android:color/white"
         android:foregroundGravity="center"
-        android:foregroundTint="@color/beige"
         android:foregroundTintMode="src_atop"
         app:backgroundTint="@color/dark_green"
-        app:layout_constraintBottom_toTopOf="@+id/line2"
+        app:layout_constraintBottom_toTopOf="@+id/delete_action_button"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/delete_action_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="3dp"
+        android:layout_margin="10dp"
         android:clickable="true"
-        android:foreground="@android:drawable/ic_menu_delete"
+        android:src="@drawable/delete_icon"
+        app:tint="@android:color/white"
         android:foregroundGravity="center"
-        android:foregroundTint="@color/beige"
         android:foregroundTintMode="src_atop"
         app:backgroundTint="#BC0416"
-        app:layout_constraintBottom_toTopOf="@+id/tag_action_button"
+        app:layout_constraintBottom_toTopOf="@+id/line2"
         app:layout_constraintEnd_toEndOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

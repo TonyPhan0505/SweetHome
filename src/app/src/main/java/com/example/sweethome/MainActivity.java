@@ -78,16 +78,17 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private CollectionReference itemsRef;
     private Spinner sortSpinner;
     private Button addItemButton;
-    private ArrayAdapter<String> sortAdapter;
+    private ArrayAdapter<CharSequence> sortAdapter;
     private ArrayList<Item> selectedItems;
     private PopupWindow popupWindow;
     private boolean isPanelShown = false; // keep track of action panel visibility
     final Context context = this;
     private LinearLayout filterPanel;
-    private ImageView filterIcon;
+    private LinearLayout filterIcon;
     private Button filterApplyButton;
     private EditText keywordField;
     private EditText makeField;
+    private TextView calendar_data;
     private static final String PREF_NAME = "DateRangePrefs";
     private static final String START_DATE_KEY = "startDate";
     private static final String END_DATE_KEY = "endDate";
@@ -147,7 +148,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
 
         /* setup the sort spinner */
         sortSpinner = findViewById(R.id.spinner_sort_options);
-        sortAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, getResources().getStringArray(R.array.sort_options));
+        sortAdapter = ArrayAdapter.createFromResource(this, R.array.sort_options, android.R.layout.simple_spinner_dropdown_item);
         sortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sortSpinner.setAdapter(sortAdapter);
 
@@ -159,7 +160,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
                 // Handle sorting based on selection
                 String selectedSortOption = parentView.getItemAtPosition(position).toString();
-                Toast.makeText(MainActivity.this, "Selected: " + selectedSortOption, Toast.LENGTH_SHORT).show();
                 sortDataList(selectedSortOption, itemList, itemAdapter, getApplicationContext()); // Sort and load data based on the selected option
             }
             @Override
@@ -245,16 +245,16 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
 
 
         // Update the button text with the saved date range
-        Button calendarButton = findViewById(R.id.calendar_field);
-        updateButtonText(calendarButton, selectedStartDate, selectedEndDate);
+        calendar_data = findViewById(R.id.calendar_data);
+        updateCalendar(calendar_data, selectedStartDate, selectedEndDate);
 
 
         // Date range picker
-        Button calendarField = findViewById(R.id.calendar_field);
+        ImageView openCalendarButton = findViewById(R.id.calendar_button);
 
 
         // Set an OnClickListener to handle the button click
-        calendarField.setOnClickListener(new View.OnClickListener() {
+        openCalendarButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // Create the MaterialDatePicker if not already created
@@ -346,6 +346,12 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         });
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        calendar_data.setText("");
+    }
+
     // Create the MaterialDatePicker with optional initial range
     private MaterialDatePicker<Pair<Long, Long>> createMaterialDatePicker() {
         MaterialDatePicker<Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker().build();
@@ -358,7 +364,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             // Save the selected date range
             saveDateRange(selectedStartDate, selectedEndDate);
             // Update the button text
-            updateButtonText(findViewById(R.id.calendar_field), selectedStartDate, selectedEndDate);
+            updateCalendar(findViewById(R.id.calendar_data), selectedStartDate, selectedEndDate);
         });
         return builder;
     }
@@ -376,14 +382,14 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         selectedEndDate = sharedPreferences.getLong(END_DATE_KEY, 0);
 
         // Display the saved date range on the button
-        updateButtonText(findViewById(R.id.calendar_field), selectedStartDate, selectedEndDate);
+        updateCalendar(findViewById(R.id.calendar_data), selectedStartDate, selectedEndDate);
     }
 
-    private void updateButtonText(Button button, Long startDate, Long endDate) {
+    private void updateCalendar(TextView calendar_data, Long startDate, Long endDate) {
         if (startDate != 0 && endDate != 0) {
             // Format the date range string
             String formattedDateRange = formatDateRange(startDate, endDate);
-            button.setText(formattedDateRange);
+            calendar_data.setText(formattedDateRange);
         }
     }
 

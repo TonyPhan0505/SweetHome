@@ -257,7 +257,7 @@
                     android:background="@drawable/rounded_border">
                     <EditText
                         android:id="@+id/serial_number_field"
-                        android:layout_width="110dp"
+                        android:layout_width="115dp"
                         android:layout_height="45dp"
                         android:layout_marginStart="8dp"
                         android:hint="e.g. 1234RTL0916010001"
