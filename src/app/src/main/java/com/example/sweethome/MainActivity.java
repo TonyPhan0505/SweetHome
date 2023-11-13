@@ -348,8 +348,11 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         calendar_data.setText("");
+        filterPanel.setVisibility(View.GONE);
+        makeField.setText("");
+        keywordField.setText("");
+        super.onDestroy();
     }
 
     // Create the MaterialDatePicker with optional initial range

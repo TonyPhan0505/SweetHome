@@ -296,12 +296,12 @@ public class ManageItemActivity extends AppCompatActivity {
         save_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(ManageItemActivity.this, "Please wait for a couple of seconds.", Toast.LENGTH_SHORT).show();
                 if (!saving) {
                     saving = true;
                     save_button.setColorFilter(ContextCompat.getColor(ManageItemActivity.this, R.color.light_grey), PorterDuff.Mode.SRC_IN);
                     boolean isValid = isInputValid();
                     if (isValid) {
+                        Toast.makeText(ManageItemActivity.this, "Please wait for a couple of seconds.", Toast.LENGTH_SHORT).show();
                         name = item_name_field.getText().toString();
                         description = description_field.getText().toString();
                         make = make_field.getText().toString();
@@ -350,6 +350,9 @@ public class ManageItemActivity extends AppCompatActivity {
                         } catch (ParseException err) {
                             System.out.println("ERROR: invalid date format used.");
                         }
+                    } else {
+                        saving = false;
+                        save_button.setColorFilter(ContextCompat.getColor(ManageItemActivity.this, R.color.white), PorterDuff.Mode.SRC_IN);
                     }
                 } else {
                     Toast.makeText(ManageItemActivity.this, "This item is being saved.", Toast.LENGTH_SHORT).show();

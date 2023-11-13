@@ -17,8 +17,7 @@
             android:textColor="@color/black"
             android:textSize="12sp"
             android:layout_gravity="center_vertical"
-            android:id="@+id/tag_name"
-            android:fontFamily="@font/inika_regular"/>
+            android:id="@+id/tag_name"/>
 
         <ImageView
             android:layout_width="10dp"
