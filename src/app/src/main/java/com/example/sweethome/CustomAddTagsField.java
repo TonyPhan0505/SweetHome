@@ -112,7 +112,7 @@ public class CustomAddTagsField extends AppCompatEditText {
         if (!tagName.isEmpty()) {
             this.addedTagNames.add(tagName);
             setTypeface(Typeface.defaultFromStyle(Typeface.NORMAL));
-            View tag_item = LayoutInflater.from(getContext()).inflate(R.layout.tag_item, null);
+            View tag_item = LayoutInflater.from(getContext()).inflate(R.layout.removable_tag, null);
             LinearLayout tag_wrapper = tag_item.findViewById(R.id.tag_wrapper);
             ColorGenerator newColor = new ColorGenerator();
             int tag_color = newColor.getColorCode();
@@ -128,6 +128,7 @@ public class CustomAddTagsField extends AppCompatEditText {
                 tags_container.addView(tag_item);
             }
             remove_tag_button.setOnClickListener(v -> {
+                this.addedTagNames.remove(tagName);
                 tags_container.removeView(tag_item);
             });
             setText(null);

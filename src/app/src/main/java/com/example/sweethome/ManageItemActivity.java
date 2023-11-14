@@ -10,13 +10,11 @@ package com.example.sweethome;
  */
 
 /* Necessary imports */
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -32,6 +30,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.graphics.PorterDuff;
 
 import java.io.ByteArrayOutputStream;
 import java.text.DecimalFormat;
@@ -112,6 +111,7 @@ public class ManageItemActivity extends AppCompatActivity {
     private int numOfAddedPhotos = 0;
     private int numOfExistingPhotos = 0;
     private Map<String, Object> itemInfo;
+    private boolean saving = false;
 
     /**
      * Called when the activity is first created. Initializes UI components, sets up listeners,
@@ -296,57 +296,65 @@ public class ManageItemActivity extends AppCompatActivity {
         save_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(ManageItemActivity.this, "Please wait for a couple of seconds.", Toast.LENGTH_SHORT).show();
-                boolean isValid = isInputValid();
-                if (isValid) {
-                    name = item_name_field.getText().toString();
-                    description = description_field.getText().toString();
-                    make = make_field.getText().toString();
-                    model = model_field.getText().toString();
-                    serialNumber = serial_number_field.getText().toString();
-                    estimatedValue = Double.parseDouble(value_field.getText().toString().replace("$", ""));
-                    purchaseDate = date_field.getText().toString();
-                    comment = comment_field.getText().toString();
-                    tags = add_tags_field.getAddedTagNames();
-                    try {
-                        Date parsedPurchaseDate = dateFormat.parse(purchaseDate);
-                        purchaseDateTS = new Timestamp(parsedPurchaseDate);
-                        itemInfo = new HashMap<>();
-                        itemInfo.put("name", name);
-                        itemInfo.put("description", description);
-                        itemInfo.put("make", make);
-                        itemInfo.put("model", model);
-                        itemInfo.put("serialNumber", serialNumber);
-                        itemInfo.put("estimatedValue", estimatedValue);
-                        itemInfo.put("purchaseDate", purchaseDateTS);
-                        itemInfo.put("comment", comment);
-                        itemInfo.put("tags", tags);
-                        List<Uri> addedPhotoUris = photoUris.subList(numOfExistingPhotos, numOfExistingPhotos + numOfAddedPhotos);
-                        if (addedMorePhotos) {
-                            for (Uri photoUri : addedPhotoUris) {
-                                String timestamp = String.valueOf(System.currentTimeMillis());
-                                String fileName = "photo_" + timestamp + ".jpg";
-                                StorageReference photoRef = photosRef.child(fileName);
-                                photoRef.putFile(photoUri).addOnSuccessListener(taskSnapshot -> {
-                                    photoRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                                        String downloadUrl = uri.toString();
-                                        photoUrls.add(downloadUrl);
-                                        successfulUploads++;
-                                        if (successfulUploads == numOfAddedPhotos) {
-                                            Log.d("FirebaseUpload", "Photo uploaded successfully: " + fileName);
-                                            manageItem();
-                                        }
+                if (!saving) {
+                    saving = true;
+                    save_button.setColorFilter(ContextCompat.getColor(ManageItemActivity.this, R.color.light_grey), PorterDuff.Mode.SRC_IN);
+                    boolean isValid = isInputValid();
+                    if (isValid) {
+                        name = item_name_field.getText().toString();
+                        description = description_field.getText().toString();
+                        make = make_field.getText().toString();
+                        model = model_field.getText().toString();
+                        serialNumber = serial_number_field.getText().toString();
+                        estimatedValue = Double.parseDouble(value_field.getText().toString().replace("$", ""));
+                        purchaseDate = date_field.getText().toString();
+                        comment = comment_field.getText().toString();
+                        tags = add_tags_field.getAddedTagNames();
+                        try {
+                            Date parsedPurchaseDate = dateFormat.parse(purchaseDate);
+                            purchaseDateTS = new Timestamp(parsedPurchaseDate);
+                            itemInfo = new HashMap<>();
+                            itemInfo.put("name", name);
+                            itemInfo.put("description", description);
+                            itemInfo.put("make", make);
+                            itemInfo.put("model", model);
+                            itemInfo.put("serialNumber", serialNumber);
+                            itemInfo.put("estimatedValue", estimatedValue);
+                            itemInfo.put("purchaseDate", purchaseDateTS);
+                            itemInfo.put("comment", comment);
+                            itemInfo.put("tags", tags);
+                            List<Uri> addedPhotoUris = photoUris.subList(numOfExistingPhotos, numOfExistingPhotos + numOfAddedPhotos);
+                            if (addedMorePhotos) {
+                                for (Uri photoUri : addedPhotoUris) {
+                                    String timestamp = String.valueOf(System.currentTimeMillis());
+                                    String fileName = "photo_" + timestamp + ".jpg";
+                                    StorageReference photoRef = photosRef.child(fileName);
+                                    photoRef.putFile(photoUri).addOnSuccessListener(taskSnapshot -> {
+                                        photoRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                                            String downloadUrl = uri.toString();
+                                            photoUrls.add(downloadUrl);
+                                            successfulUploads++;
+                                            if (successfulUploads == numOfAddedPhotos) {
+                                                Log.d("FirebaseUpload", "Photo uploaded successfully: " + fileName);
+                                                manageItem();
+                                            }
+                                        });
+                                    }).addOnFailureListener(e -> {
+                                        Log.e("FirebaseUpload", "Photo upload failed for: " + fileName, e);
                                     });
-                                }).addOnFailureListener(e -> {
-                                    Log.e("FirebaseUpload", "Photo upload failed for: " + fileName, e);
-                                });
+                                }
+                            } else {
+                                manageItem();
                             }
-                        } else {
-                            manageItem();
+                        } catch (ParseException err) {
+                            System.out.println("ERROR: invalid date format used.");
                         }
-                    } catch (ParseException err) {
-                        System.out.println("ERROR: invalid date format used.");
+                    } else {
+                        saving = false;
+                        save_button.setColorFilter(ContextCompat.getColor(ManageItemActivity.this, R.color.white), PorterDuff.Mode.SRC_IN);
                     }
+                } else {
+                    Toast.makeText(ManageItemActivity.this, "This item is being saved.", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -474,6 +482,8 @@ public class ManageItemActivity extends AppCompatActivity {
             Toast.makeText(ManageItemActivity.this, "Successfully updated item.", Toast.LENGTH_SHORT).show();
         }
         successfulUploads = 0;
+        saving = false;
+        save_button.setColorFilter(ContextCompat.getColor(ManageItemActivity.this, R.color.white), PorterDuff.Mode.SRC_IN);
         Intent intent = new Intent(ManageItemActivity.this, MainActivity.class);
         startActivity(intent);
     }
