@@ -15,28 +15,28 @@ package com.example.sweethome;
 /* necessary imports */
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.google.android.material.imageview.ShapeableImageView;
-import com.google.firebase.Timestamp;
+import com.smarteist.autoimageslider.SliderView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 
 public class ItemsCustomAdapter extends ArrayAdapter<Item> {
     /* attributes for this class */
     private ArrayList<Item> items;
     private Context context;
-    public static Item itemObject = null;
 
     /* constructor for this class */
     public ItemsCustomAdapter(Context context, ArrayList<Item> items) {
@@ -52,26 +52,37 @@ public class ItemsCustomAdapter extends ArrayAdapter<Item> {
         Item item = items.get(position);
 
         View view = convertView;
-        ShapeableImageView imageView;
+        LinearLayout imageView;
+        LinearLayout description_container;
         TextView nameView;
         TextView purchaseDateView;
         TextView estimatedValueView;
         CheckBox itemCheckboxView;
-
+        RelativeLayout noImagePlaceholder;
+        LinearLayout sliderViewFrame;
+        SliderView sliderView;
+        ArrayList<ImageSliderData> sliderDataArrayList = new ArrayList<>();
+        ImageSliderAdapter adapter;
+        LinearLayout tags_container;
 
         /* view attached to the item list content layout that we created */
         if(view == null) {
             view = LayoutInflater.from(context).inflate(R.layout.item_list_content, parent, false);
 
             /* find the text views inside the view */
+            imageView = view.findViewById(R.id.item_image);
+            description_container = view.findViewById(R.id.description_container);
             nameView = view.findViewById(R.id.item_name);
             purchaseDateView = view.findViewById(R.id.item_purchase_date);
             estimatedValueView = view.findViewById(R.id.item_estimated_value);
             itemCheckboxView = view.findViewById(R.id.item_checkBox);
-            imageView = view.findViewById(R.id.item_image);
+            noImagePlaceholder = view.findViewById(R.id.item_no_image_placeholder);
+            sliderViewFrame = view.findViewById(R.id.item_image_slider_frame);
+            sliderView = view.findViewById(R.id.item_image_slider);
+            tags_container = view.findViewById(R.id.tags_container);
 
             /* Tag row so that it's not necessary to call findViewById for the ItemViewHolder again when reusing the row. */
-            view.setTag(new ItemViewHolder(nameView, purchaseDateView, estimatedValueView, itemCheckboxView, imageView));
+            view.setTag(new ItemViewHolder(nameView, purchaseDateView, estimatedValueView, itemCheckboxView, imageView, description_container, noImagePlaceholder, sliderViewFrame, sliderView, tags_container));
 
             itemCheckboxView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -82,12 +93,12 @@ public class ItemsCustomAdapter extends ArrayAdapter<Item> {
                 }
             });
 
-            imageView.setOnClickListener(new View.OnClickListener() {
+            description_container.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Context context = v.getContext();
-                    ShapeableImageView image = (ShapeableImageView) v;
-                    Item item = (Item) image.getTag();
+                    LinearLayout description = (LinearLayout) v;
+                    Item item = (Item) description.getTag();
                     Intent intent = new Intent(context, ManageItemActivity.class);
                     intent.putExtra("screen", "View / Edit");
                     intent.putExtra("id", item.getItemId());
@@ -110,29 +121,54 @@ public class ItemsCustomAdapter extends ArrayAdapter<Item> {
             purchaseDateView = itemViewHolder.getItemPurchaseDateView();
             estimatedValueView = itemViewHolder.getItemValueView();
             itemCheckboxView = itemViewHolder.getItemCheckBox();
-            imageView = itemViewHolder.getItemImageView();
-
+            noImagePlaceholder = itemViewHolder.getItemNoImagePlaceholder();
+            sliderViewFrame = itemViewHolder.getItemSliderViewFrame();
+            sliderView = itemViewHolder.getItemSliderView();
+            tags_container = itemViewHolder.getItemTagsContainer();
+            tags_container.removeAllViews();
+            description_container = itemViewHolder.getItemDescriptionContainer();
         }
 
-        /* Tag the check box with the item it diplays to access the item onClick() when the check box is toggled.
-        itemCheckboxView.setTag(item);
+        /* set the views to be the correct corresponding value for each element of the item (ie. name, purchase date, estimated value) */
+        ArrayList<String> photos = item.getPhotos();
+        if (item.getPhotos().size() > 0) {
+            for (int i = 0; i < photos.size(); i++) {
+                sliderDataArrayList.add(new ImageSliderData(Uri.parse(photos.get(i))));
+            }
+            adapter = new ImageSliderAdapter(context, sliderDataArrayList);
+            sliderView.setSliderAdapter(adapter);
+            noImagePlaceholder.setVisibility(View.GONE);
+            sliderViewFrame.setVisibility(View.VISIBLE);
+        } else {
+            sliderViewFrame.setVisibility(View.GONE);
+            noImagePlaceholder.setVisibility(View.VISIBLE);
+        }
 
-        /* then set them to be the correct corresponding value for each element of the item (ie. name, purchase date, estimated value) */
+        for (String tagName : item.getTags()) {
+            View tag_item = LayoutInflater.from(getContext()).inflate(R.layout.tag, null);
+            TextView tag_name_field = tag_item.findViewById(R.id.tag_name);
+            tag_name_field.setText(tagName);
+            tags_container.addView(tag_item);
+        }
+
         nameView.setText(item.getName());
-        SimpleDateFormat df = new SimpleDateFormat(context.getString(R.string.date_format)); //create a new format for the date to be in YYYY/MM/DD format
-//        Date date = item.getPurchaseDate().toDate();
 
+        SimpleDateFormat df = new SimpleDateFormat(context.getString(R.string.date_format)); //create a new format for the date to be in YYYY/MM/DD format
         if (item.getPurchaseDate() != null) {
             String dateString = df.format(item.getPurchaseDate().toDate()); //convert the date to a string in the specified format
             purchaseDateView.setText(dateString);
         } else {
             purchaseDateView.setText("");
         }
+
         String value = String.format("%.2f", item.getEstimatedValue()); //ensure there are only 2 places after the decimal when formatting the string
         estimatedValueView.setText(context.getString(R.string.cad_currency) + value); //format the estimated value to include the currency ie. CAD$*.xx
+
         itemCheckboxView.setChecked(item.isSelected());
+
         itemCheckboxView.setTag(item);
-        imageView.setTag(item);
+        description_container.setTag(item);
+
         /* return the view we inflated */
         return view;
     }

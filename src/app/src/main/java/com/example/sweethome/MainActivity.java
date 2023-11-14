@@ -23,6 +23,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,7 +32,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -47,7 +47,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.util.Pair;
-import android.Manifest;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -61,9 +60,12 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends AppCompatActivity implements IFilterable {
     /* attributes of this class */
@@ -72,8 +74,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private ListView itemListView;
     private TextView totalEstimatedValue;
     private ItemsCustomAdapter itemAdapter;
-    private View itemView;
-    private CheckBox itemCheckBox;
     private FirebaseFirestore db;
     private CollectionReference itemsRef;
     private Spinner sortSpinner;
@@ -188,12 +188,14 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             @Override
             public void onClick(View view) {
                 if (filterPanel.getVisibility() == View.VISIBLE) { //if the panel is already visible
+                    filterIcon.setColorFilter(ContextCompat.getColor(MainActivity.this, R.color.black), PorterDuff.Mode.SRC_IN);
                     filterPanel.setVisibility(View.GONE); //then make it invisible
                     /* clear the edit texts for the next time the user uses the panel */
                     makeField.setText("");
                     keywordField.setText("");
                     getAllItemsFromDatabase(itemsRef); //also clear all of the filters
                 } else {
+                    filterIcon.setColorFilter(ContextCompat.getColor(MainActivity.this, R.color.light_grey), PorterDuff.Mode.SRC_IN);
                     filterPanel.setVisibility(View.VISIBLE); //otherwise just show the panel since it must currently be invisible
                     filtered = false; //set the filtered flag as false
                     selectedStartDate = 0L; //restart the start day
@@ -275,10 +277,8 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             if (!popupWindow.isShowing()) {
                 setUpActionButtonPanel();
                 showPanel(view);
-//                Toast.makeText(MainActivity.this, "Show", Toast.LENGTH_SHORT).show();
             } else {
                 hidePanel();
-//                Toast.makeText(MainActivity.this, "Hide", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -287,8 +287,8 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             selectedItems = new ArrayList<Item>();
             for (int i = 0; i < itemListView.getCount(); i++) {
                 Item item = itemAdapter.getItem(i);
-                Boolean select = item.isSelected();
-                if (item != null && item.isSelected()) {
+                Boolean selected = item.isSelected();
+                if (item != null && selected) {
                     selectedItems.add(item);
                 }
             }
@@ -299,7 +299,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             deleteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    deleteItems(selectedItems,itemsRef);
+                    deleteItems(MainActivity.this, selectedItems, itemsRef);
                     if (filterPanel.getVisibility() == View.VISIBLE) { //if the filter panel is visible
                         filterPanel.setVisibility(View.GONE); //then make it invisible
                         /* clear the edit texts for the next time the user uses the panel */
@@ -318,8 +318,11 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 }
             });
 
-            deleteDialog.show();
-
+            if (selectedItems.size() > 0) {
+                deleteDialog.show();
+            } else {
+                Toast.makeText(MainActivity.this, "Please select at least 1 item.", Toast.LENGTH_SHORT).show();
+            }
         });
 
         /* listen for changes in the collection and update our list of items accordingly */
@@ -457,20 +460,38 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
      * Delete item/items
      * @param items list of item to delete
      */
-    public static void deleteItems(ArrayList<Item> items, CollectionReference itemsRef) {
+    public static void deleteItems(final Context context, ArrayList<Item> items, CollectionReference itemsRef) {
+        int totalItems = items.size();
+        AtomicInteger deletedItemsCount = new AtomicInteger(0);
         for (Item item: items) {
+            ArrayList<String> photos = item.getPhotos();
+            for (String photoUrl : photos) {
+                StorageReference storageReference = FirebaseStorage.getInstance().getReferenceFromUrl(photoUrl);
+                storageReference.delete().addOnSuccessListener(aVoid -> {
+                    Log.d("Firestore", "Photo successfully deleted!");
+                })
+                .addOnFailureListener(exception -> {
+                    Log.e("Firestore", "Photo deleted failed!");
+                });
+            }
             itemsRef.document(item.getItemId())
                     .delete()
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void unused) {
                             Log.d("Firestore", "DocumentSnapshot successfully deleted!");
+                            int count = deletedItemsCount.incrementAndGet();
+                            if (count == totalItems) {
+                                // All items are deleted, show toast
+                                Toast.makeText(context, "Deleted successfully.", Toast.LENGTH_SHORT).show();
+                            }
                         }
                     })
                     .addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            Log.e("Firestore", "DocumentSnapshot deleted Failed!");
+                            Log.e("Firestore", "DocumentSnapshot deleted failed!");
+                            Toast.makeText(context, "Failed to delete.", Toast.LENGTH_SHORT).show();
                         }
                     });
         }

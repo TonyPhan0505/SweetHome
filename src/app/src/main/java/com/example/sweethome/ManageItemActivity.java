@@ -301,7 +301,6 @@ public class ManageItemActivity extends AppCompatActivity {
                     save_button.setColorFilter(ContextCompat.getColor(ManageItemActivity.this, R.color.light_grey), PorterDuff.Mode.SRC_IN);
                     boolean isValid = isInputValid();
                     if (isValid) {
-                        Toast.makeText(ManageItemActivity.this, "Please wait for a couple of seconds.", Toast.LENGTH_SHORT).show();
                         name = item_name_field.getText().toString();
                         description = description_field.getText().toString();
                         make = make_field.getText().toString();
