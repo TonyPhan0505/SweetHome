@@ -50,7 +50,10 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 import com.smarteist.autoimageslider.SliderView;
+
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -96,6 +99,7 @@ public class ManageItemActivity extends AppCompatActivity {
     private ImageView save_button;
     private EditText item_name_field;
     private EditText serial_number_field;
+    private ImageView barcode_scan_icon;
     private CustomAddTagsField tag_input;
     private EditText description_field;
     private EditText make_field;
@@ -112,6 +116,7 @@ public class ManageItemActivity extends AppCompatActivity {
     private int numOfExistingPhotos = 0;
     private Map<String, Object> itemInfo;
     private boolean saving = false;
+    private String scannedBarcode;
 
     /**
      * Called when the activity is first created. Initializes UI components, sets up listeners,
@@ -139,6 +144,7 @@ public class ManageItemActivity extends AppCompatActivity {
         save_button = findViewById(R.id.check_icon);
         item_name_field = findViewById(R.id.item_name_field);
         serial_number_field = findViewById(R.id.serial_number_field);
+        barcode_scan_icon = findViewById(R.id.barcode_scan_icon);
         tag_input = findViewById(R.id.tag_input);
         description_field = findViewById(R.id.description_field);
         make_field = findViewById(R.id.make_field);
@@ -359,12 +365,17 @@ public class ManageItemActivity extends AppCompatActivity {
             }
         });
 
-        // open device's camera when the user clicks on the open camera button
+        // open device's camera to take a photo of the item when the user clicks on the open camera button
         open_camera_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 takePhotoWithCamera();
             }
+        });
+
+        // open barcode scanner when the barcode icon in the top right corner is clicked
+        barcode_scan_icon.setOnClickListener(v -> {
+            scanBarcode();
         });
     }
 
@@ -384,6 +395,20 @@ public class ManageItemActivity extends AppCompatActivity {
     private void takePhotoWithCamera() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult(intent, 2);
+    }
+
+    /**
+     * Accesses the device's camera to scan a barcode or a serial number.
+     */
+    private void scanBarcode() {
+        IntentIntegrator integrator = new IntentIntegrator(this);
+        integrator.setDesiredBarcodeFormats(IntentIntegrator.ALL_CODE_TYPES);
+        integrator.setOrientationLocked(true);
+        integrator.setPrompt("Scan a serial number");
+        integrator.setCameraId(0);
+        integrator.setBeepEnabled(false);
+        integrator.setBarcodeImageEnabled(false);
+        integrator.initiateScan();
     }
 
     /**
@@ -409,6 +434,15 @@ public class ManageItemActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
+        IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+        if (scanResult != null) {
+            if (scanResult.getContents() != null) {
+                scannedBarcode = scanResult.getContents();
+                serial_number_field.setText(scannedBarcode);
+            }
+        }
+
         if (requestCode == 1 && resultCode == RESULT_OK && data != null) {
             addedMorePhotos = true;
             if (data.getData() != null) {
