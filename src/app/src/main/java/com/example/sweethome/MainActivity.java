@@ -23,6 +23,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,7 +32,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -59,9 +59,12 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends AppCompatActivity implements IFilterable {
     /* attributes of this class */
@@ -70,13 +73,11 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private ListView itemListView;
     private TextView totalEstimatedValue;
     private ItemsCustomAdapter itemAdapter;
-    private View itemView;
-    private CheckBox itemCheckBox;
     private FirebaseFirestore db;
     private CollectionReference itemsRef;
     private Spinner sortSpinner;
     private Button addItemButton;
-    private ArrayAdapter<String> sortAdapter;
+    private ArrayAdapter<CharSequence> sortAdapter;
     private ArrayList<Item> selectedItems;
     private PopupWindow popupWindow;
     private boolean isPanelShown = false; // keep track of action panel visibility
@@ -86,6 +87,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private Button filterApplyButton;
     private EditText keywordField;
     private EditText makeField;
+    private TextView calendar_data;
     private static final String PREF_NAME = "DateRangePrefs";
     private static final String START_DATE_KEY = "startDate";
     private static final String END_DATE_KEY = "endDate";
@@ -145,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
 
         /* setup the sort spinner */
         sortSpinner = findViewById(R.id.spinner_sort_options);
-        sortAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, getResources().getStringArray(R.array.sort_options));
+        sortAdapter = ArrayAdapter.createFromResource(this, R.array.sort_options, android.R.layout.simple_spinner_dropdown_item);
         sortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sortSpinner.setAdapter(sortAdapter);
 
@@ -157,7 +159,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
                 // Handle sorting based on selection
                 String selectedSortOption = parentView.getItemAtPosition(position).toString();
-                Toast.makeText(MainActivity.this, "Selected: " + selectedSortOption, Toast.LENGTH_SHORT).show();
                 sortDataList(selectedSortOption, itemList, itemAdapter, getApplicationContext()); // Sort and load data based on the selected option
             }
             @Override
@@ -186,12 +187,14 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             @Override
             public void onClick(View view) {
                 if (filterPanel.getVisibility() == View.VISIBLE) { //if the panel is already visible
+                    filterIcon.setColorFilter(ContextCompat.getColor(MainActivity.this, R.color.black), PorterDuff.Mode.SRC_IN);
                     filterPanel.setVisibility(View.GONE); //then make it invisible
                     /* clear the edit texts for the next time the user uses the panel */
                     makeField.setText("");
                     keywordField.setText("");
                     getAllItemsFromDatabase(itemsRef); //also clear all of the filters
                 } else {
+                    filterIcon.setColorFilter(ContextCompat.getColor(MainActivity.this, R.color.light_grey), PorterDuff.Mode.SRC_IN);
                     filterPanel.setVisibility(View.VISIBLE); //otherwise just show the panel since it must currently be invisible
                     filtered = false; //set the filtered flag as false
                     selectedStartDate = 0L; //restart the start day
@@ -243,16 +246,16 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
 
 
         // Update the button text with the saved date range
-        Button calendarButton = findViewById(R.id.calendar_field);
-        updateButtonText(calendarButton, selectedStartDate, selectedEndDate);
+        calendar_data = findViewById(R.id.calendar_data);
+        updateCalendar(calendar_data, selectedStartDate, selectedEndDate);
 
 
         // Date range picker
-        Button calendarField = findViewById(R.id.calendar_field);
+        ImageView openCalendarButton = findViewById(R.id.calendar_button);
 
 
         // Set an OnClickListener to handle the button click
-        calendarField.setOnClickListener(new View.OnClickListener() {
+        openCalendarButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // Create the MaterialDatePicker if not already created
@@ -273,10 +276,8 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             if (!popupWindow.isShowing()) {
                 setUpActionButtonPanel();
                 showPanel(view);
-//                Toast.makeText(MainActivity.this, "Show", Toast.LENGTH_SHORT).show();
             } else {
                 hidePanel();
-//                Toast.makeText(MainActivity.this, "Hide", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -285,8 +286,8 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             selectedItems = new ArrayList<Item>();
             for (int i = 0; i < itemListView.getCount(); i++) {
                 Item item = itemAdapter.getItem(i);
-                Boolean select = item.isSelected();
-                if (item != null && item.isSelected()) {
+                Boolean selected = item.isSelected();
+                if (item != null && selected) {
                     selectedItems.add(item);
                 }
             }
@@ -297,7 +298,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             deleteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    deleteItems(selectedItems,itemsRef);
+                    deleteItems(MainActivity.this, selectedItems, itemsRef);
                     if (filterPanel.getVisibility() == View.VISIBLE) { //if the filter panel is visible
                         filterPanel.setVisibility(View.GONE); //then make it invisible
                         /* clear the edit texts for the next time the user uses the panel */
@@ -316,8 +317,11 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 }
             });
 
-            deleteDialog.show();
-
+            if (selectedItems.size() > 0) {
+                deleteDialog.show();
+            } else {
+                Toast.makeText(MainActivity.this, "Please select at least 1 item.", Toast.LENGTH_SHORT).show();
+            }
         });
 
         /* listen for changes in the collection and update our list of items accordingly */
@@ -344,6 +348,15 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         });
     }
 
+    @Override
+    protected void onDestroy() {
+        calendar_data.setText("");
+        filterPanel.setVisibility(View.GONE);
+        makeField.setText("");
+        keywordField.setText("");
+        super.onDestroy();
+    }
+
     // Create the MaterialDatePicker with optional initial range
     private MaterialDatePicker<Pair<Long, Long>> createMaterialDatePicker() {
         MaterialDatePicker<Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker().build();
@@ -356,7 +369,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             // Save the selected date range
             saveDateRange(selectedStartDate, selectedEndDate);
             // Update the button text
-            updateButtonText(findViewById(R.id.calendar_field), selectedStartDate, selectedEndDate);
+            updateCalendar(findViewById(R.id.calendar_data), selectedStartDate, selectedEndDate);
         });
         return builder;
     }
@@ -374,14 +387,14 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         selectedEndDate = sharedPreferences.getLong(END_DATE_KEY, 0);
 
         // Display the saved date range on the button
-        updateButtonText(findViewById(R.id.calendar_field), selectedStartDate, selectedEndDate);
+        updateCalendar(findViewById(R.id.calendar_data), selectedStartDate, selectedEndDate);
     }
 
-    private void updateButtonText(Button button, Long startDate, Long endDate) {
+    private void updateCalendar(TextView calendar_data, Long startDate, Long endDate) {
         if (startDate != 0 && endDate != 0) {
             // Format the date range string
             String formattedDateRange = formatDateRange(startDate, endDate);
-            button.setText(formattedDateRange);
+            calendar_data.setText(formattedDateRange);
         }
     }
 
@@ -425,20 +438,38 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
      * Delete item/items
      * @param items list of item to delete
      */
-    public static void deleteItems(ArrayList<Item> items, CollectionReference itemsRef) {
+    public static void deleteItems(final Context context, ArrayList<Item> items, CollectionReference itemsRef) {
+        int totalItems = items.size();
+        AtomicInteger deletedItemsCount = new AtomicInteger(0);
         for (Item item: items) {
+            ArrayList<String> photos = item.getPhotos();
+            for (String photoUrl : photos) {
+                StorageReference storageReference = FirebaseStorage.getInstance().getReferenceFromUrl(photoUrl);
+                storageReference.delete().addOnSuccessListener(aVoid -> {
+                    Log.d("Firestore", "Photo successfully deleted!");
+                })
+                .addOnFailureListener(exception -> {
+                    Log.e("Firestore", "Photo deleted failed!");
+                });
+            }
             itemsRef.document(item.getItemId())
                     .delete()
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void unused) {
                             Log.d("Firestore", "DocumentSnapshot successfully deleted!");
+                            int count = deletedItemsCount.incrementAndGet();
+                            if (count == totalItems) {
+                                // All items are deleted, show toast
+                                Toast.makeText(context, "Deleted successfully.", Toast.LENGTH_SHORT).show();
+                            }
                         }
                     })
                     .addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            Log.e("Firestore", "DocumentSnapshot deleted Failed!");
+                            Log.e("Firestore", "DocumentSnapshot deleted failed!");
+                            Toast.makeText(context, "Failed to delete.", Toast.LENGTH_SHORT).show();
                         }
                     });
         }
