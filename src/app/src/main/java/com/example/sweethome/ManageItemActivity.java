@@ -404,7 +404,7 @@ public class ManageItemActivity extends AppCompatActivity {
         IntentIntegrator integrator = new IntentIntegrator(this);
         integrator.setDesiredBarcodeFormats(IntentIntegrator.ALL_CODE_TYPES);
         integrator.setOrientationLocked(true);
-        integrator.setPrompt("Scan a serial number");
+        integrator.setPrompt("Scan a barcode");
         integrator.setCameraId(0);
         integrator.setBeepEnabled(false);
         integrator.setBarcodeImageEnabled(false);
@@ -439,7 +439,6 @@ public class ManageItemActivity extends AppCompatActivity {
         if (scanResult != null) {
             if (scanResult.getContents() != null) {
                 scannedBarcode = scanResult.getContents();
-                serial_number_field.setText(scannedBarcode);
             }
         }
 
