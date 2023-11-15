@@ -6,7 +6,7 @@ package com.example.sweethome;
  * AppCompatActivity class and handles the main screen of the application. From here, users can
  * interact with various features in the app.
  * <p>The “screen” extra can be set to “Add Item” or “View / Edit” to indicate the desired screen
- * mode in the {@link ManageItemActivity}.</p>
+ * mode in the {@link com.example.sweethome.ManageItemActivity}.</p>
  *
  * November 10, 2023
  *
@@ -20,8 +20,8 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
@@ -54,7 +54,6 @@ import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -436,27 +435,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     }
 
     /**
-     * Adds a new item to the items collection
-     * (used for testing)
-     * @param item
-     */
-    public static void addItem(Item item, CollectionReference itemsRef){
-        itemsRef.add(item) //add the item to our items collection
-                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                    @Override
-                    public void onSuccess(DocumentReference documentReference) {
-                        Log.i("Firestore", "db write succeeded"); //log if we were successful in adding the new item
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.e("Firestore", "db write fails"); //log if we were unsuccessful in adding the new item
-                    }
-                });
-    }
-
-    /**
      * Delete item/items
      * @param items list of item to delete
      */
@@ -497,9 +475,13 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         }
     }
 
-    /*
+    /**
      * Given a selected sorting option, sorts the current item
      * list according to the selected criteria.
+     * @param selectedSortOption
+     * @param itemList
+     * @param itemAdapter
+     * @param context
      */
     public static void sortDataList(String selectedSortOption, ArrayList<Item> itemList, ItemsCustomAdapter itemAdapter, Context context) {
         if (selectedSortOption.equals(context.getString(R.string.sort_least_recent))) { //if we are sorting items by oldest to newest acquired
@@ -535,6 +517,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     /**
      * Gets all of the items in the items collection
      * and updates the frontend to display them in the list
+     * @param itemsRef
      */
     private void getAllItemsFromDatabase(CollectionReference itemsRef){
         itemsRef.get()
@@ -560,10 +543,11 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 });
     }
 
-    /*
+    /**
      * Given a start date and end date, filters the current item list
      * accordingly (ie. keeps items between start and end INCLUSIVE).
-     * @param startDate, endDate
+     * @param startDate
+     * @param endDate
      */
     public void filterByDate(Timestamp startDate, Timestamp endDate) {
         ArrayList<Item> filteredList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
@@ -579,7 +563,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         calculateTotalEstimatedValue(); //recalculate and display the total estimated value
     }
 
-    /*
+    /**
      * Given a make, filters the current item list
      * accordingly (ie. keeps items with the specified make).
      * @param make

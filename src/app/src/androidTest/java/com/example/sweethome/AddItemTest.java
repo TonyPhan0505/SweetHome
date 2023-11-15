@@ -38,7 +38,7 @@ import org.junit.runner.RunWith;
 // sources: https://stackoverflow.com/questions/27382147/write-a-test-that-clicks-on-views-inside-popupwindow
 @RunWith(AndroidJUnit4.class)
 @LargeTest
-public class DeleteItemTest {
+public class AddItemTest {
     @Rule
     public ActivityScenarioRule<MainActivity> scenario=new ActivityScenarioRule<MainActivity>(MainActivity.class);
 
@@ -47,17 +47,17 @@ public class DeleteItemTest {
         Thread.sleep(5000);
     }
     @Test
-    public void testDeleteItem() throws InterruptedException{
+    public void testAddItem() throws InterruptedException{
         onView(withId(R.id.add_button)).perform(click());
-        onView(withId(R.id.item_name_field)).perform(ViewActions.typeText("DeleteTest"));
+        onView(withId(R.id.item_name_field)).perform(ViewActions.typeText("AddItemTest"));
         Thread.sleep(3000);
-        onView(withId(R.id.serial_number_field)).perform(ViewActions.typeText("1234567"));
+        onView(withId(R.id.serial_number_field)).perform(ViewActions.typeText("1224567"));
         onView(withId(R.id.serial_number_field)).perform(ViewActions.pressImeActionButton());
         onView(withId(R.id.tag_input)).perform(ViewActions.typeText("testTag"));
         onView(withId(R.id.tag_input)).perform(ViewActions.pressImeActionButton());
         Thread.sleep(3000);
         closeSoftKeyboard();
-        onView(withId(R.id.description_field)).perform(ViewActions.typeText("This is a delete test"));
+        onView(withId(R.id.description_field)).perform(ViewActions.typeText("This is a add test"));
         closeSoftKeyboard();
         onView(withId(R.id.make_field)).perform(ViewActions.typeText("testMake"));
         closeSoftKeyboard();
@@ -76,13 +76,7 @@ public class DeleteItemTest {
         Thread.sleep(3000);
 
 
-        onData(anything()).inAdapterView(withId(R.id.item_list)).atPosition(0).onChildView(withId(R.id.item_name)).check(matches(withText("DeleteTest")));
-        onData(anything()).inAdapterView(withId(R.id.item_list)).atPosition(0).onChildView(withId(R.id.item_checkBox)).perform(click());
-        Thread.sleep(3000);
-        onView(withId(R.id.delete_action_button)).perform(click());
-        Thread.sleep(3000);
-        onView(withId(R.id.delete_button)).perform(click());
-        onData(anything()).inAdapterView(withId(R.id.item_list)).atPosition(0).onChildView(withId(R.id.item_name)).check((matches(not(withText("DeleteTest")))));
+        onData(anything()).inAdapterView(withId(R.id.item_list)).atPosition(0).onChildView(withId(R.id.item_name)).check(matches(withText("AddItemTest")));
     }
 }
 
