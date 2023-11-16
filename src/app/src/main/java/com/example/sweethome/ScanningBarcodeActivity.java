@@ -1,4 +1,12 @@
 package com.example.sweethome;
+/**
+ * The ScanningBarcodeActivity class represents the activity for scanning a barcode and
+ * returning the extracted barcode to ManageItemActivity. The barcode is then processed in
+ * ManageItemActivity to get the associated product information.
+ *
+ * November 10, 2023
+ *
+ */
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -27,6 +35,14 @@ public class ScanningBarcodeActivity extends AppCompatActivity {
         integrator.initiateScan();
     }
 
+    /**
+     * Gets the result after scanning barcode and send it back to ManageItemActivity.
+     *
+     * @param requestCode The request code passed to startActivityForResult.
+     * @param resultCode The result code returned by the child activity.
+     * @param data The data returned by the child activity.
+     */
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -45,6 +61,9 @@ public class ScanningBarcodeActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Send extracted barcode back to ManageItemActivity.
+     */
     private void sendResultBack() {
         Intent resultIntent = new Intent();
         resultIntent.putExtra("SCANNED_BARCODE", scannedBarcode);
