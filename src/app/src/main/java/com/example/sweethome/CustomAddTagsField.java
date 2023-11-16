@@ -128,11 +128,15 @@ public class CustomAddTagsField extends AppCompatEditText {
                 tags_container.addView(tag_item);
             }
             remove_tag_button.setOnClickListener(v -> {
-                this.addedTagNames.remove(tagName);
+                removeTag(tagName);
                 tags_container.removeView(tag_item);
             });
             setText(null);
         }
+    }
+
+    public void removeTag(String tagName) {
+        this.addedTagNames.remove(tagName);
     }
 
     /**

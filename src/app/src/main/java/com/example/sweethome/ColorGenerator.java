@@ -17,7 +17,6 @@ import java.util.Random;
 public class ColorGenerator {
     /* attributes of this class */
     private int colorCode;
-    private int textColorCode;
 
     /**
      * The random color code is generated during the instantiation of the Color object using RGB
@@ -55,5 +54,9 @@ public class ColorGenerator {
         } else {
             return Color.WHITE;
         }
+    }
+
+    public void setColorCode(int backgroundColor) {
+        this.colorCode = backgroundColor;
     }
 }
