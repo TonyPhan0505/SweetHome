@@ -62,6 +62,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -349,11 +350,18 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     }
 
     @Override
+    protected void onStop() {
+        getApplicationContext().getCacheDir().delete();
+        super.onStop();
+    }
+
+    @Override
     protected void onDestroy() {
         calendar_data.setText("");
         filterPanel.setVisibility(View.GONE);
         makeField.setText("");
         keywordField.setText("");
+        getApplicationContext().getCacheDir().delete();
         super.onDestroy();
     }
 

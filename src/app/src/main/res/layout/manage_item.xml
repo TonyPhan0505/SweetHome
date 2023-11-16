@@ -261,7 +261,7 @@
                         android:textSize="16sp"
                         android:inputType="textNoSuggestions"
                         android:maxLines="1"
-                        android:maxLength="50"
+                        android:maxLength="60"
                         android:background="@android:color/transparent"/>
 
                     <ImageView
