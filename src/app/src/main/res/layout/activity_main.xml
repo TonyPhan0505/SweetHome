@@ -310,7 +310,7 @@
         android:layout_height="0dp"
         android:paddingLeft="30dp"
         android:paddingRight="30dp"
-        android:paddingBottom="90dp"
+        android:paddingBottom="60dp"
         app:layout_constraintBottom_toTopOf="@id/line2"
         app:layout_constraintTop_toBottomOf="@+id/filter_panel"
         app:layout_constraintEnd_toEndOf="parent"

@@ -17,10 +17,13 @@
         android:theme="@style/Theme.SweetHome"
         tools:targetApi="31"
         android:hardwareAccelerated="true">
+        <meta-data
+            android:name="com.google.firebase.ml.vision.DEPENDENCIES"
+            android:value="ocr" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
-            <!-- Set Main Activity as the first one to be launched when the user opens the app -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -30,7 +33,6 @@
         <activity
             android:name=".ManageItemActivity"
             android:label="Manage Item">
-            <!-- Specify the parent activity for ManageItemActivity -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
@@ -40,5 +42,13 @@
             android:name="com.journeyapps.barcodescanner.CaptureActivity"
             android:screenOrientation="fullSensor"
             tools:replace="screenOrientation" />
+
+        <activity
+            android:name=".ScanningBarcodeActivity"
+            android:label="Scanning Barcode">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ManageItemActivity" />
+        </activity>
     </application>
 </manifest>
