@@ -1,7 +1,13 @@
 package com.example.sweethome;
 
+import static android.support.test.InstrumentationRegistry.getContext;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.ImageView;
 
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -45,7 +51,30 @@ public class CustomAddTagsFieldTest {
             assertTrue(addedTagNames.contains("Tag2"));
             assertTrue(addedTagNames.contains("Tag3"));
 
+        });
+    }
 
+    @Test
+    public void testRemoveTag() {
+        scenario.onActivity(activity -> {
+            CustomAddTagsField customAddTagsField = new CustomAddTagsField(activity);
+
+            // Add tags
+            customAddTagsField.addTag("Tag1");
+            customAddTagsField.addTag("Tag2");
+            customAddTagsField.addTag("Tag3");
+
+            // Remove Tag1
+            customAddTagsField.removeTag("Tag1");
+
+            // Check the list of added tag names
+            ArrayList<String> addedTagNamesAfterRemoval = customAddTagsField.getAddedTagNames();
+
+            // Check that Tag1 is removed
+            assertEquals(2, addedTagNamesAfterRemoval.size());
+            assertFalse(addedTagNamesAfterRemoval.contains("Tag1"));
+            assertTrue(addedTagNamesAfterRemoval.contains("Tag2"));
+            assertTrue(addedTagNamesAfterRemoval.contains("Tag3"));
         });
     }
 }

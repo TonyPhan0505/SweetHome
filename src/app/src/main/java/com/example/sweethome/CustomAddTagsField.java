@@ -135,6 +135,10 @@ public class CustomAddTagsField extends AppCompatEditText {
         }
     }
 
+    public void removeTag(String tagName) {
+        addedTagNames.remove(tagName);
+    }
+
     /**
      * Get the list of added tag names.
      *
