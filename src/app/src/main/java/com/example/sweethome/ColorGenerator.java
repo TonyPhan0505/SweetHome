@@ -56,4 +56,8 @@ public class ColorGenerator {
             return Color.WHITE;
         }
     }
+
+    public void setColorCode(int backgroundColor) {
+        this.colorCode = backgroundColor;
+    }
 }

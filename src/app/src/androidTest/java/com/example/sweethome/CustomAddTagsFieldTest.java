@@ -45,6 +45,7 @@ public class CustomAddTagsFieldTest {
             assertTrue(addedTagNames.contains("Tag2"));
             assertTrue(addedTagNames.contains("Tag3"));
 
+
         });
     }
 }
