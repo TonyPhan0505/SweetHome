@@ -10,6 +10,7 @@ package com.example.sweethome;
  */
 
 /* Necessary imports */
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
@@ -33,6 +34,7 @@ import android.widget.TextView;
 import android.graphics.PorterDuff;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -41,13 +43,22 @@ import android.app.DatePickerDialog;
 import android.widget.DatePicker;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.ml.vision.FirebaseVision;
+import com.google.firebase.ml.vision.common.FirebaseVisionImage;
+import com.google.firebase.ml.vision.text.FirebaseVisionText;
+import com.google.firebase.ml.vision.text.FirebaseVisionTextRecognizer;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.smarteist.autoimageslider.SliderView;
@@ -67,6 +78,7 @@ public class ManageItemActivity extends AppCompatActivity {
     private StorageReference photosRef = photosStorageRef.child("images");
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference itemsCollection = db.collection("items");
+    private CollectionReference barcodesCollection = db.collection("barcodes");
     private CustomAddTagsField add_tags_field;
     private LinearLayout tags_container;
     private TextView date_field;
@@ -96,6 +108,8 @@ public class ManageItemActivity extends AppCompatActivity {
     private ImageView save_button;
     private EditText item_name_field;
     private EditText serial_number_field;
+    private ImageView open_sn_scanner_button;
+    private ImageView barcode_scan_icon;
     private CustomAddTagsField tag_input;
     private EditText description_field;
     private EditText make_field;
@@ -112,6 +126,11 @@ public class ManageItemActivity extends AppCompatActivity {
     private int numOfExistingPhotos = 0;
     private Map<String, Object> itemInfo;
     private boolean saving = false;
+    private static final int OPEN_GALLERY_REQUEST_CODE = 1;
+    private static final int TAKE_PHOTO_REQUEST_CODE = 2;
+    private static final int SCAN_BARCODE_REQUEST_CODE = 3;
+    private String scannedBarcode;
+    private static final int SCAN_SN_REQUEST_CODE = 4;
 
     /**
      * Called when the activity is first created. Initializes UI components, sets up listeners,
@@ -139,6 +158,8 @@ public class ManageItemActivity extends AppCompatActivity {
         save_button = findViewById(R.id.check_icon);
         item_name_field = findViewById(R.id.item_name_field);
         serial_number_field = findViewById(R.id.serial_number_field);
+        open_sn_scanner_button = findViewById(R.id.open_sn_scanner_button);
+        barcode_scan_icon = findViewById(R.id.barcode_scan_icon);
         tag_input = findViewById(R.id.tag_input);
         description_field = findViewById(R.id.description_field);
         make_field = findViewById(R.id.make_field);
@@ -359,13 +380,37 @@ public class ManageItemActivity extends AppCompatActivity {
             }
         });
 
-        // open device's camera when the user clicks on the open camera button
+        // open device's camera to take a photo of the item when the user clicks on the open camera button
         open_camera_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 takePhotoWithCamera();
             }
         });
+
+        // open barcode scanner when the barcode icon in the top right corner is clicked
+        barcode_scan_icon.setOnClickListener(v -> {
+            Intent scannedBarcodeIntent = new Intent(this, ScanningBarcodeActivity.class);
+            startActivityForResult(scannedBarcodeIntent, SCAN_BARCODE_REQUEST_CODE);
+        });
+
+        // open text recognizer to scan for serial number
+        open_sn_scanner_button.setOnClickListener(v -> {
+            Intent scanSerialNumberIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            startActivityForResult(scanSerialNumberIntent, SCAN_SN_REQUEST_CODE);
+        });
+    }
+
+    @Override
+    protected void onStop() {
+        getApplicationContext().getCacheDir().delete();
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        getApplicationContext().getCacheDir().delete();
+        super.onDestroy();
     }
 
     /**
@@ -375,7 +420,7 @@ public class ManageItemActivity extends AppCompatActivity {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-        startActivityForResult(intent, 1);
+        startActivityForResult(intent, OPEN_GALLERY_REQUEST_CODE);
     }
 
     /**
@@ -383,7 +428,7 @@ public class ManageItemActivity extends AppCompatActivity {
      */
     private void takePhotoWithCamera() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(intent, 2);
+        startActivityForResult(intent, TAKE_PHOTO_REQUEST_CODE);
     }
 
     /**
@@ -400,7 +445,7 @@ public class ManageItemActivity extends AppCompatActivity {
     }
 
     /**
-     * Handles the result after selecting photos from the gallery or taking a photo with the camera.
+     * Handles the result after selecting photos from the gallery, taking a photo with the camera, scanning serial number and barcode.
      *
      * @param requestCode The request code passed to startActivityForResult.
      * @param resultCode The result code returned by the child activity.
@@ -409,7 +454,7 @@ public class ManageItemActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1 && resultCode == RESULT_OK && data != null) {
+        if (requestCode == OPEN_GALLERY_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
             addedMorePhotos = true;
             if (data.getData() != null) {
                 imageUri = data.getData();
@@ -429,7 +474,7 @@ public class ManageItemActivity extends AppCompatActivity {
             sliderView.setSliderAdapter(adapter);
             noImagePlaceholder.setVisibility(View.GONE);
             sliderViewFrame.setVisibility(View.VISIBLE);
-        } else if (requestCode == 2 && resultCode == RESULT_OK && data != null) {
+        } else if (requestCode == TAKE_PHOTO_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
             Bundle extras = data.getExtras();
             addedMorePhotos = true;
             if (extras != null) {
@@ -445,6 +490,50 @@ public class ManageItemActivity extends AppCompatActivity {
                 noImagePlaceholder.setVisibility(View.GONE);
                 sliderViewFrame.setVisibility(View.VISIBLE);
             }
+        } else if (requestCode == SCAN_BARCODE_REQUEST_CODE && data != null) {
+            if (resultCode == RESULT_OK) {
+                scannedBarcode = data.getStringExtra("SCANNED_BARCODE");
+                barcodesCollection.whereEqualTo("barcode", scannedBarcode).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                name = document.getString("name");
+                                description = document.getString("description");
+                                make = document.getString("make");
+                                model = document.getString("model");
+                                item_name_field.setText(name);
+                                description_field.setText(description);
+                                make_field.setText(make);
+                                model_field.setText(model);
+                                break;
+                            }
+                        } else {
+                            Toast.makeText(ManageItemActivity.this, "Barcode " + scannedBarcode + " does not exist.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
+        } else if (requestCode == SCAN_SN_REQUEST_CODE && data != null) {
+            Bundle bundle = data.getExtras();
+            Bitmap bitmap = (Bitmap) bundle.get("data");
+            FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(bitmap);
+            FirebaseVisionTextRecognizer detector = FirebaseVision.getInstance().getCloudTextRecognizer();
+            Task<FirebaseVisionText> result = detector.processImage(image)
+                .addOnSuccessListener(new OnSuccessListener<FirebaseVisionText>() {
+                    @Override
+                    public void onSuccess(FirebaseVisionText firebaseVisionText) {
+                        serialNumber = firebaseVisionText.getText();
+                        serial_number_field.setText(serialNumber);
+                    }
+                })
+                .addOnFailureListener(
+                    new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(ManageItemActivity.this, "Failed to scan serial number.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
         }
     }
 
