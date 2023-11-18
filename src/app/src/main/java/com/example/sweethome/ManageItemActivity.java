@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -25,6 +26,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -32,27 +34,15 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.graphics.PorterDuff;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.text.DecimalFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import android.app.DatePickerDialog;
-import android.widget.DatePicker;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.ml.vision.FirebaseVision;
@@ -63,22 +53,26 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.smarteist.autoimageslider.SliderView;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import javax.annotation.Nullable;
 
-public class ManageItemActivity extends AppCompatActivity {
+public class ManageItemActivity extends AppCompatActivity implements BarcodeLookupApi.BarcodeLookupListener {
     /* attributes and variables of this class */
     private StorageReference photosStorageRef = FirebaseStorage.getInstance().getReference();
     private StorageReference photosRef = photosStorageRef.child("images");
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference itemsCollection = db.collection("items");
-    private CollectionReference barcodesCollection = db.collection("barcodes");
     private CustomAddTagsField add_tags_field;
     private LinearLayout tags_container;
     private TextView date_field;
@@ -445,6 +439,14 @@ public class ManageItemActivity extends AppCompatActivity {
     }
 
     /**
+     * Call updateUIAfterBarcodeLookup after calling barcode lookup api.
+     */
+    @Override
+    public void onBarcodeLookupComplete(ReturnedItemData result) {
+        updateUIAfterBarcodeLookup(result);
+    }
+
+    /**
      * Handles the result after selecting photos from the gallery, taking a photo with the camera, scanning serial number and barcode.
      *
      * @param requestCode The request code passed to startActivityForResult.
@@ -493,26 +495,9 @@ public class ManageItemActivity extends AppCompatActivity {
         } else if (requestCode == SCAN_BARCODE_REQUEST_CODE && data != null) {
             if (resultCode == RESULT_OK) {
                 scannedBarcode = data.getStringExtra("SCANNED_BARCODE");
-                barcodesCollection.whereEqualTo("barcode", scannedBarcode).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                name = document.getString("name");
-                                description = document.getString("description");
-                                make = document.getString("make");
-                                model = document.getString("model");
-                                item_name_field.setText(name);
-                                description_field.setText(description);
-                                make_field.setText(make);
-                                model_field.setText(model);
-                                break;
-                            }
-                        } else {
-                            Toast.makeText(ManageItemActivity.this, "Barcode " + scannedBarcode + " does not exist.", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
+                BarcodeLookupApi barcodeLookupApi = new BarcodeLookupApi();
+                barcodeLookupApi.setBarcodeLookupListener(this);
+                barcodeLookupApi.execute(scannedBarcode);
             }
         } else if (requestCode == SCAN_SN_REQUEST_CODE && data != null) {
             Bundle bundle = data.getExtras();
@@ -575,6 +560,22 @@ public class ManageItemActivity extends AppCompatActivity {
         save_button.setColorFilter(ContextCompat.getColor(ManageItemActivity.this, R.color.white), PorterDuff.Mode.SRC_IN);
         Intent intent = new Intent(ManageItemActivity.this, MainActivity.class);
         startActivity(intent);
+    }
+
+    /**
+     * Fill out the item name, description and make fields after a barcode lookup.
+     */
+    private void updateUIAfterBarcodeLookup(ReturnedItemData result) {
+        if (result != null) {
+            name = result.getName();
+            item_name_field.setText(name);
+            description = result.getDescription();
+            description_field.setText(description);
+            make = result.getMake();
+            make_field.setText(make);
+        } else {
+            Toast.makeText(ManageItemActivity.this, "Barcode " + scannedBarcode + " doesn't exist.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     /**

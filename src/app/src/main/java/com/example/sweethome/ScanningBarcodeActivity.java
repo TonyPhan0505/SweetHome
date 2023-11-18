@@ -4,7 +4,7 @@ package com.example.sweethome;
  * returning the extracted barcode to ManageItemActivity. The barcode is then processed in
  * ManageItemActivity to get the associated product information.
  *
- * November 10, 2023
+ * November 15, 2023
  *
  */
 
