@@ -72,6 +72,7 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
     private StorageReference photosRef = photosStorageRef.child("images");
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference itemsCollection = db.collection("items");
+    private CollectionReference tagsCollection = db.collection("tags");
     private CustomAddTagsField add_tags_field;
     private LinearLayout tags_container;
     private TextView date_field;
@@ -91,6 +92,7 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
     private ArrayList<String> photoUrls = new ArrayList<>();
     private ArrayList<String> removedPhotoUrls = new ArrayList<>();
     private ArrayList<String> tags;
+    private ArrayList<Tag> tagsList;
     private CardView open_gallery_button;
     private CardView open_camera_button;
     private Uri imageUri;
@@ -232,6 +234,20 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
                     }
                     Item newItem = new Item(id, name, description, make, model, serialNumber, estimatedValue, purchaseDate, comment, associatedPhotos, tags);
                     itemsList.add(newItem);
+                }
+            }
+        });
+
+        tagsCollection.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                tagsList.clear();
+                for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                    String id = documentSnapshot.getId();
+                    String name = documentSnapshot.getString("name");
+                    ArrayList<String> usernames = (ArrayList<String>) documentSnapshot.get("usernames");
+                    Tag newTag = new Tag(id, name, usernames);
+                    tagsList.add(newTag);
                 }
             }
         });
@@ -559,6 +575,18 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
      */
     private void manageItem() {
         itemInfo.put("photos", photoUrls);
+        for (String tag : tags) {
+            boolean alreadyExists = false;
+            for (Tag tagObject : tagsList) {
+                if (tagObject.getTagName().equals(tag)) {
+                    alreadyExists = true;
+                    break;
+                }
+            }
+            if (!alreadyExists) {
+                DocumentReference newTag = tagsCollection.document();
+            }
+        }
         if (add_screen_name.equals(screen_name.getText().toString())) {
             DocumentReference newItem = itemsCollection.document();
             newItem.set(itemInfo);
