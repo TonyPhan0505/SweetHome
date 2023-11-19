@@ -359,6 +359,7 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
                             itemInfo.put("estimatedValue", estimatedValue);
                             itemInfo.put("purchaseDate", purchaseDateTS);
                             itemInfo.put("comment", comment);
+                            tags.sort((tag1, tag2) -> tag1.compareTo(tag2)); // sort in alphabetical order
                             itemInfo.put("tags", tags);
                             List<Uri> addedPhotoUris = photoUris.subList(numOfExistingPhotos, numOfExistingPhotos + numOfAddedPhotos);
                             if (addedMorePhotos) {

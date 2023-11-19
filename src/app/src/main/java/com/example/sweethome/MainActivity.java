@@ -541,6 +541,10 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         }
         else if (selectedSortOption.equals(context.getString(R.string.sort_description_za))) { //if we are sorting items by description reverse alphabetically
             itemList.sort((item1, item2) -> item2.getDescription().compareTo(item1.getDescription()));
+        } else if (selectedSortOption.equals(context.getString(R.string.sort_tags_az))) {
+            itemList.sort((item1, item2) -> item1.getTags().get(0).compareTo(item2.getTags().get(0)));
+        } else if (selectedSortOption.equals(context.getString(R.string.sort_tags_za))) {
+            itemList.sort((item1, item2) -> item2.getTags().get(0).compareTo(item1.getTags().get(0)));
         }
         itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
     }
