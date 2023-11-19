@@ -608,6 +608,7 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
             }
         }
         if (add_screen_name.equals(screen_name.getText().toString())) {
+            itemInfo.put("username", app.getUsername());
             DocumentReference newItem = itemsCollection.document();
             newItem.set(itemInfo);
             itemsList.add(new Item(newItem.getId(), name, description, make, model, serialNumber, estimatedValue, purchaseDateTS, comment, photoUrls, tags));
