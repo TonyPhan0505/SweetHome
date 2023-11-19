@@ -6,5 +6,5 @@ public interface IFilterable {
     public void filterByDate(Timestamp startDate, Timestamp endDate);
     public void filterByKeyword(String keyword);
     public void filterByMake(String make);
-    public void filterByTag(String tag);
+    public void filterByTag();
 }

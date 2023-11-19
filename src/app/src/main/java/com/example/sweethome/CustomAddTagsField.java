@@ -110,6 +110,7 @@ public class CustomAddTagsField extends AppCompatEditText {
      */
     public void addTag(String tagName) {
         if (!tagName.isEmpty()) {
+            tagName = tagName.substring(0, 1).toUpperCase() + tagName.substring(1); // capitalize the first letter
             this.addedTagNames.add(tagName);
             setTypeface(Typeface.defaultFromStyle(Typeface.NORMAL));
             View tag_item = LayoutInflater.from(getContext()).inflate(R.layout.removable_tag, null);
@@ -127,8 +128,9 @@ public class CustomAddTagsField extends AppCompatEditText {
             if (tags_container != null) {
                 tags_container.addView(tag_item);
             }
+            String finalTagName = tagName;
             remove_tag_button.setOnClickListener(v -> {
-                removeTag(tagName);
+                removeTag(finalTagName);
                 tags_container.removeView(tag_item);
             });
             setText(null);

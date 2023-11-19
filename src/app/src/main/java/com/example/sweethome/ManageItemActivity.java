@@ -92,7 +92,7 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
     private ArrayList<String> photoUrls = new ArrayList<>();
     private ArrayList<String> removedPhotoUrls = new ArrayList<>();
     private ArrayList<String> tags;
-    private ArrayList<Tag> tagsList;
+    private ArrayList<Tag> tagsList = new ArrayList<>();
     private CardView open_gallery_button;
     private CardView open_camera_button;
     private Uri imageUri;
@@ -122,12 +122,14 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
     private int numOfAddedPhotos = 0;
     private int numOfExistingPhotos = 0;
     private Map<String, Object> itemInfo;
+    private Map<String, Object> tagInfo;
     private boolean saving = false;
     private static final int OPEN_GALLERY_REQUEST_CODE = 1;
     private static final int TAKE_PHOTO_REQUEST_CODE = 2;
     private static final int SCAN_BARCODE_REQUEST_CODE = 3;
     private String scannedBarcode;
     private static final int SCAN_SN_REQUEST_CODE = 4;
+    public AppContext app;
 
     /**
      * Called when the activity is first created. Initializes UI components, sets up listeners,
@@ -139,6 +141,8 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.manage_item);
+
+        app = (AppContext) getApplication();
 
         // define attributes and variables.
         add_tags_field = findViewById(R.id.tag_input);
@@ -572,19 +576,35 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
      * save any newly added photos into firebase storage.
      * get downloadable urls for the photos and store them in an array field with the item in the database.
      * navigate back to MainActivity when it's done.
+     * create new tag documents if not exist.
      */
     private void manageItem() {
         itemInfo.put("photos", photoUrls);
         for (String tag : tags) {
-            boolean alreadyExists = false;
+            Tag existingTag = null;
             for (Tag tagObject : tagsList) {
                 if (tagObject.getTagName().equals(tag)) {
-                    alreadyExists = true;
+                    existingTag = tagObject;
                     break;
                 }
             }
-            if (!alreadyExists) {
+            String username = app.getUsername();
+            tagInfo = new HashMap<>();
+            tagInfo.put("name", tag);
+            if (existingTag == null) {
+                ArrayList<String> usernames = new ArrayList<>();
+                usernames.add(username);
+                tagInfo.put("usernames", usernames);
                 DocumentReference newTag = tagsCollection.document();
+                newTag.set(tagInfo);
+            } else {
+                ArrayList<String> existingUsernames = existingTag.getTagUsernames();
+                if (!existingUsernames.contains(username)) {
+                    DocumentReference existingTagDoc = tagsCollection.document(existingTag.getTagId());
+                    existingUsernames.add(username);
+                    tagInfo.put("usernames", existingUsernames);
+                    existingTagDoc.update(tagInfo);
+                }
             }
         }
         if (add_screen_name.equals(screen_name.getText().toString())) {
