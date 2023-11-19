@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -25,34 +26,22 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.graphics.PorterDuff;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.text.DecimalFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import android.app.DatePickerDialog;
-import android.widget.DatePicker;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.ml.vision.FirebaseVision;
@@ -63,22 +52,26 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.smarteist.autoimageslider.SliderView;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import javax.annotation.Nullable;
 
-public class ManageItemActivity extends AppCompatActivity {
+public class ManageItemActivity extends AppCompatActivity implements BarcodeLookupApi.BarcodeLookupListener {
     /* attributes and variables of this class */
     private StorageReference photosStorageRef = FirebaseStorage.getInstance().getReference();
     private StorageReference photosRef = photosStorageRef.child("images");
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference itemsCollection = db.collection("items");
-    private CollectionReference barcodesCollection = db.collection("barcodes");
     private CustomAddTagsField add_tags_field;
     private LinearLayout tags_container;
     private TextView date_field;
@@ -96,6 +89,7 @@ public class ManageItemActivity extends AppCompatActivity {
     private String comment;
     private ArrayList<Uri> photoUris = new ArrayList<>();
     private ArrayList<String> photoUrls = new ArrayList<>();
+    private ArrayList<String> removedPhotoUrls = new ArrayList<>();
     private ArrayList<String> tags;
     private CardView open_gallery_button;
     private CardView open_camera_button;
@@ -103,7 +97,7 @@ public class ManageItemActivity extends AppCompatActivity {
     private ImageSliderAdapter adapter;
     private ArrayList<ImageSliderData> sliderDataArrayList;
     private SliderView sliderView;
-    private FrameLayout sliderViewFrame;
+    private LinearLayout sliderViewFrame;
     private TextView screen_name;
     private ImageView save_button;
     private EditText item_name_field;
@@ -116,6 +110,7 @@ public class ManageItemActivity extends AppCompatActivity {
     private EditText model_field;
     private EditText comment_field;
     private RelativeLayout noImagePlaceholder;
+    private ImageView remove_image_button;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
     private ArrayList<com.example.sweethome.Item> itemsList = new ArrayList<>();
     private String edit_screen_name = "View / Edit";
@@ -165,6 +160,7 @@ public class ManageItemActivity extends AppCompatActivity {
         make_field = findViewById(R.id.make_field);
         model_field = findViewById(R.id.model_field);
         comment_field = findViewById(R.id.comment_field);
+        remove_image_button = findViewById(R.id.remove_image_button);
         sliderDataArrayList = new ArrayList<>();
         adapter = new ImageSliderAdapter(this, sliderDataArrayList);
         Intent intent = getIntent();
@@ -399,6 +395,33 @@ public class ManageItemActivity extends AppCompatActivity {
             Intent scanSerialNumberIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             startActivityForResult(scanSerialNumberIntent, SCAN_SN_REQUEST_CODE);
         });
+
+        // remove an image in the slider
+        remove_image_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int currentPosition = sliderView.getCurrentPagePosition();
+                if (currentPosition >= 0 && currentPosition < photoUris.size()) {
+                    photoUris.remove(currentPosition);
+                    sliderDataArrayList.remove(currentPosition);
+                    adapter.notifyDataSetChanged();
+                    if (currentPosition <= (numOfExistingPhotos - 1)) {
+                        numOfExistingPhotos -= 1;
+                        removedPhotoUrls.add(photoUrls.get(currentPosition));
+                        photoUrls.remove(currentPosition);
+                    } else {
+                        numOfAddedPhotos -= 1;
+                        if (numOfAddedPhotos <= 0) {
+                            addedMorePhotos = false;
+                        }
+                    }
+                    if (sliderDataArrayList.size() <= 0) {
+                        sliderViewFrame.setVisibility(View.GONE);
+                        noImagePlaceholder.setVisibility(View.VISIBLE);
+                    }
+                }
+            }
+        });
     }
 
     @Override
@@ -442,6 +465,14 @@ public class ManageItemActivity extends AppCompatActivity {
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
         String path = MediaStore.Images.Media.insertImage(getContentResolver(), bitmap, "Title", null);
         return Uri.parse(path);
+    }
+
+    /**
+     * Call updateUIAfterBarcodeLookup after calling barcode lookup api.
+     */
+    @Override
+    public void onBarcodeLookupComplete(ReturnedItemData result) {
+        updateUIAfterBarcodeLookup(result);
     }
 
     /**
@@ -493,26 +524,9 @@ public class ManageItemActivity extends AppCompatActivity {
         } else if (requestCode == SCAN_BARCODE_REQUEST_CODE && data != null) {
             if (resultCode == RESULT_OK) {
                 scannedBarcode = data.getStringExtra("SCANNED_BARCODE");
-                barcodesCollection.whereEqualTo("barcode", scannedBarcode).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                name = document.getString("name");
-                                description = document.getString("description");
-                                make = document.getString("make");
-                                model = document.getString("model");
-                                item_name_field.setText(name);
-                                description_field.setText(description);
-                                make_field.setText(make);
-                                model_field.setText(model);
-                                break;
-                            }
-                        } else {
-                            Toast.makeText(ManageItemActivity.this, "Barcode " + scannedBarcode + " does not exist.", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
+                BarcodeLookupApi barcodeLookupApi = new BarcodeLookupApi();
+                barcodeLookupApi.setBarcodeLookupListener(this);
+                barcodeLookupApi.execute(scannedBarcode);
             }
         } else if (requestCode == SCAN_SN_REQUEST_CODE && data != null) {
             Bundle bundle = data.getExtras();
@@ -568,6 +582,17 @@ public class ManageItemActivity extends AppCompatActivity {
                     break;
                 }
             }
+            if (removedPhotoUrls.size() > 0) {
+                for (String photoUrl : removedPhotoUrls) {
+                    StorageReference storageReference = FirebaseStorage.getInstance().getReferenceFromUrl(photoUrl);
+                    storageReference.delete().addOnSuccessListener(aVoid -> {
+                        Log.d("Firestore", "Photo successfully deleted!");
+                    })
+                    .addOnFailureListener(exception -> {
+                        Log.e("Firestore", "Photo deleted failed!");
+                    });
+                }
+            }
             Toast.makeText(ManageItemActivity.this, "Successfully updated item.", Toast.LENGTH_SHORT).show();
         }
         successfulUploads = 0;
@@ -575,6 +600,22 @@ public class ManageItemActivity extends AppCompatActivity {
         save_button.setColorFilter(ContextCompat.getColor(ManageItemActivity.this, R.color.white), PorterDuff.Mode.SRC_IN);
         Intent intent = new Intent(ManageItemActivity.this, MainActivity.class);
         startActivity(intent);
+    }
+
+    /**
+     * Fill out the item name, description and make fields after a barcode lookup.
+     */
+    private void updateUIAfterBarcodeLookup(ReturnedItemData result) {
+        if (result != null) {
+            name = result.getName();
+            item_name_field.setText(name);
+            description = result.getDescription();
+            description_field.setText(description);
+            make = result.getMake();
+            make_field.setText(make);
+        } else {
+            Toast.makeText(ManageItemActivity.this, "Barcode " + scannedBarcode + " doesn't exist.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     /**

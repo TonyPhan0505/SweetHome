@@ -62,8 +62,7 @@
                     android:src="@drawable/barcode_scan_icon"
                     android:contentDescription="scan barcode button"
                     android:clickable="true"
-                    app:tint="@color/white"
-                    />
+                    app:tint="@color/white" />
 
                 <ImageView
                     android:id="@+id/check_icon"
@@ -92,12 +91,21 @@
                 android:layout_centerHorizontal="true" />
         </RelativeLayout>
 
-        <FrameLayout
+        <LinearLayout
             android:id="@+id/image_slider_frame"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
+            android:orientation="vertical"
             android:visibility="gone">
+            <ImageView
+                android:id="@+id/remove_image_button"
+                android:clickable="true"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_gravity="end|top"
+                android:layout_marginEnd="16dp"
+                android:src="@drawable/remove_image_icon" />
             <com.smarteist.autoimageslider.SliderView
                 android:id="@+id/image_slider"
                 android:layout_width="match_parent"
@@ -110,9 +118,8 @@
                 app:sliderIndicatorPadding="3dp"
                 app:sliderIndicatorRadius="2dp"
                 app:sliderIndicatorSelectedColor="#5A5A5A"
-                app:sliderIndicatorUnselectedColor="#FFF"
-                app:sliderScrollTimeInSec="1" />
-        </FrameLayout>
+                app:sliderIndicatorUnselectedColor="#FFF" />
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -180,7 +187,6 @@
                     android:layout_marginStart="25dp"
                     android:gravity="center"
                     android:orientation="horizontal">
-
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
