@@ -75,9 +75,12 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private ItemsCustomAdapter itemAdapter;
     private FirebaseFirestore db;
     private CollectionReference itemsRef;
+    private CollectionReference tagsRef;
     private Spinner sortSpinner;
+    private Spinner tagFilterSpinner;
     private Button addItemButton;
     private ArrayAdapter<CharSequence> sortAdapter;
+    private ArrayAdapter<String> tagFilterAdapter;
     private ArrayList<Item> selectedItems;
     private PopupWindow popupWindow;
     private boolean isPanelShown = false; // keep track of action panel visibility
@@ -101,20 +104,27 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private final long ONE_HOUR = 3600000;
     private final long ONE_SECOND = 1000;
     private static final int CAMERA_PERMISSION_REQUEST = 123;
+    private AppContext app;
+    private ArrayList<String> tagsList = new ArrayList<>();
+    private String selectedTagForFiltering = "All";
+    private TextView selected_filtering_tag_field;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        app = (AppContext) getApplication();
+
         // check if the user has granted permission to access their camera
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST);
         }
 
-        /* set up a connection to our db and a reference to the items collection */
+        /* set up a connection to our db and references to the items and tags collection */
         db = FirebaseFirestore.getInstance();
         itemsRef = db.collection("items");
+        tagsRef = db.collection("tags");
 
         /* set up our list of items, find the list on our frontend layout, and set the corresponding array adapter */
         itemList = new ArrayList<Item>();
@@ -123,37 +133,15 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         itemListView.setAdapter(itemAdapter);
 
         /* Retrieve all existing items(if there are any) from Firestore Database */
-        itemsRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                itemList.clear();
-                if (!queryDocumentSnapshots.isEmpty()) {
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        Item item = doc.toObject(Item.class);
-                        item.setItemId(doc.getId());
-                        Log.i("Firestore", String.format("Item %s fetched", item.getName()));
-                        itemList.add(item);
-                    }
-                    itemAdapter.notifyDataSetChanged();
-                    calculateTotalEstimatedValue();
-                }
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.e("Firestore", "Error fetching sorted data", e);
-            }
-        });
+        getAllItemsFromDatabase(itemsRef);
 
-        /* setup the sort spinner */
+        /* setup the sorting spinner */
         sortSpinner = findViewById(R.id.spinner_sort_options);
         sortAdapter = ArrayAdapter.createFromResource(this, R.array.sort_options, android.R.layout.simple_spinner_dropdown_item);
         sortAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sortSpinner.setAdapter(sortAdapter);
 
-        //setUpActionButtonPanel();
-
-        /* spinner selection listener */
+        /* sorting spinner selection listener */
         sortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
@@ -161,6 +149,32 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 String selectedSortOption = parentView.getItemAtPosition(position).toString();
                 sortDataList(selectedSortOption, itemList, itemAdapter, getApplicationContext()); // Sort and load data based on the selected option
             }
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {
+                //do nothing here
+            }
+        });
+
+        /* Retrieve all existing tags(if there are any) from Firestore Database */
+        getAllTagsFromDatabase(tagsRef);
+
+        /* setup the filter by tag spinner */
+        selected_filtering_tag_field = findViewById(R.id.selected_filtering_tag_field);
+        tagFilterSpinner = findViewById(R.id.tag_filter_field);
+        tagFilterAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, tagsList);
+        tagFilterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        tagFilterSpinner.setAdapter(tagFilterAdapter);
+
+        /* filter by tag spinner listener */
+        tagFilterSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                // Handle filtering by tag based on selection
+                String selectedTagToFilterBy = parentView.getItemAtPosition(position).toString();
+                selectedTagForFiltering = selectedTagToFilterBy;
+                selected_filtering_tag_field.setText(selectedTagForFiltering);
+            }
+
             @Override
             public void onNothingSelected(AdapterView<?> parentView) {
                 //do nothing here
@@ -235,24 +249,35 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                     filterByDate(start, end);
                     filtered = true;
                 }
-                if(make.trim().isEmpty() && keyword.trim().isEmpty() && (selectedEndDate==0L || selectedStartDate==0L)) { //if apply filter was selected but nothing is inputted
+                if (!selectedTagForFiltering.equals("All")) {
+                    filterByTag();
+                }
+                if(make.trim().isEmpty() && keyword.trim().isEmpty() && (selectedEndDate==0L || selectedStartDate==0L) && selectedTagForFiltering.equals("All")) { //if apply filter was selected but nothing is inputted
                     getAllItemsFromDatabase(itemsRef);
                 }
+            }
+        });
+
+        // Button to open Edit Item screen
+        Button addItemButton = findViewById(R.id.add_button);
+        addItemButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, ManageItemActivity.class);
+                intent.putExtra("screen", "Add Item");
+                startActivity(intent);
             }
         });
 
         // Initialize the date range values from SharedPreferences
         displaySavedDateRange();
 
-
         // Update the button text with the saved date range
         calendar_data = findViewById(R.id.calendar_data);
         updateCalendar(calendar_data, selectedStartDate, selectedEndDate);
 
-
         // Date range picker
         ImageView openCalendarButton = findViewById(R.id.calendar_button);
-
 
         // Set an OnClickListener to handle the button click
         openCalendarButton.setOnClickListener(new View.OnClickListener() {
@@ -266,7 +291,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 dateRangePicker.show(getSupportFragmentManager(), dateRangePicker.toString());
             }
         });
-
 
         final FloatingActionButton tagActionButton = findViewById(R.id.tag_action_button);
         tagActionButton.setOnClickListener(view -> {
@@ -334,16 +358,19 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 if (value != null) {
                     getAllItemsFromDatabase(itemsRef); //otherwise get all items currently in the items collection and display them in our list
                 }
-                // Button to open Edit Item screen
-                Button addItemButton = findViewById(R.id.add_button);
-                addItemButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        Intent intent = new Intent(MainActivity.this, ManageItemActivity.class);
-                        intent.putExtra("screen", "Add Item");
-                        startActivity(intent);
-                    }
-                });
+            }
+        });
+
+        /* listen for changes in the collection and update our list of tags accordingly */
+        tagsRef.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                if (error != null) {
+                    Log.e("Firestore", error.toString()); //if there was any error, log it
+                }
+                if (value != null) {
+                    getAllTagsFromDatabase(tagsRef); //otherwise get all relevant tags currently in the items collection and display them in our list
+                }
             }
         });
     }
@@ -515,9 +542,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         else if (selectedSortOption.equals(context.getString(R.string.sort_description_za))) { //if we are sorting items by description reverse alphabetically
             itemList.sort((item1, item2) -> item2.getDescription().compareTo(item1.getDescription()));
         }
-        else { //if they want to sort by tags let them know this function is not yet available
-            Toast.makeText(context, R.string.no_tag_sort_msg, Toast.LENGTH_SHORT).show();
-        }
         itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
     }
 
@@ -526,28 +550,46 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
      * and updates the frontend to display them in the list
      * @param itemsRef
      */
-    private void getAllItemsFromDatabase(CollectionReference itemsRef){
+    private void getAllItemsFromDatabase(CollectionReference itemsRef) {
         itemsRef.get()
-                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                        itemList.clear(); //clear whatever data we currently have stored in our item list
-                        for (QueryDocumentSnapshot doc : queryDocumentSnapshots){ //get everything that is stored in our db at the moment
-                            Item item = doc.toObject(Item.class); //convert the contents of each document in the items collection to an item object
-                            item.setItemId(doc.getId()); //set the item ID
-                            Log.i("Firestore", String.format("Item %s fetched", item.getName())); //log the name of the item we successfully got from the db
-                            itemList.add(item); //add the item object to our item list
-                        }
-                        String currentSortOption = sortSpinner.getSelectedItem().toString(); //get the currently selected sort option
-                        sortDataList(currentSortOption, itemList, itemAdapter, getApplicationContext()); //sort the list accordingly and notify changes were made to update frontend
-                        calculateTotalEstimatedValue(); //recalculate and display the total estimated value
+            .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                @Override
+                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                    itemList.clear(); //clear whatever data we currently have stored in our item list
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots){ //get everything that is stored in our db at the moment
+                        Item item = doc.toObject(Item.class); //convert the contents of each document in the items collection to an item object
+                        item.setItemId(doc.getId()); //set the item ID
+                        Log.i("Firestore", String.format("Item %s fetched", item.getName())); //log the name of the item we successfully got from the db
+                        itemList.add(item); //add the item object to our item list
                     }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.e("Firestore", "Error fetching data", e);
+                    String currentSortOption = sortSpinner.getSelectedItem().toString(); //get the currently selected sort option
+                    sortDataList(currentSortOption, itemList, itemAdapter, getApplicationContext()); //sort the list accordingly and notify changes were made to update frontend
+                    calculateTotalEstimatedValue(); //recalculate and display the total estimated value
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.e("Firestore", "Error fetching data", e);
+                }
+            });
+    }
+
+    private void getAllTagsFromDatabase(CollectionReference tagsRef) {
+        tagsRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                tagsList.clear();
+                tagsList.add("All");
+                for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                    ArrayList<String> usernames = (ArrayList<String>) documentSnapshot.get("usernames");
+                    if (usernames.contains(app.getUsername())) {
+                        String name = documentSnapshot.getString("name");
+                        tagsList.add(name);
                     }
-                });
+                }
+                tagFilterAdapter.notifyDataSetChanged();
+            }
+        });
     }
 
     /**
@@ -612,10 +654,21 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     /**
      * Given a tag, filters the current item list accordingly
      * (ie. keeps items associated with the specified tag).
-     * @param tag
      */
-    public void filterByTag(String tag) { //currently unavailable
-        Toast.makeText(MainActivity.this, R.string.no_tag_filter_msg, Toast.LENGTH_SHORT).show();
+    public void filterByTag() {
+        if (!selectedTagForFiltering.equals("All")) {
+            ArrayList<Item> filteredList = new ArrayList<Item>();
+            for (int i = 0; i < itemList.size(); i++) {
+                Item item = itemList.get(i);
+                ArrayList<String> tagsOfItem = item.getTags();
+                if (!tagsOfItem.contains(selectedTagForFiltering)) {
+                    filteredList.add(item);
+                }
+            }
+            itemList.removeAll(filteredList);
+            itemAdapter.notifyDataSetChanged();
+            calculateTotalEstimatedValue();
+        }
     }
 
     /**

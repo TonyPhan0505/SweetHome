@@ -1,39 +1,39 @@
 package com.example.sweethome;
+
+import java.util.ArrayList;
+
 /**
- * The Tag class represents a tag with a name and a color. Tags can be associated with items
- * to provide additional categorization or information.
+ * The Tag class represents a tag with a name and array of usernames.
+ * Tags can be associated with items to provide additional categorization or information.
  *
  * November 10, 2023
  *
  */
 public class Tag {
     /* attributes for this class */
-    private String tagName;
-    private String tagColor;
+    private String id;
+    private String name;
+    private ArrayList<String> usernames;
 
     // Constructor
-    public Tag(String tagName, String tagColor) {
-        this.tagName = tagName;
-        this.tagColor = tagColor;
+    public Tag(String id, String name, ArrayList<String> usernames) {
+        this.id = id;
+        this.name = name;
+        this.usernames = usernames;
+    }
+
+    // Getter for id
+    public String getTagId() {
+        return id;
     }
 
     // Getter for tagName
     public String getTagName() {
-        return tagName;
+        return name;
     }
 
-    // Getter for tagColor
-    public String getTagColor() {
-        return tagColor;
-    }
-
-    // (Optional) Setter for tagName
-    public void setTagName(String tagName) {
-        this.tagName = tagName;
-    }
-
-    // (Optional) Setter for tagColor
-    public void setTagColor(String tagColor) {
-        this.tagColor = tagColor;
+    // Getter for users who have this tag
+    public ArrayList<String> getTagUsernames() {
+        return usernames;
     }
 }
