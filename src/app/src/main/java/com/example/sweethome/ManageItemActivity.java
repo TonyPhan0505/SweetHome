@@ -28,7 +28,6 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -90,6 +89,7 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
     private String comment;
     private ArrayList<Uri> photoUris = new ArrayList<>();
     private ArrayList<String> photoUrls = new ArrayList<>();
+    private ArrayList<String> removedPhotoUrls = new ArrayList<>();
     private ArrayList<String> tags;
     private CardView open_gallery_button;
     private CardView open_camera_button;
@@ -97,7 +97,7 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
     private ImageSliderAdapter adapter;
     private ArrayList<ImageSliderData> sliderDataArrayList;
     private SliderView sliderView;
-    private FrameLayout sliderViewFrame;
+    private LinearLayout sliderViewFrame;
     private TextView screen_name;
     private ImageView save_button;
     private EditText item_name_field;
@@ -110,6 +110,7 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
     private EditText model_field;
     private EditText comment_field;
     private RelativeLayout noImagePlaceholder;
+    private ImageView remove_image_button;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
     private ArrayList<com.example.sweethome.Item> itemsList = new ArrayList<>();
     private String edit_screen_name = "View / Edit";
@@ -159,6 +160,7 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
         make_field = findViewById(R.id.make_field);
         model_field = findViewById(R.id.model_field);
         comment_field = findViewById(R.id.comment_field);
+        remove_image_button = findViewById(R.id.remove_image_button);
         sliderDataArrayList = new ArrayList<>();
         adapter = new ImageSliderAdapter(this, sliderDataArrayList);
         Intent intent = getIntent();
@@ -393,6 +395,33 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
             Intent scanSerialNumberIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             startActivityForResult(scanSerialNumberIntent, SCAN_SN_REQUEST_CODE);
         });
+
+        // remove an image in the slider
+        remove_image_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int currentPosition = sliderView.getCurrentPagePosition();
+                if (currentPosition >= 0 && currentPosition < photoUris.size()) {
+                    photoUris.remove(currentPosition);
+                    sliderDataArrayList.remove(currentPosition);
+                    adapter.notifyDataSetChanged();
+                    if (currentPosition <= (numOfExistingPhotos - 1)) {
+                        numOfExistingPhotos -= 1;
+                        removedPhotoUrls.add(photoUrls.get(currentPosition));
+                        photoUrls.remove(currentPosition);
+                    } else {
+                        numOfAddedPhotos -= 1;
+                        if (numOfAddedPhotos <= 0) {
+                            addedMorePhotos = false;
+                        }
+                    }
+                    if (sliderDataArrayList.size() <= 0) {
+                        sliderViewFrame.setVisibility(View.GONE);
+                        noImagePlaceholder.setVisibility(View.VISIBLE);
+                    }
+                }
+            }
+        });
     }
 
     @Override
@@ -551,6 +580,17 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
                     item.setPhotos(photoUrls);
                     item.setTags(tags);
                     break;
+                }
+            }
+            if (removedPhotoUrls.size() > 0) {
+                for (String photoUrl : removedPhotoUrls) {
+                    StorageReference storageReference = FirebaseStorage.getInstance().getReferenceFromUrl(photoUrl);
+                    storageReference.delete().addOnSuccessListener(aVoid -> {
+                        Log.d("Firestore", "Photo successfully deleted!");
+                    })
+                    .addOnFailureListener(exception -> {
+                        Log.e("Firestore", "Photo deleted failed!");
+                    });
                 }
             }
             Toast.makeText(ManageItemActivity.this, "Successfully updated item.", Toast.LENGTH_SHORT).show();
