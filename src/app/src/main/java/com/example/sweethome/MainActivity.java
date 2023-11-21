@@ -25,6 +25,8 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,6 +35,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -48,8 +51,10 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.util.Pair;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.Timestamp;
@@ -57,6 +62,7 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
@@ -64,6 +70,8 @@ import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends AppCompatActivity implements IFilterable {
@@ -108,6 +116,11 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private ArrayList<String> tagsList = new ArrayList<>();
     private String selectedTagForFiltering = "All";
     private TextView selected_filtering_tag_field;
+    private EditText searchInput;
+    private Button searchButton;
+    private String searchText = "";
+    private TextView noItemsFound;
+    private ArrayList<Item> originalItemList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -373,7 +386,50 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 }
             }
         });
+
+        searchInput = findViewById(R.id.search_input);
+        noItemsFound = findViewById(R.id.no_items_found);
+
+
+        // Set a TextWatcher for the search input field
+        searchInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                // Filter the list as the user types
+                String searchText = charSequence.toString().trim().toLowerCase();
+                performSearch(searchText);
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        });
     }
+
+    // Performs the search
+    private void performSearch(String searchText) {
+        ArrayList<Item> filteredItems = new ArrayList<>();
+        searchText = searchText.toLowerCase().trim();
+        for (Item item : itemList) {
+            String itemName = item.getName().toLowerCase();
+            if (itemName.startsWith(searchText)) {
+                filteredItems.add(item);
+            }
+        }
+        ItemsCustomAdapter filteredAdapter = new ItemsCustomAdapter(this, filteredItems);
+        itemListView.setAdapter(filteredAdapter);
+        calculateTotalEstimatedValue();
+        if (filteredItems.isEmpty()) {
+            noItemsFound.setVisibility(View.VISIBLE);
+        } else {
+            noItemsFound.setVisibility(View.GONE);
+        }
+    }
+
 
     @Override
     protected void onStop() {
