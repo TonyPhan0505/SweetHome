@@ -32,8 +32,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.appcompat.widget.AppCompatEditText;
 
-import com.google.firebase.firestore.FirebaseFirestore;
-
 import java.util.ArrayList;
 
 public class CustomAddTagsField extends AppCompatEditText {
