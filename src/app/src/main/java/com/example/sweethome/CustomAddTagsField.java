@@ -31,12 +31,16 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.appcompat.widget.AppCompatEditText;
+
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.util.ArrayList;
 
 public class CustomAddTagsField extends AppCompatEditText {
     /* attributes of this class */
     private LinearLayout tags_container;
     private ArrayList<String> addedTagNames = new ArrayList<>();
+    private ArrayList<String> removedTags = new ArrayList<>();
 
     /* constructors for this class */
     public CustomAddTagsField(Context context) {
@@ -137,7 +141,11 @@ public class CustomAddTagsField extends AppCompatEditText {
         }
     }
 
+    /**
+     * Remove a tag name from the list.
+     */
     public void removeTag(String tagName) {
+        this.removedTags.add(tagName);
         this.addedTagNames.remove(tagName);
     }
 
@@ -148,5 +156,12 @@ public class CustomAddTagsField extends AppCompatEditText {
      */
     public ArrayList<String> getAddedTagNames() {
         return this.addedTagNames;
+    }
+
+    /**
+     * Return a list of removed tag names.
+     */
+    public ArrayList<String> getRemovedTagNames() {
+        return this.removedTags;
     }
 }
