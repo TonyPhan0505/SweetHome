@@ -112,7 +112,8 @@ public class CreateTagFragment extends Fragment {
 
         doneButton.setOnClickListener(view -> {
 //            getActivity().getFragmentManager().popBackStack();
-            getView().setVisibility(View.GONE);
+            MainActivity activity = (MainActivity) getActivity();
+            activity.closeFragment();
         });
 
         return view;

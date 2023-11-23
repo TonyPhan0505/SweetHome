@@ -737,4 +737,9 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             }
         }
     }
+
+    public void closeFragment() {
+        fragmentContainer.setVisibility(View.GONE);
+    }
+
 }
