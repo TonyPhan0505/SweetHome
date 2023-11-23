@@ -69,7 +69,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
-            android:layout_marginLeft="8dp"
+            android:layout_marginLeft="10dp"
             android:text="@string/add_item"
             android:paddingVertical="7dp"
             android:minHeight="0dp"
@@ -77,6 +77,19 @@
             android:textAllCaps="false"
             android:textSize="12sp" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/no_items_found"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="No items found"
+        android:textSize="18sp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/search_add_container"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/line2"/>
 
     <LinearLayout
         android:layout_width="match_parent"
