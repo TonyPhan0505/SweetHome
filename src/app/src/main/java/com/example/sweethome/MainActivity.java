@@ -105,6 +105,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private ArrayList<String> tagsList = new ArrayList<>();
     private String selectedTagForFiltering = "All";
     private TextView selected_filtering_tag_field;
+    private String loggedInUsername;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         itemListView = findViewById(R.id.item_list);
         itemAdapter = new ItemsCustomAdapter(this, itemList);
         itemListView.setAdapter(itemAdapter);
+        loggedInUsername = app.getUsername(); // Assuming `getUsername` fetches the current user's username
 
         /* Retrieve all existing items(if there are any) from Firestore Database */
         getAllItemsFromDatabase(itemsRef);
@@ -400,8 +402,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 popup.show();
             }
         });
-
-
     }
 
     @Override

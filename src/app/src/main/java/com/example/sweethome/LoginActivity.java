@@ -10,6 +10,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -38,20 +42,49 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+        // Update the login button click listener
         buttonLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Validate the login credentials here
-                // For demonstration purposes, we're skipping validation
-                // TODO: Implement actual login logic
-
-                // If login is successful, start MainActivity
-                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                startActivity(intent);
-
-                // Optionally, if you don't want to return to the login screen when MainActivity is closed
-                finish();
+                attemptLogin();
             }
         });
+    }
+
+    private void attemptLogin() {
+        String enteredUsername = editTextUsername.getText().toString().trim();
+
+        if (enteredUsername.isEmpty()) {
+            editTextUsername.setError("Username cannot be empty.");
+            return;
+        }
+
+        // Check if the username exists in the Firestore database
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("users")
+                .document(enteredUsername)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document != null && document.exists()) {
+                            // Username exists, proceed to show user data
+                            proceedToMainActivity(enteredUsername);
+                        } else {
+                            // Username does not exist
+                            editTextUsername.setError("Username does not exist. Please sign up.");
+                        }
+                    } else {
+                        // Handle errors here
+                        Toast.makeText(LoginActivity.this, "Error checking username.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void proceedToMainActivity(String username) {
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        intent.putExtra("USERNAME", username);
+        startActivity(intent);
+        finish(); // Close the LoginActivity once the process is complete
     }
 }
