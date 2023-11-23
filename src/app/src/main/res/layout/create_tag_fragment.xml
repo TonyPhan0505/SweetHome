@@ -20,6 +20,7 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/tag_fragment_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="left|top"
@@ -56,6 +57,7 @@
             android:textColor="@color/white" />
 
         <TextView
+            android:id="@+id/tags_fragment_body_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="left"

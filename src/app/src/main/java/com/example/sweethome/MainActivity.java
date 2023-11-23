@@ -94,6 +94,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private ImageView filterIcon;
     private Button filterApplyButton;
     private Button createTagButton;
+    private Button addTagButton;
     private EditText keywordField;
     private EditText makeField;
     private TextView calendar_data;
@@ -491,6 +492,22 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
 //                fragmentTransaction.add(R.id.fragmentContainerView, ctFragment, null)
 //                        .addToBackStack(null)
 //                        .commit();
+                getSupportFragmentManager().beginTransaction()
+                        .setReorderingAllowed(true)
+                        .add(R.id.fragment_container_view, CreateTagFragment.class, arg)
+                        .commit();
+            }
+        });
+
+        addTagButton = panelView.findViewById(R.id.add_tag_panel);
+        addTagButton.setOnClickListener(view -> {
+            hidePanel();
+            fragmentContainer.setVisibility(View.VISIBLE);
+            if (savedInst == null) {
+                Bundle arg = new Bundle();
+                arg.putString("USER", app.getUsername());
+                arg.putString("fragment_title", "Tags");
+                arg.putString("fragment_body_title", "Selected Items");
                 getSupportFragmentManager().beginTransaction()
                         .setReorderingAllowed(true)
                         .add(R.id.fragment_container_view, CreateTagFragment.class, arg)

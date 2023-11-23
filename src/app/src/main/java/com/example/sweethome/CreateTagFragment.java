@@ -13,6 +13,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.CollectionReference;
@@ -36,16 +38,27 @@ public class CreateTagFragment extends Fragment {
     private static final String TAGS_REF = "tags_ref";
     private static final String USER = "username";
 
+    private static final String FRAGMENT_TITLE = "fragment_title";
+
+    private static final String FRAGMENT_BODY_TITLE = "fragment_body_title";
+
     // TODO: Rename and change types of parameters
     private CollectionReference tagsRef;
     private RecyclerView tagsRecyclerView;
     private View view;
+    private TextView tagFragmentTitle; // Reference to the TextView
+
     private ArrayList<Tag> tags;
     private AppContext app;
     private String username;
     private TagsAdapter tagsAdapter;
     private Button createButton;
     private Button doneButton;
+    private Button addTagPanelButton;
+
+    private TextView fragmentTitleName;
+    private TextView fragmentBodyTitleName;
+
     private FirebaseFirestore db;
 
     public CreateTagFragment() {
@@ -92,9 +105,6 @@ public class CreateTagFragment extends Fragment {
                 }
             }
         });
-
-
-
     }
 
     @Override
@@ -108,8 +118,28 @@ public class CreateTagFragment extends Fragment {
         tagsAdapter = new TagsAdapter(view.getContext(), tags);
         tagsRecyclerView.setAdapter(tagsAdapter);
 
-        doneButton = view.findViewById(R.id.done_create_button);
+//        // get arguments
+        Bundle args = getArguments();
+        String fragmentTitle = "Create a new tagssss"; // Set a default title
+        String fragmentBodyTitle = "Existing tags"; // Set a default body title
 
+        if (args != null) {
+            fragmentTitle = args.getString("fragment_title", "Create a new tag");
+            fragmentBodyTitle = args.getString("fragment_body_title", "Tags");
+        } else {
+            // Handle the case where getArguments() returns null
+            Log.e("CreateTagFragment", "Arguments are null");
+        }
+
+        fragmentTitleName = view.findViewById(R.id.tag_fragment_title);
+        fragmentBodyTitleName = view.findViewById(R.id.tags_fragment_body_title);
+        // Set initial titles
+        fragmentTitleName.setText(fragmentTitle);
+        fragmentBodyTitleName.setText(fragmentBodyTitle);
+        final String finalFragmentTitle = fragmentTitle;
+        final String finalFragmentBodyTitle = fragmentBodyTitle;
+
+        doneButton = view.findViewById(R.id.done_create_button);
         doneButton.setOnClickListener(view -> {
 //            getActivity().getFragmentManager().popBackStack();
             MainActivity activity = (MainActivity) getActivity();
