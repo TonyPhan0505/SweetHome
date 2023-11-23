@@ -47,6 +47,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.util.Pair;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentContainerView;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -85,9 +89,11 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private PopupWindow popupWindow;
     private boolean isPanelShown = false; // keep track of action panel visibility
     final Context context = this;
+    private FragmentContainerView fragmentContainer;
     private LinearLayout filterPanel;
     private ImageView filterIcon;
     private Button filterApplyButton;
+    private Button createTagButton;
     private EditText keywordField;
     private EditText makeField;
     private TextView calendar_data;
@@ -108,12 +114,13 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private ArrayList<String> tagsList = new ArrayList<>();
     private String selectedTagForFiltering = "All";
     private TextView selected_filtering_tag_field;
+    private Bundle savedInst;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        savedInst = savedInstanceState;
         app = (AppContext) getApplication();
 
         // check if the user has granted permission to access their camera
@@ -192,11 +199,13 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         filterPanel = findViewById(R.id.filter_panel);
         filterIcon = findViewById(R.id.filter_button);
         filterApplyButton = findViewById(R.id.apply_filter_button);
+        fragmentContainer = findViewById(R.id.fragment_container_view);
         makeField = findViewById(R.id.make_field);
         keywordField = findViewById(R.id.keyword_field);
 
         /* set the view of the filter panel and onclicklisteners for the icon and button */
         filterPanel.setVisibility(View.GONE); //should be invisible until the filterIcon is pressed
+        fragmentContainer.setVisibility(View.GONE);
         filterIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -304,6 +313,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 hidePanel();
             }
         });
+
 
         final FloatingActionButton deleteActionButton = findViewById(R.id.delete_action_button);
         deleteActionButton.setOnClickListener(view -> {
@@ -466,6 +476,27 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         // create PopupWindow
         popupWindow = new PopupWindow(panelView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
         popupWindow.setOutsideTouchable(false);
+
+        createTagButton = panelView.findViewById(R.id.create_tag_panel);
+        createTagButton.setOnClickListener(view -> {
+            hidePanel();
+            fragmentContainer.setVisibility(View.VISIBLE);
+            if (savedInst == null) {
+                Bundle arg = new Bundle();
+                arg.putString("USER", app.getUsername());
+
+//                Fragment ctFragment = CreateTagFragment.newInstance(app.getUsername());
+//                FragmentManager fragmentManager = getSupportFragmentManager();
+//                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+//                fragmentTransaction.add(R.id.fragmentContainerView, ctFragment, null)
+//                        .addToBackStack(null)
+//                        .commit();
+                getSupportFragmentManager().beginTransaction()
+                        .setReorderingAllowed(true)
+                        .add(R.id.fragment_container_view, CreateTagFragment.class, arg)
+                        .commit();
+            }
+        });
     }
 
     /**
