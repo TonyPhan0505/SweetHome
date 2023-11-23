@@ -25,6 +25,7 @@ import android.content.pm.PackageManager;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -36,6 +37,7 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.PopupMenu;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -367,6 +369,39 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 }
             }
         });
+
+
+        // Inside onCreate method
+        ImageView logoutButton = findViewById(R.id.btn_logout);
+        logoutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PopupMenu popup = new PopupMenu(MainActivity.this, v);
+                popup.getMenuInflater().inflate(R.menu.menu_logout, popup.getMenu());
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        if (item.getItemId() == R.id.menu_item_logout) {
+                            if (item.getItemId() == R.id.menu_item_logout) {
+                                // Clear any logged-in user data if necessary, like SharedPreferences
+
+                                // Start LoginActivity
+                                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clear the activity stack
+                                startActivity(intent);
+                                finish(); // Close the current activity
+                                return true;
+                            }
+                            return true;
+                        }
+                        return false;
+                    }
+                });
+                popup.show();
+            }
+        });
+
+
     }
 
     @Override

@@ -22,6 +22,7 @@
     <string name="sort_tags_az">Tags: A - Z</string>
     <string name="sort_tags_za">Tags: Z - A</string>
     <string name="apply_filter">Apply</string>
+    <string name="logout">Logout</string>
     <string-array name="sort_options">
         <item>@string/sort_most_recent</item>
         <item>@string/sort_least_recent</item>
