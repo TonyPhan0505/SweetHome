@@ -17,7 +17,6 @@ package com.example.sweethome;
 /* necessary imports */
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -28,9 +27,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -39,7 +36,6 @@ import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.PopupWindow;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -71,7 +67,6 @@ import com.google.firebase.storage.StorageReference;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends AppCompatActivity implements IFilterable {
@@ -90,8 +85,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private ArrayAdapter<CharSequence> sortAdapter;
     private ArrayAdapter<String> tagFilterAdapter;
     private ArrayList<Item> selectedItems;
-    private PopupWindow popupWindow;
-    private boolean isPanelShown = false; // keep track of action panel visibility
     final Context context = this;
     private LinearLayout filterPanel;
     private ImageView filterIcon;
@@ -305,17 +298,16 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             }
         });
 
-        final FloatingActionButton tagActionButton = findViewById(R.id.tag_action_button);
-        tagActionButton.setOnClickListener(view -> {
-            if (popupWindow == null) {
-                setUpActionButtonPanel();
-            }
-            if (!popupWindow.isShowing()) {
-                setUpActionButtonPanel();
-                showPanel(view);
-            } else {
-                hidePanel();
-            }
+        final FloatingActionButton tagActionOnButton = findViewById(R.id.tag_action_on_button);
+        final FloatingActionButton tagActionOffButton = findViewById(R.id.tag_action_off_button);
+        LinearLayout action_panel = findViewById(R.id.action_panel);
+        tagActionOnButton.setOnClickListener(view -> {
+            tagActionOnButton.setVisibility(View.GONE);
+            action_panel.setVisibility(View.VISIBLE);
+        });
+        tagActionOffButton.setOnClickListener(view -> {
+            tagActionOnButton.setVisibility(View.VISIBLE);
+            action_panel.setVisibility(View.GONE);
         });
 
         final FloatingActionButton deleteActionButton = findViewById(R.id.delete_action_button);
@@ -494,44 +486,15 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         return String.format("%tF - %tF", startDate, endDate);
     }
 
-    private void hidePanel() {
-//        if (popupWindow != null && popupWindow.isShowing()) {
-//            isPanelShown = false;
-            Toast.makeText(MainActivity.this, "false", Toast.LENGTH_SHORT).show();
-            popupWindow.dismiss();
-//        }
-    }
-
-    private void showPanel(View view) {
-////        if (popupWindow != null) {
-//            isPanelShown = true;
-            view.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
-            int xOffset = view.getMeasuredWidth() - view.getWidth();
-//            Toast.makeText(MainActivity.this, "true", Toast.LENGTH_SHORT).show();
-//            popupWindow.showAsDropDown(view, xOffset, -view.getHeight()); // Fix overlapping display
-                popupWindow.showAtLocation(findViewById(android.R.id.content).getRootView(), 10, 250, 720);
-//        } else {
-//            isPanelShown = false;
-//        }
-    }
-
-    private void setUpActionButtonPanel() {
-        // inflate layout for panel with 3 buttons
-        @SuppressLint("InflateParams") View panelView = LayoutInflater.from(this).inflate(R.layout.action_button_panel, null);
-
-        // create PopupWindow
-        popupWindow = new PopupWindow(panelView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
-        popupWindow.setOutsideTouchable(false);
-    }
-
     /**
      * Delete item/items
      * @param items list of item to delete
      */
-    public static void deleteItems(final Context context, ArrayList<Item> items, CollectionReference itemsRef) {
+    public void deleteItems(final Context context, ArrayList<Item> items, CollectionReference itemsRef) {
         int totalItems = items.size();
         AtomicInteger deletedItemsCount = new AtomicInteger(0);
         for (Item item: items) {
+            // remove associated photos
             ArrayList<String> photos = item.getPhotos();
             for (String photoUrl : photos) {
                 StorageReference storageReference = FirebaseStorage.getInstance().getReferenceFromUrl(photoUrl);
@@ -542,26 +505,58 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                     Log.e("Firestore", "Photo deleted failed!");
                 });
             }
-            itemsRef.document(item.getItemId())
-                    .delete()
-                    .addOnSuccessListener(new OnSuccessListener<Void>() {
-                        @Override
-                        public void onSuccess(Void unused) {
-                            Log.d("Firestore", "DocumentSnapshot successfully deleted!");
-                            int count = deletedItemsCount.incrementAndGet();
-                            if (count == totalItems) {
-                                // All items are deleted, show toast
-                                Toast.makeText(context, "Deleted successfully.", Toast.LENGTH_SHORT).show();
+            // remove the username from the tag
+            ArrayList<String> associatedTags = item.getTags();
+            for (String associatedTag : associatedTags) {
+                int count = 0;
+                for (Item itemObject : itemList) {
+                    if (itemObject.getTags().contains(associatedTag)) {
+                        count += 1;
+                    }
+                    if (count >= 2) {
+                        break;
+                    }
+                }
+                if (count < 2) {
+                    tagsRef
+                        .whereEqualTo("name", associatedTag)
+                        .get()
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                for (QueryDocumentSnapshot document : task.getResult()) {
+                                    List<String> usernames = (List<String>) document.get("usernames");
+                                    usernames.remove(app.getUsername());
+                                    tagsRef.document(document.getId()).update("usernames", usernames);
+                                }
                             }
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.e("Firestore", "DocumentSnapshot deleted failed!");
-                            Toast.makeText(context, "Failed to delete.", Toast.LENGTH_SHORT).show();
-                        }
                     });
+                    tagsList.remove(associatedTag);
+                    tagFilterAdapter.notifyDataSetChanged();
+                    selectedTagForFiltering = "";
+                    selected_filtering_tag_field.setText(selectedTagForFiltering);
+                }
+            }
+            // remove the item
+            itemsRef.document(item.getItemId())
+                .delete()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Log.d("Firestore", "DocumentSnapshot successfully deleted!");
+                        int count = deletedItemsCount.incrementAndGet();
+                        if (count == totalItems) {
+                            // All items are deleted, show toast
+                            Toast.makeText(context, "Deleted successfully.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("Firestore", "DocumentSnapshot deleted failed!");
+                        Toast.makeText(context, "Failed to delete.", Toast.LENGTH_SHORT).show();
+                    }
+                });
         }
     }
 
@@ -620,7 +615,9 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                         Item item = doc.toObject(Item.class); //convert the contents of each document in the items collection to an item object
                         item.setItemId(doc.getId()); //set the item ID
                         Log.i("Firestore", String.format("Item %s fetched", item.getName())); //log the name of the item we successfully got from the db
-                        itemList.add(item); //add the item object to our item list
+                        if (doc.getString("username").equals(app.getUsername())) {
+                            itemList.add(item); //add the item object to our item list if it belongs to the current user
+                        }
                     }
                     String currentSortOption = sortSpinner.getSelectedItem().toString(); //get the currently selected sort option
                     sortDataList(currentSortOption, itemList, itemAdapter, getApplicationContext()); //sort the list accordingly and notify changes were made to update frontend
