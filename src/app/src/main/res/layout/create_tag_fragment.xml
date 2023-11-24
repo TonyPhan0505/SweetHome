@@ -32,9 +32,13 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="262dp"
             android:layout_height="match_parent"
-            android:layout_gravity="center">
+            android:layout_gravity="center"
+            app:counterEnabled="true"
+            app:counterMaxLength="15">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/tag_editable_input"
+                android:inputType="textCapSentences"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Type a new tag name" />
@@ -68,7 +72,7 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/tags_recycler_view"
             android:layout_width="316dp"
-            android:layout_height="236dp"
+            android:layout_height="212dp"
             android:layout_gravity="center"
             android:background="@drawable/filter_border"
             android:outlineAmbientShadowColor="@color/black" />

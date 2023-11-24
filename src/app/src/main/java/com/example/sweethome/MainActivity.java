@@ -485,15 +485,16 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 Bundle arg = new Bundle();
                 arg.putString("USER", app.getUsername());
 
-//                Fragment ctFragment = CreateTagFragment.newInstance(app.getUsername());
+                CreateTagFragment ctFragment = new CreateTagFragment();
 //                FragmentManager fragmentManager = getSupportFragmentManager();
 //                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 //                fragmentTransaction.add(R.id.fragmentContainerView, ctFragment, null)
 //                        .addToBackStack(null)
 //                        .commit();
+                ctFragment.setArguments(arg);
                 getSupportFragmentManager().beginTransaction()
                         .setReorderingAllowed(true)
-                        .add(R.id.fragment_container_view, CreateTagFragment.class, arg)
+                        .replace(R.id.fragment_container_view, ctFragment)
                         .commit();
             }
         });

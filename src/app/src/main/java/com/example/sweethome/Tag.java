@@ -15,6 +15,8 @@ public class Tag {
     private String name;
     private ArrayList<String> usernames;
 
+    public Tag() {}
+
     // Constructor
     public Tag(String id, String name, ArrayList<String> usernames) {
         this.id = id;
@@ -29,6 +31,10 @@ public class Tag {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public void setUsernames(ArrayList<String> usernames) {
+        this.usernames = usernames;
     }
 
     public void setName(String name) {
