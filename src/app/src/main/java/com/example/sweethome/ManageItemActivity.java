@@ -106,7 +106,6 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
     private EditText serial_number_field;
     private ImageView open_sn_scanner_button;
     private ImageView barcode_scan_icon;
-    private CustomAddTagsField tag_input;
     private EditText description_field;
     private EditText make_field;
     private EditText model_field;
@@ -121,6 +120,7 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
     private boolean addedMorePhotos = false;
     private int numOfAddedPhotos = 0;
     private int numOfExistingPhotos = 0;
+    private int maxNumOfPhotos = 5;
     private Map<String, Object> itemInfo;
     private Map<String, Object> tagInfo;
     private boolean saving = false;
@@ -161,7 +161,6 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
         serial_number_field = findViewById(R.id.serial_number_field);
         open_sn_scanner_button = findViewById(R.id.open_sn_scanner_button);
         barcode_scan_icon = findViewById(R.id.barcode_scan_icon);
-        tag_input = findViewById(R.id.tag_input);
         description_field = findViewById(R.id.description_field);
         make_field = findViewById(R.id.make_field);
         model_field = findViewById(R.id.model_field);
@@ -361,6 +360,33 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
                             itemInfo.put("comment", comment);
                             tags.sort((tag1, tag2) -> tag1.compareTo(tag2)); // sort in alphabetical order
                             itemInfo.put("tags", tags);
+                            ArrayList<String> removedTagNames = add_tags_field.getRemovedTagNames();
+                            removedTagNames.removeAll(tags);
+                            for (String removedTagName : removedTagNames) {
+                                int count = 0;
+                                for (Item itemObject : itemsList) {
+                                    if (itemObject.getTags().contains(removedTagName)) {
+                                        count += 1;
+                                    }
+                                    if (count >= 2) {
+                                        break;
+                                    }
+                                }
+                                if (count < 2) {
+                                    tagsCollection
+                                        .whereEqualTo("name", removedTagName)
+                                        .get()
+                                        .addOnCompleteListener(task -> {
+                                            if (task.isSuccessful()) {
+                                                for (QueryDocumentSnapshot document : task.getResult()) {
+                                                    List<String> usernames = (List<String>) document.get("usernames");
+                                                    usernames.remove(app.getUsername());
+                                                    tagsCollection.document(document.getId()).update("usernames", usernames);
+                                                }
+                                            }
+                                    });
+                                }
+                            }
                             List<Uri> addedPhotoUris = photoUris.subList(numOfExistingPhotos, numOfExistingPhotos + numOfAddedPhotos);
                             if (addedMorePhotos) {
                                 for (Uri photoUri : addedPhotoUris) {
@@ -507,40 +533,48 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == OPEN_GALLERY_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
-            addedMorePhotos = true;
-            if (data.getData() != null) {
-                imageUri = data.getData();
-                numOfAddedPhotos += 1;
-                photoUris.add(imageUri);
-                sliderDataArrayList.add(new ImageSliderData(imageUri));
-            } else if (data.getClipData() != null) {
-                int count = data.getClipData().getItemCount();
-                numOfAddedPhotos += count;
-                for (int i = 0; i < count; i++) {
-                    imageUri = data.getClipData().getItemAt(i).getUri();
-                    photoUris.add(imageUri);
-                    sliderDataArrayList.add(new ImageSliderData(imageUri));
-                }
-            }
-            adapter.notifyDataSetChanged();
-            sliderView.setSliderAdapter(adapter);
-            noImagePlaceholder.setVisibility(View.GONE);
-            sliderViewFrame.setVisibility(View.VISIBLE);
-        } else if (requestCode == TAKE_PHOTO_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
-            Bundle extras = data.getExtras();
-            addedMorePhotos = true;
-            if (extras != null) {
-                Bitmap photo = (Bitmap) extras.get("data");
-                imageUri = getImageUriFromBitmap(photo);
-                if (imageUri != null) {
-                    photoUris.add(imageUri);
+            if ((numOfAddedPhotos + numOfExistingPhotos) >= maxNumOfPhotos) {
+                Toast.makeText(ManageItemActivity.this, "Cannot upload more photos.", Toast.LENGTH_SHORT).show();
+            } else {
+                addedMorePhotos = true;
+                if (data.getData() != null) {
+                    imageUri = data.getData();
                     numOfAddedPhotos += 1;
+                    photoUris.add(imageUri);
                     sliderDataArrayList.add(new ImageSliderData(imageUri));
-                    adapter.notifyDataSetChanged();
+                } else if (data.getClipData() != null) {
+                    int count = data.getClipData().getItemCount();
+                    numOfAddedPhotos += count;
+                    for (int i = 0; i < count; i++) {
+                        imageUri = data.getClipData().getItemAt(i).getUri();
+                        photoUris.add(imageUri);
+                        sliderDataArrayList.add(new ImageSliderData(imageUri));
+                    }
                 }
+                adapter.notifyDataSetChanged();
                 sliderView.setSliderAdapter(adapter);
                 noImagePlaceholder.setVisibility(View.GONE);
                 sliderViewFrame.setVisibility(View.VISIBLE);
+            }
+        } else if (requestCode == TAKE_PHOTO_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
+            if ((numOfAddedPhotos + numOfExistingPhotos) >= maxNumOfPhotos) {
+                Toast.makeText(ManageItemActivity.this, "Cannot upload more photos.", Toast.LENGTH_SHORT).show();
+            } else {
+                Bundle extras = data.getExtras();
+                addedMorePhotos = true;
+                if (extras != null) {
+                    Bitmap photo = (Bitmap) extras.get("data");
+                    imageUri = getImageUriFromBitmap(photo);
+                    if (imageUri != null) {
+                        photoUris.add(imageUri);
+                        numOfAddedPhotos += 1;
+                        sliderDataArrayList.add(new ImageSliderData(imageUri));
+                        adapter.notifyDataSetChanged();
+                    }
+                    sliderView.setSliderAdapter(adapter);
+                    noImagePlaceholder.setVisibility(View.GONE);
+                    sliderViewFrame.setVisibility(View.VISIBLE);
+                }
             }
         } else if (requestCode == SCAN_BARCODE_REQUEST_CODE && data != null) {
             if (resultCode == RESULT_OK) {
@@ -693,7 +727,7 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
         }
 
         if (tags_container.getChildCount() <= 0) {
-            tag_input.setError("Tag is required");
+            add_tags_field.setError("Tag is required");
             isValid = false;
         }
 
