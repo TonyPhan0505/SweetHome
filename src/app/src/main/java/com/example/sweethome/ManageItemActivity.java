@@ -248,8 +248,9 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
                 for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
                     String id = documentSnapshot.getId();
                     String name = documentSnapshot.getString("name");
+                    Timestamp timestamp = documentSnapshot.getTimestamp("timestamp");
                     ArrayList<String> usernames = (ArrayList<String>) documentSnapshot.get("usernames");
-                    Tag newTag = new Tag(id, name, usernames);
+                    Tag newTag = new Tag(id, name, timestamp, usernames);
                     tagsList.add(newTag);
                 }
             }
@@ -338,6 +339,7 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
                     boolean isValid = isInputValid();
                     if (isValid) {
                         name = item_name_field.getText().toString();
+                        name = name.substring(0, 1).toUpperCase() + name.substring(1);
                         description = description_field.getText().toString();
                         make = make_field.getText().toString();
                         model = model_field.getText().toString();
@@ -626,6 +628,7 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
             String username = app.getUsername();
             tagInfo = new HashMap<>();
             tagInfo.put("name", tag);
+            tagInfo.put("timestamp", Timestamp.now());
             if (existingTag == null) {
                 ArrayList<String> usernames = new ArrayList<>();
                 usernames.add(username);

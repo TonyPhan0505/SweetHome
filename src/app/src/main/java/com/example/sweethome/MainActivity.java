@@ -17,7 +17,6 @@ package com.example.sweethome;
 /* necessary imports */
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -25,10 +24,10 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -36,7 +35,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.PopupWindow;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,10 +45,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.util.Pair;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentContainerView;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -68,6 +63,7 @@ import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends AppCompatActivity implements IFilterable {
@@ -86,10 +82,8 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private ArrayAdapter<CharSequence> sortAdapter;
     private ArrayAdapter<String> tagFilterAdapter;
     private ArrayList<Item> selectedItems;
-    private PopupWindow popupWindow;
-    private boolean isPanelShown = false; // keep track of action panel visibility
     final Context context = this;
-    private FragmentContainerView fragmentContainer;
+    private FragmentContainerView defineTagsFragmentContainer;
     private LinearLayout filterPanel;
     private ImageView filterIcon;
     private Button filterApplyButton;
@@ -114,14 +108,19 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private ArrayList<String> tagsList = new ArrayList<>();
     private String selectedTagForFiltering = "All";
     private TextView selected_filtering_tag_field;
-    private Bundle savedInst;
+    private EditText searchInput;
+    private String searchText = "";
+    private TextView noItemsFound;
+    private TextView items_count_field;
+    private CreateTagFragment ctFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        savedInst = savedInstanceState;
         app = (AppContext) getApplication();
+
+        items_count_field = findViewById(R.id.items_count);
 
         // check if the user has granted permission to access their camera
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
@@ -199,13 +198,11 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         filterPanel = findViewById(R.id.filter_panel);
         filterIcon = findViewById(R.id.filter_button);
         filterApplyButton = findViewById(R.id.apply_filter_button);
-        fragmentContainer = findViewById(R.id.fragment_container_view);
         makeField = findViewById(R.id.make_field);
         keywordField = findViewById(R.id.keyword_field);
 
-        /* set the view of the filter panel and onclicklisteners for the icon and button */
+        /* set the view of the filter panel and onClicklisteners for the icon and button */
         filterPanel.setVisibility(View.GONE); //should be invisible until the filterIcon is pressed
-        fragmentContainer.setVisibility(View.GONE);
         filterIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -304,21 +301,19 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         final FloatingActionButton tagActionOnButton = findViewById(R.id.tag_action_on_button);
         final FloatingActionButton tagActionOffButton = findViewById(R.id.tag_action_off_button);
         LinearLayout action_panel = findViewById(R.id.action_panel);
-        createTagButton = action_panel.findViewById(R.id.create_tag_panel);
+        defineTagsFragmentContainer = findViewById(R.id.create_tag_fragment);
+        createTagButton = action_panel.findViewById(R.id.create_tag_button);
         createTagButton.setOnClickListener(view -> {
             action_panel.setVisibility(View.GONE);
-            fragmentContainer.setVisibility(View.VISIBLE);
-            if (savedInst == null) {
-                Bundle arg = new Bundle();
-                arg.putString("USER", app.getUsername());
-
-                CreateTagFragment ctFragment = new CreateTagFragment();
-                ctFragment.setArguments(arg);
-                getSupportFragmentManager().beginTransaction()
-                        .setReorderingAllowed(true)
-                        .replace(R.id.fragment_container_view, ctFragment)
-                        .commit();
-            }
+            defineTagsFragmentContainer.setVisibility(View.VISIBLE);
+            Bundle arg = new Bundle();
+            arg.putString("USER", app.getUsername());
+            ctFragment = new CreateTagFragment();
+            ctFragment.setArguments(arg);
+            getSupportFragmentManager().beginTransaction()
+                    .setReorderingAllowed(true)
+                    .replace(R.id.create_tag_fragment, ctFragment)
+                    .commit();
             tagActionOnButton.setVisibility(View.VISIBLE);
         });
         tagActionOnButton.setOnClickListener(view -> {
@@ -329,8 +324,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             tagActionOnButton.setVisibility(View.VISIBLE);
             action_panel.setVisibility(View.GONE);
         });
-
-
 
         final FloatingActionButton deleteActionButton = findViewById(R.id.delete_action_button);
         deleteActionButton.setOnClickListener(view -> {
@@ -400,12 +393,66 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 }
             }
         });
+
+        searchInput = findViewById(R.id.search_input);
+        noItemsFound = findViewById(R.id.no_items_found);
+
+
+        // Set a TextWatcher for the search input field
+        searchInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                // Filter the list as the user types
+                String searchText = charSequence.toString().trim().toLowerCase();
+                if (searchText.length() > 0) {
+                    performSearch(searchText);
+                } else {
+                    noItemsFound.setVisibility(View.GONE);
+                    getAllItemsFromDatabase(itemsRef);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        });
     }
+
+    // Performs the search
+    private void performSearch(String searchText) {
+        ArrayList<Item> filteredOutItems = new ArrayList<>();
+        searchText = searchText.toLowerCase().trim();
+        for (Item item : itemList) {
+            String itemName = item.getName().toLowerCase();
+            if (!itemName.startsWith(searchText)) {
+                filteredOutItems.add(item);
+            }
+        }
+        itemList.removeAll(filteredOutItems);
+        itemAdapter.notifyDataSetChanged();
+        calculateTotalEstimatedValue();
+        if (itemList.isEmpty()) {
+            items_count_field.setText("0 items.");
+            noItemsFound.setVisibility(View.VISIBLE);
+        } else {
+            items_count_field.setText(String.valueOf(itemList.size()) + " items.");
+            noItemsFound.setVisibility(View.GONE);
+        }
+    }
+
 
     @Override
     protected void onStop() {
         getApplicationContext().getCacheDir().delete();
         super.onStop();
+    }
+
+    public void closeFragment() {
+        defineTagsFragmentContainer.setVisibility(View.GONE);
     }
 
     @Override
@@ -469,20 +516,53 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
      * Delete item/items
      * @param items list of item to delete
      */
-    public static void deleteItems(final Context context, ArrayList<Item> items, CollectionReference itemsRef) {
+    public void deleteItems(final Context context, ArrayList<Item> items, CollectionReference itemsRef) {
         int totalItems = items.size();
         AtomicInteger deletedItemsCount = new AtomicInteger(0);
         for (Item item: items) {
+            // remove associated photos
             ArrayList<String> photos = item.getPhotos();
             for (String photoUrl : photos) {
                 StorageReference storageReference = FirebaseStorage.getInstance().getReferenceFromUrl(photoUrl);
                 storageReference.delete().addOnSuccessListener(aVoid -> {
-                    Log.d("Firestore", "Photo successfully deleted!");
-                })
-                .addOnFailureListener(exception -> {
-                    Log.e("Firestore", "Photo deleted failed!");
-                });
+                            Log.d("Firestore", "Photo successfully deleted!");
+                        })
+                        .addOnFailureListener(exception -> {
+                            Log.e("Firestore", "Photo deleted failed!");
+                        });
             }
+            // remove the username from the tag
+            ArrayList<String> associatedTags = item.getTags();
+            for (String associatedTag : associatedTags) {
+                int count = 0;
+                for (Item itemObject : itemList) {
+                    if (itemObject.getTags().contains(associatedTag)) {
+                        count += 1;
+                    }
+                    if (count >= 2) {
+                        break;
+                    }
+                }
+                if (count < 2) {
+                    tagsRef
+                            .whereEqualTo("name", associatedTag)
+                            .get()
+                            .addOnCompleteListener(task -> {
+                                if (task.isSuccessful()) {
+                                    for (QueryDocumentSnapshot document : task.getResult()) {
+                                        List<String> usernames = (List<String>) document.get("usernames");
+                                        usernames.remove(app.getUsername());
+                                        tagsRef.document(document.getId()).update("usernames", usernames);
+                                    }
+                                }
+                            });
+                    tagsList.remove(associatedTag);
+                    tagFilterAdapter.notifyDataSetChanged();
+                    selectedTagForFiltering = "";
+                    selected_filtering_tag_field.setText(selectedTagForFiltering);
+                }
+            }
+            // remove the item
             itemsRef.document(item.getItemId())
                     .delete()
                     .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -553,26 +633,29 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
      */
     private void getAllItemsFromDatabase(CollectionReference itemsRef) {
         itemsRef.get()
-            .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                @Override
-                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                    itemList.clear(); //clear whatever data we currently have stored in our item list
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots){ //get everything that is stored in our db at the moment
-                        Item item = doc.toObject(Item.class); //convert the contents of each document in the items collection to an item object
-                        item.setItemId(doc.getId()); //set the item ID
-                        Log.i("Firestore", String.format("Item %s fetched", item.getName())); //log the name of the item we successfully got from the db
-                        itemList.add(item); //add the item object to our item list
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        itemList.clear(); //clear whatever data we currently have stored in our item list
+                        for (QueryDocumentSnapshot doc : queryDocumentSnapshots){ //get everything that is stored in our db at the moment
+                            Item item = doc.toObject(Item.class); //convert the contents of each document in the items collection to an item object
+                            item.setItemId(doc.getId()); //set the item ID
+                            Log.i("Firestore", String.format("Item %s fetched", item.getName())); //log the name of the item we successfully got from the db
+                            if (doc.getString("username").equals(app.getUsername())) {
+                                itemList.add(item); //add the item object to our item list if it belongs to the current user
+                            }
+                        }
+                        items_count_field.setText(String.valueOf(itemList.size()) + " items.");
+                        String currentSortOption = sortSpinner.getSelectedItem().toString(); //get the currently selected sort option
+                        sortDataList(currentSortOption, itemList, itemAdapter, getApplicationContext()); //sort the list accordingly and notify changes were made to update frontend
+                        calculateTotalEstimatedValue(); //recalculate and display the total estimated value
                     }
-                    String currentSortOption = sortSpinner.getSelectedItem().toString(); //get the currently selected sort option
-                    sortDataList(currentSortOption, itemList, itemAdapter, getApplicationContext()); //sort the list accordingly and notify changes were made to update frontend
-                    calculateTotalEstimatedValue(); //recalculate and display the total estimated value
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.e("Firestore", "Error fetching data", e);
-                }
-            });
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("Firestore", "Error fetching data", e);
+                    }
+                });
     }
 
     private void getAllTagsFromDatabase(CollectionReference tagsRef) {
@@ -703,9 +786,4 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             }
         }
     }
-
-    public void closeFragment() {
-        fragmentContainer.setVisibility(View.GONE);
-    }
-
 }

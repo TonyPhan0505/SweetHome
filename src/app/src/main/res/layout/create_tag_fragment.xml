@@ -34,7 +34,7 @@
             android:layout_height="match_parent"
             android:layout_gravity="center"
             app:counterEnabled="true"
-            app:counterMaxLength="15">
+            app:counterMaxLength="20">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/tag_editable_input"
@@ -60,6 +60,7 @@
             android:textColor="@color/white" />
 
         <TextView
+            android:id="@+id/tags_count_field"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="left"
