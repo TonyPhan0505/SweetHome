@@ -301,18 +301,35 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             }
         });
 
-        final FloatingActionButton tagActionButton = findViewById(R.id.tag_action_button);
-        tagActionButton.setOnClickListener(view -> {
-            if (popupWindow == null) {
-                setUpActionButtonPanel();
+        final FloatingActionButton tagActionOnButton = findViewById(R.id.tag_action_on_button);
+        final FloatingActionButton tagActionOffButton = findViewById(R.id.tag_action_off_button);
+        LinearLayout action_panel = findViewById(R.id.action_panel);
+        createTagButton = action_panel.findViewById(R.id.create_tag_panel);
+        createTagButton.setOnClickListener(view -> {
+            action_panel.setVisibility(View.GONE);
+            fragmentContainer.setVisibility(View.VISIBLE);
+            if (savedInst == null) {
+                Bundle arg = new Bundle();
+                arg.putString("USER", app.getUsername());
+
+                CreateTagFragment ctFragment = new CreateTagFragment();
+                ctFragment.setArguments(arg);
+                getSupportFragmentManager().beginTransaction()
+                        .setReorderingAllowed(true)
+                        .replace(R.id.fragment_container_view, ctFragment)
+                        .commit();
             }
-            if (!popupWindow.isShowing()) {
-                setUpActionButtonPanel();
-                showPanel(view);
-            } else {
-                hidePanel();
-            }
+            tagActionOnButton.setVisibility(View.VISIBLE);
         });
+        tagActionOnButton.setOnClickListener(view -> {
+            tagActionOnButton.setVisibility(View.GONE);
+            action_panel.setVisibility(View.VISIBLE);
+        });
+        tagActionOffButton.setOnClickListener(view -> {
+            tagActionOnButton.setVisibility(View.VISIBLE);
+            action_panel.setVisibility(View.GONE);
+        });
+
 
 
         final FloatingActionButton deleteActionButton = findViewById(R.id.delete_action_button);
@@ -446,58 +463,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         // You can customize the date format as needed
         // This is just an example format, adjust it based on your preference
         return String.format("%tF - %tF", startDate, endDate);
-    }
-
-    private void hidePanel() {
-//        if (popupWindow != null && popupWindow.isShowing()) {
-//            isPanelShown = false;
-            Toast.makeText(MainActivity.this, "false", Toast.LENGTH_SHORT).show();
-            popupWindow.dismiss();
-//        }
-    }
-
-    private void showPanel(View view) {
-////        if (popupWindow != null) {
-//            isPanelShown = true;
-            view.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
-            int xOffset = view.getMeasuredWidth() - view.getWidth();
-//            Toast.makeText(MainActivity.this, "true", Toast.LENGTH_SHORT).show();
-//            popupWindow.showAsDropDown(view, xOffset, -view.getHeight()); // Fix overlapping display
-                popupWindow.showAtLocation(findViewById(android.R.id.content).getRootView(), 10, 250, 720);
-//        } else {
-//            isPanelShown = false;
-//        }
-    }
-
-    private void setUpActionButtonPanel() {
-        // inflate layout for panel with 3 buttons
-        @SuppressLint("InflateParams") View panelView = LayoutInflater.from(this).inflate(R.layout.action_button_panel, null);
-
-        // create PopupWindow
-        popupWindow = new PopupWindow(panelView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
-        popupWindow.setOutsideTouchable(false);
-
-        createTagButton = panelView.findViewById(R.id.create_tag_panel);
-        createTagButton.setOnClickListener(view -> {
-            hidePanel();
-            fragmentContainer.setVisibility(View.VISIBLE);
-            if (savedInst == null) {
-                Bundle arg = new Bundle();
-                arg.putString("USER", app.getUsername());
-
-                CreateTagFragment ctFragment = new CreateTagFragment();
-//                FragmentManager fragmentManager = getSupportFragmentManager();
-//                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-//                fragmentTransaction.add(R.id.fragmentContainerView, ctFragment, null)
-//                        .addToBackStack(null)
-//                        .commit();
-                ctFragment.setArguments(arg);
-                getSupportFragmentManager().beginTransaction()
-                        .setReorderingAllowed(true)
-                        .replace(R.id.fragment_container_view, ctFragment)
-                        .commit();
-            }
-        });
     }
 
     /**
