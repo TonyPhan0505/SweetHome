@@ -8,7 +8,9 @@
         android:id="@+id/textViewLoginTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="SweetHome"
+        android:text="@string/app_name"
+        android:textColor="@color/black"
+        android:typeface="serif"
         android:textSize="24sp"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="100dp" />
@@ -17,16 +19,24 @@
         android:id="@+id/editTextUsername"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Username"
         android:layout_below="@id/textViewLoginTitle"
+        android:hint="@string/username_hint"
+        android:layout_marginTop="30dp"/>
+
+    <EditText
+        android:id="@+id/editTextPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/password_hint"
+        android:layout_below="@id/editTextUsername"
         android:layout_marginTop="30dp"/>
 
     <Button
         android:id="@+id/buttonLogin"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Login"
-        android:layout_below="@id/editTextUsername"
+        android:text="@string/login"
+        android:layout_below="@id/editTextPassword"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"/>
     <LinearLayout
@@ -41,7 +51,7 @@
             android:id="@+id/textViewPromptSignUp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Don't have an account? "
+            android:text="@string/sign_up_prompt"
             android:textSize="16sp"
             android:textColor="@color/black" />
 
@@ -49,7 +59,7 @@
             android:id="@+id/textViewSignUp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sign Up"
+            android:text="@string/sign_up"
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@color/dark_green"

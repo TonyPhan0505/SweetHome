@@ -1,24 +1,24 @@
 package com.example.sweethome;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.style.UnderlineSpan;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Button;
 import android.widget.Toast;
 
-// Import Firebase libraries
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.example.sweethome.User;
 
 
 public class SignUpActivity extends AppCompatActivity {
     private EditText usernameEditText;
+    private EditText passwordEditText;
+    private EditText confirmPasswordEditText;
     private Button signUpButton;
 
     @Override
@@ -30,6 +30,8 @@ public class SignUpActivity extends AppCompatActivity {
         TextView textViewSignIn = findViewById(R.id.textViewSignIn);
         // Initialize the EditTexts and Button
         usernameEditText = findViewById(R.id.editTextUsernameSignUp);
+        passwordEditText = findViewById(R.id.editTextPasswordSignUp);
+        confirmPasswordEditText = findViewById(R.id.editTextConfirmPasswordSignUp);
         signUpButton = findViewById(R.id.buttonSignUp);
 
         // Underline the text "Sign in"

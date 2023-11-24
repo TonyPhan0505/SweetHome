@@ -1,7 +1,5 @@
 package com.example.sweethome;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.SpannableString;
@@ -12,12 +10,16 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class LoginActivity extends AppCompatActivity {
 
     private EditText editTextUsername;
+    private EditText editTextPassword;
+    private Button loginButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,7 +27,8 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         editTextUsername = findViewById(R.id.editTextUsername);
-        Button buttonLogin = findViewById(R.id.buttonLogin);
+        editTextPassword = findViewById(R.id.editTextPassword);
+        loginButton = findViewById(R.id.buttonLogin);
         TextView textViewSignUp = findViewById(R.id.textViewSignUp);
         String text = textViewSignUp.getText().toString();
         SpannableString spannableString = new SpannableString(text);
@@ -43,7 +46,7 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         // Update the login button click listener
-        buttonLogin.setOnClickListener(new View.OnClickListener() {
+        loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 attemptLogin();
