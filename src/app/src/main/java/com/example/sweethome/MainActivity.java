@@ -411,7 +411,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 if (searchText.length() > 0) {
                     performSearch(searchText);
                 } else {
-                    noItemsFound.setVisibility(View.GONE);
                     getAllItemsFromDatabase(itemsRef);
                 }
             }
@@ -424,22 +423,22 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
 
     // Performs the search
     private void performSearch(String searchText) {
-        ArrayList<Item> filteredOutItems = new ArrayList<>();
+        ArrayList<Item> filteredItems = new ArrayList<>();
         searchText = searchText.toLowerCase().trim();
         for (Item item : itemList) {
             String itemName = item.getName().toLowerCase();
-            if (!itemName.startsWith(searchText)) {
-                filteredOutItems.add(item);
+            if (itemName.startsWith(searchText)) {
+                filteredItems.add(item);
             }
         }
-        itemList.removeAll(filteredOutItems);
-        itemAdapter.notifyDataSetChanged();
+        ItemsCustomAdapter filteredAdapter = new ItemsCustomAdapter(this, filteredItems);
+        itemListView.setAdapter(filteredAdapter);
         calculateTotalEstimatedValue();
-        if (itemList.isEmpty()) {
-            items_count_field.setText("0 items.");
+        if (filteredItems.isEmpty()) {
+            items_count_field.setText("");
             noItemsFound.setVisibility(View.VISIBLE);
         } else {
-            items_count_field.setText(String.valueOf(itemList.size()) + " items.");
+            items_count_field.setText(String.valueOf(filteredItems.size()) + " items.");
             noItemsFound.setVisibility(View.GONE);
         }
     }
@@ -594,7 +593,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
      * @param itemAdapter
      * @param context
      */
-    public static void sortDataList(String selectedSortOption, ArrayList<Item> itemList, ItemsCustomAdapter itemAdapter, Context context) {
+    public void sortDataList(String selectedSortOption, ArrayList<Item> itemList, ItemsCustomAdapter itemAdapter, Context context) {
         if (selectedSortOption.equals(context.getString(R.string.sort_least_recent))) { //if we are sorting items by oldest to newest acquired
             itemList.sort((item1, item2) -> item1.getPurchaseDate().compareTo(item2.getPurchaseDate()));
         }
@@ -623,7 +622,8 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         } else if (selectedSortOption.equals(context.getString(R.string.sort_tags_za))) {
             itemList.sort((item1, item2) -> item2.getTags().get(0).compareTo(item1.getTags().get(0)));
         }
-        itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
+        itemAdapter = new ItemsCustomAdapter(MainActivity.this, itemList);
+        itemListView.setAdapter(itemAdapter);
     }
 
     /**
@@ -646,6 +646,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                             }
                         }
                         items_count_field.setText(String.valueOf(itemList.size()) + " items.");
+                        noItemsFound.setVisibility(View.GONE);
                         String currentSortOption = sortSpinner.getSelectedItem().toString(); //get the currently selected sort option
                         sortDataList(currentSortOption, itemList, itemAdapter, getApplicationContext()); //sort the list accordingly and notify changes were made to update frontend
                         calculateTotalEstimatedValue(); //recalculate and display the total estimated value

@@ -78,19 +78,6 @@
             android:textSize="12sp" />
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/no_items_found"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="No items found"
-        android:textSize="18sp"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/search_add_container"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/line2"/>
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -346,6 +333,19 @@
             android:text="0 items."
             android:textSize="19sp"/>
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/no_items_found"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="No items found"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/items_count_frame"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/line2"/>
 
     <ListView
         android:id="@+id/item_list"
