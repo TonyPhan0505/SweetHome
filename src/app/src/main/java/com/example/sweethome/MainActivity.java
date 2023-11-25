@@ -68,8 +68,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends AppCompatActivity implements IFilterable {
     /* attributes of this class */
-    private ArrayList<Item> itemList;
-    private ArrayList<Item> itemListCopy;
+    private ArrayList<Item> itemList;  // do not ever mutate, except for sorting and populating
     private ListView itemListView;
     private TextView totalEstimatedValue;
     private ItemsCustomAdapter itemAdapter;
@@ -87,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private LinearLayout filterPanel;
     private ImageView filterIcon;
     private Button filterApplyButton;
+    private Button clear_date_button;
     private Button createTagButton;
     private EditText keywordField;
     private EditText makeField;
@@ -98,7 +98,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private MaterialDatePicker<Pair<Long, Long>> dateRangePicker;
     private Long selectedStartDate;
     private Long selectedEndDate;
-    private boolean filtered;
     /* constants */
     private final long ONE_DAY = 86400000;
     private final long ONE_HOUR = 3600000;
@@ -153,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
                 // Handle sorting based on selection
                 String selectedSortOption = parentView.getItemAtPosition(position).toString();
-                sortDataList(selectedSortOption, itemList, itemAdapter, getApplicationContext()); // Sort and load data based on the selected option
+                sortDataList(selectedSortOption, getApplicationContext()); // Sort and load data based on the selected option
             }
             @Override
             public void onNothingSelected(AdapterView<?> parentView) {
@@ -216,7 +215,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 } else {
                     filterIcon.setColorFilter(ContextCompat.getColor(MainActivity.this, R.color.light_grey), PorterDuff.Mode.SRC_IN);
                     filterPanel.setVisibility(View.VISIBLE); //otherwise just show the panel since it must currently be invisible
-                    filtered = false; //set the filtered flag as false
                     selectedStartDate = 0L; //restart the start day
                     selectedEndDate = 0L; //restart the end day
                     dateRangePicker = createMaterialDatePicker(); //reset the picker
@@ -228,20 +226,12 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             public void onClick(View view) {
                 String make = makeField.getText().toString();
                 String keyword = keywordField.getText().toString();
-                if (filtered) { //if it has been previously filtered, reset the list
-                    itemList.clear();
-                    itemList.addAll(itemListCopy);
-                } else { //otherwise if it has not been filtered, make a copy so we can reset the list later
-                    itemListCopy = new ArrayList<Item>();
-                    itemListCopy.addAll(itemList);
-                }
+                itemAdapter.setCurrentItemList(itemList);
                 if (!make.trim().isEmpty()){ //apply filter by make if it was provided
                     filterByMake(make);
-                    filtered = true;
                 }
                 if(!keyword.trim().isEmpty()) { //apply filter by keyword if it was provided
                     filterByKeyword(keyword);
-                    filtered = true;
                 }
                 if(selectedEndDate!=0L && selectedStartDate!=0L) { //apply filter by date range if it was selected
                     /* get the selected dates by the user, adding extra time due to epoch conversion error */
@@ -253,7 +243,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                     Timestamp start = new Timestamp(dateStart);
                     Timestamp end = new Timestamp(dateEnd);
                     filterByDate(start, end);
-                    filtered = true;
                 }
                 if (!selectedTagForFiltering.equals("All")) {
                     filterByTag();
@@ -368,6 +357,16 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             }
         });
 
+        clear_date_button = findViewById(R.id.clear_date_button);
+        clear_date_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                selectedEndDate = 0L;
+                selectedStartDate = 0L;
+                calendar_data.setText("");
+            }
+        });
+
         /* listen for changes in the collection and update our list of items accordingly */
         itemsRef.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
@@ -397,7 +396,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         searchInput = findViewById(R.id.search_input);
         noItemsFound = findViewById(R.id.no_items_found);
 
-
         // Set a TextWatcher for the search input field
         searchInput.addTextChangedListener(new TextWatcher() {
             @Override
@@ -408,9 +406,11 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 // Filter the list as the user types
                 String searchText = charSequence.toString().trim().toLowerCase();
+                String make = makeField.getText().toString();
+                String keyword = keywordField.getText().toString();
                 if (searchText.length() > 0) {
                     performSearch(searchText);
-                } else {
+                } else if (make.trim().isEmpty() && keyword.trim().isEmpty() && (selectedEndDate==0L || selectedStartDate==0L) && selectedTagForFiltering.equals("All")) {
                     getAllItemsFromDatabase(itemsRef);
                 }
             }
@@ -424,21 +424,22 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     // Performs the search
     private void performSearch(String searchText) {
         ArrayList<Item> filteredItems = new ArrayList<>();
+        ArrayList<Item> currentList = itemAdapter.getCurrentItemList();
         searchText = searchText.toLowerCase().trim();
-        for (Item item : itemList) {
+        for (Item item : currentList) {
             String itemName = item.getName().toLowerCase();
             if (itemName.startsWith(searchText)) {
                 filteredItems.add(item);
             }
         }
-        ItemsCustomAdapter filteredAdapter = new ItemsCustomAdapter(this, filteredItems);
-        itemListView.setAdapter(filteredAdapter);
+        itemAdapter = new ItemsCustomAdapter(this, filteredItems);
+        itemListView.setAdapter(itemAdapter);
         calculateTotalEstimatedValue();
         if (filteredItems.isEmpty()) {
             items_count_field.setText("");
             noItemsFound.setVisibility(View.VISIBLE);
         } else {
-            items_count_field.setText(String.valueOf(filteredItems.size()) + " items.");
+            items_count_field.setText(String.valueOf(itemAdapter.getCurrentItemList().size()) + " items.");
             noItemsFound.setVisibility(View.GONE);
         }
     }
@@ -589,11 +590,9 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
      * Given a selected sorting option, sorts the current item
      * list according to the selected criteria.
      * @param selectedSortOption
-     * @param itemList
-     * @param itemAdapter
      * @param context
      */
-    public void sortDataList(String selectedSortOption, ArrayList<Item> itemList, ItemsCustomAdapter itemAdapter, Context context) {
+    public void sortDataList(String selectedSortOption, Context context) {
         if (selectedSortOption.equals(context.getString(R.string.sort_least_recent))) { //if we are sorting items by oldest to newest acquired
             itemList.sort((item1, item2) -> item1.getPurchaseDate().compareTo(item2.getPurchaseDate()));
         }
@@ -648,7 +647,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                         items_count_field.setText(String.valueOf(itemList.size()) + " items.");
                         noItemsFound.setVisibility(View.GONE);
                         String currentSortOption = sortSpinner.getSelectedItem().toString(); //get the currently selected sort option
-                        sortDataList(currentSortOption, itemList, itemAdapter, getApplicationContext()); //sort the list accordingly and notify changes were made to update frontend
+                        sortDataList(currentSortOption, getApplicationContext()); //sort the list accordingly and notify changes were made to update frontend
                         calculateTotalEstimatedValue(); //recalculate and display the total estimated value
                     }
                 }).addOnFailureListener(new OnFailureListener() {
@@ -684,16 +683,20 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
      * @param endDate
      */
     public void filterByDate(Timestamp startDate, Timestamp endDate) {
-        ArrayList<Item> filteredList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
-        for (int i = 0; i < itemList.size(); i++) { //for every item in the current list
-            Item item = itemList.get(i); //get the item
+        ArrayList<Item> filteredOutList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
+        ArrayList<Item> currentList = itemAdapter.getCurrentItemList();
+        for (int i = 0; i < currentList.size(); i++) { //for every item in the current list
+            Item item = currentList.get(i); //get the item
             Timestamp purchaseDate = item.getPurchaseDate(); //get the purchase date of the item
             if (purchaseDate.toDate().before(startDate.toDate()) || purchaseDate.toDate().after(endDate.toDate())) { //if the purchase date does not fall within the given date range
-                filteredList.add(item); //add it to the filtered list
+                filteredOutList.add(item); //add it to the filtered list
             }
         }
-        itemList.removeAll(filteredList); //remove all items that are to be filtered out from our current list ie. were not purchased in the provided time frame
-        itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
+        ArrayList<Item> updatedList = new ArrayList<>(currentList);
+        updatedList.removeAll(filteredOutList);
+        itemAdapter = new ItemsCustomAdapter(MainActivity.this, updatedList);
+        itemListView.setAdapter(itemAdapter);
+        items_count_field.setText(String.valueOf(itemAdapter.getCurrentItemList().size()) + " items.");
         calculateTotalEstimatedValue(); //recalculate and display the total estimated value
     }
 
@@ -703,16 +706,21 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
      * @param make
      */
     public void filterByMake(String make) {
-        ArrayList<Item> filteredList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
-        for (int i = 0; i < itemList.size(); i++) { //for every item in the current list
-            Item item = itemList.get(i); //get the item
+        make = make.toLowerCase();
+        ArrayList<Item> filteredOutList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
+        ArrayList<Item> currentList = itemAdapter.getCurrentItemList();
+        for (int i = 0; i < currentList.size(); i++) { //for every item in the current list
+            Item item = currentList.get(i); //get the item
             String itemMake = item.getMake(); //get the make of the item
-            if (!itemMake.equalsIgnoreCase(make)) { //if it DOES NOT match the given make (case insensitive)
-                filteredList.add(item); //add it to the filtered list
+            if (!itemMake.toLowerCase().contains(make)) { //if it DOES NOT match the given make (case insensitive)
+                filteredOutList.add(item); //add it to the filtered list
             }
         }
-        itemList.removeAll(filteredList); //remove all items that are to be filtered out from our current list ie. don't match the given make
-        itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
+        ArrayList<Item> updatedList = new ArrayList<>(currentList);
+        updatedList.removeAll(filteredOutList);
+        itemAdapter = new ItemsCustomAdapter(MainActivity.this, updatedList);
+        itemListView.setAdapter(itemAdapter);
+        items_count_field.setText(String.valueOf(itemAdapter.getCurrentItemList().size()) + " items.");
         calculateTotalEstimatedValue(); //recalculate and display the total estimated value
     }
 
@@ -723,16 +731,20 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
      */
     public void filterByKeyword(String keyword) {
         keyword = keyword.toLowerCase(); //change the keyword to lowercase so we can be case insensitive
-        ArrayList<Item> filteredList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
-        for (int i = 0; i < itemList.size(); i++) { //for every item in the current list
-            Item item = itemList.get(i); //get the item
+        ArrayList<Item> filteredOutList = new ArrayList<Item>(); //a new list to store the items that are being filtered out
+        ArrayList<Item> currentList = itemAdapter.getCurrentItemList();
+        for (int i = 0; i < currentList.size(); i++) { //for every item in the current list
+            Item item = currentList.get(i); //get the item
             String description = item.getDescription().toLowerCase(); //get the description of the item (also lowercase)
             if (!description.contains(keyword)) { //if it DOES NOT contain the given keyword
-                filteredList.add(item); //add it to the filtered list
+                filteredOutList.add(item); //add it to the filtered list
             }
         }
-        itemList.removeAll(filteredList); //remove all items from the current list that are to be filtered out ie. don't contain the given keyword in their description
-        itemAdapter.notifyDataSetChanged(); //notify changes were made to update frontend
+        ArrayList<Item> updatedList = new ArrayList<>(currentList);
+        updatedList.removeAll(filteredOutList);
+        itemAdapter = new ItemsCustomAdapter(MainActivity.this, updatedList);
+        itemListView.setAdapter(itemAdapter);
+        items_count_field.setText(String.valueOf(itemAdapter.getCurrentItemList().size()) + " items.");
         calculateTotalEstimatedValue(); //recalculate and display the total estimated value
     }
 
@@ -742,16 +754,20 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
      */
     public void filterByTag() {
         if (!selectedTagForFiltering.equals("All")) {
-            ArrayList<Item> filteredList = new ArrayList<Item>();
-            for (int i = 0; i < itemList.size(); i++) {
-                Item item = itemList.get(i);
+            ArrayList<Item> filteredOutList = new ArrayList<Item>();
+            ArrayList<Item> currentList = itemAdapter.getCurrentItemList();
+            for (int i = 0; i < currentList.size(); i++) {
+                Item item = currentList.get(i);
                 ArrayList<String> tagsOfItem = item.getTags();
                 if (!tagsOfItem.contains(selectedTagForFiltering)) {
-                    filteredList.add(item);
+                    filteredOutList.add(item);
                 }
             }
-            itemList.removeAll(filteredList);
-            itemAdapter.notifyDataSetChanged();
+            ArrayList<Item> updatedList = new ArrayList<>(currentList);
+            updatedList.removeAll(filteredOutList);
+            itemAdapter = new ItemsCustomAdapter(MainActivity.this, updatedList);
+            itemListView.setAdapter(itemAdapter);
+            items_count_field.setText(String.valueOf(itemAdapter.getCurrentItemList().size()) + " items.");
             calculateTotalEstimatedValue();
         }
     }
