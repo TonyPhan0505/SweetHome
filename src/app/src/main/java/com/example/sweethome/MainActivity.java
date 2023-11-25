@@ -34,10 +34,10 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.PopupMenu;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.PopupMenu;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -51,6 +51,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -386,7 +387,8 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                         if (item.getItemId() == R.id.menu_item_logout) {
                             if (item.getItemId() == R.id.menu_item_logout) {
                                 // Clear any logged-in user data if necessary, like SharedPreferences
-
+                                // Sign out
+                                FirebaseAuth.getInstance().signOut();
                                 // Start LoginActivity
                                 Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clear the activity stack
