@@ -180,4 +180,12 @@ public class ItemsCustomAdapter extends ArrayAdapter<Item> {
         /* return the view we inflated */
         return view;
     }
+
+    public void setCurrentItemList(ArrayList<Item> itemList) {
+        this.items = new ArrayList<>(itemList);
+    }
+
+    public ArrayList<Item> getCurrentItemList() {
+        return this.items;
+    }
 }
