@@ -35,7 +35,10 @@ public class LoginActivity extends AppCompatActivity {
         // Check if user is signed in (non-null) and if so take them to the main activity
         FirebaseUser currentUser = userAuth.getCurrentUser();
         if(currentUser != null) {
+            String usernameWithDomain = currentUser.getEmail();
+            String username = usernameWithDomain.replace(DOMAIN, "");
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            intent.putExtra("USERNAME", username); //send username to main activity
             startActivity(intent);
             finish(); // Close the LoginActivity once the process is complete
         }

@@ -20,7 +20,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
-import com.google.firebase.auth.FirebaseUser;
 
 
 public class SignUpActivity extends AppCompatActivity {
@@ -30,18 +29,6 @@ public class SignUpActivity extends AppCompatActivity {
     private Button signUpButton;
     private final String DOMAIN = "@cmput301f23t17.com";
     private FirebaseAuth userAuth;
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        // Check if user is signed in (non-null) and if so take them to the main activity
-        FirebaseUser currentUser = userAuth.getCurrentUser();
-        if(currentUser != null) {
-            Intent intent = new Intent(SignUpActivity.this, MainActivity.class);
-            startActivity(intent);
-            finish(); // Close the SignUpActivity once the process is complete
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -139,8 +126,10 @@ public class SignUpActivity extends AppCompatActivity {
                             // Sign up success
                             // Here you might want to start the LoginActivity or MainActivity
                             // depending on how you want to proceed after account creation
+                            // currently we go to the LoginActivity
                             Log.d("Firestore", "create new user:success");
                             Toast.makeText(SignUpActivity.this, "Account creation successful",Toast.LENGTH_SHORT).show();
+                            FirebaseAuth.getInstance().signOut(); // creation of a new account automatically logs a user in so log them out before sending them to login page
                             Intent intent = new Intent(SignUpActivity.this, LoginActivity.class);
                             startActivity(intent);
                             finish(); // Close the SignUpActivity once the process is complete
