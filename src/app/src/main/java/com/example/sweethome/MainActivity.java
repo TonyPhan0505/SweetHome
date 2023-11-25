@@ -113,7 +113,13 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // get the current user
         app = (AppContext) getApplication();
+        Intent main = getIntent();
+        loggedInUsername = main.getStringExtra("USERNAME");
+        if (loggedInUsername != null) {
+            app.setUsername(loggedInUsername);
+        }
 
         // check if the user has granted permission to access their camera
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {

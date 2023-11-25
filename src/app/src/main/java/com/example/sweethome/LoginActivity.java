@@ -133,7 +133,7 @@ public class LoginActivity extends AppCompatActivity {
                             Log.d("Firestore", "user login:success");
                             Toast.makeText(LoginActivity.this, "Login successful",Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                            intent.putExtra("USERNAME", usernameWithDomain);
+                            intent.putExtra("USERNAME", username); //send username to main activity
                             startActivity(intent);
                             finish(); // Close the LoginActivity once the process is complete
                         } else {
@@ -147,10 +147,10 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
-    private void proceedToMainActivity(String username) {
-        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-        intent.putExtra("USERNAME", username);
-        startActivity(intent);
-        finish(); // Close the LoginActivity once the process is complete
-    }
+//    private void proceedToMainActivity(String username) {
+//        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+//        intent.putExtra("USERNAME", username);
+//        startActivity(intent);
+//        finish(); // Close the LoginActivity once the process is complete
+//    }
 }
