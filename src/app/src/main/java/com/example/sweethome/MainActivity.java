@@ -499,19 +499,33 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             }
         });
 
+        selectedItems = new ArrayList<Item>();
+        for (int i = 0; i < itemListView.getCount(); i++) {
+            Item item = itemAdapter.getItem(i);
+            Boolean selected = item.isSelected();
+            if (item != null && selected) {
+                selectedItems.add(item);
+            }
+        }
+
         addTagButton = panelView.findViewById(R.id.add_tag_panel);
         addTagButton.setOnClickListener(view -> {
             hidePanel();
-            fragmentContainer.setVisibility(View.VISIBLE);
-            if (savedInst == null) {
-                Bundle arg = new Bundle();
-                arg.putString("USER", app.getUsername());
-                arg.putString("fragment_title", "Tags");
-                arg.putString("fragment_body_title", "Selected Items");
-                getSupportFragmentManager().beginTransaction()
-                        .setReorderingAllowed(true)
-                        .add(R.id.fragment_container_view, CreateTagFragment.class, arg)
-                        .commit();
+            if (selectedItems.size() < 1) {
+                Toast.makeText(MainActivity.this, "Please select at least 1 item.", Toast.LENGTH_SHORT).show();
+            } else {
+                fragmentContainer.setVisibility(View.VISIBLE);
+                if (savedInst == null) {
+                    Bundle arg = new Bundle();
+                    arg.putString("USER", app.getUsername());
+                    arg.putString("fragment_title", "Tags");
+                    arg.putString("fragment_body_title", "Selected Items");
+                    arg.putSerializable("item_list", selectedItems);
+                    getSupportFragmentManager().beginTransaction()
+                            .setReorderingAllowed(true)
+                            .add(R.id.fragment_container_view, CreateTagFragment.class, arg)
+                            .commit();
+                }
             }
         });
     }

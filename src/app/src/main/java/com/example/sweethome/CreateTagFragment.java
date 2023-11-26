@@ -1,5 +1,6 @@
 package com.example.sweethome;
 
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -12,11 +13,16 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -26,6 +32,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -47,18 +54,29 @@ public class CreateTagFragment extends Fragment {
     private RecyclerView tagsRecyclerView;
     private View view;
     private TextView tagFragmentTitle; // Reference to the TextView
+    private TextInputEditText tagEditText;
 
+    // tags
+    private CustomAddTagsField add_tags_field;
+    private LinearLayout tags_container;
+    private ArrayList<Tag> tagsList = new ArrayList<>();
+    private String tagInput;
     private ArrayList<Tag> tags;
-    private AppContext app;
-    private String username;
-    private TagsAdapter tagsAdapter;
-    private Button createButton;
-    private Button doneButton;
-    private Button addTagPanelButton;
+    private CustomAddTagsField tag_input;
 
+    private Map<String, Object> tagInfo;
+
+
+    private String username;
+
+    private TagsAdapter tagsAdapter;
+    private Button doneButton;
+    private Button applyButton;
+    private Button createNewTagButton;
+
+    private ListView selectedItem;
     private TextView fragmentTitleName;
     private TextView fragmentBodyTitleName;
-
     private FirebaseFirestore db;
 
     public CreateTagFragment() {
@@ -120,14 +138,56 @@ public class CreateTagFragment extends Fragment {
 
 //        // get arguments
         Bundle args = getArguments();
-        String fragmentTitle = "Create a new tagssss"; // Set a default title
+        String fragmentTitle = "Create a new tags"; // Set a default title
         String fragmentBodyTitle = "Existing tags"; // Set a default body title
-
+        applyButton = view.findViewById(R.id.apply_new_tag_button);
+        createNewTagButton = view.findViewById(R.id.create_new_tag_button);
+        tagEditText = view.findViewById(R.id.tag_editable_input);
+        applyButton.setVisibility(View.GONE);
         if (args != null) {
+            tagsRecyclerView.setVisibility(View.GONE);
+            applyButton.setVisibility(View.VISIBLE);
+
+            applyButton.setOnClickListener(v -> {
+                tagInput = tagEditText.getText().toString();
+                if (!tagInput.isEmpty()) {
+                    Toast.makeText(view.getContext(), "Entered Tag: " + tagInput, Toast.LENGTH_SHORT).show();
+                    tagEditText.getText().clear(); // Clear the text input
+                } else {
+                    Toast.makeText(view.getContext(), "Entered Tag: " + tagInput, Toast.LENGTH_SHORT).show();
+
+                }
+            });
+
             fragmentTitle = args.getString("fragment_title", "Create a new tag");
             fragmentBodyTitle = args.getString("fragment_body_title", "Tags");
-        } else {
+            ArrayList<Item> itemList = (ArrayList<Item>) args.getSerializable("item_list");
+            ItemsApplyTagsAdapter itemsAdapter = new ItemsApplyTagsAdapter(view.getContext(), itemList);
+            selectedItem = view.findViewById(R.id.selected_item_list);
+            selectedItem.setAdapter(itemsAdapter);
+            createNewTagButton.setVisibility(View.GONE);
+
+            if (itemList != null) {
+                // Find the TextInputEditText view
+
+                createNewTagButton.setOnClickListener(v -> {
+                    // Get the entered tag text
+
+                    // Check if the entered tag is not empty
+                        // Loop through the itemList and update the tag list for each item
+                        Toast.makeText(requireContext(), "not empty tag", Toast.LENGTH_SHORT).show();
+                        // Show a toast or handle an empty tag entry
+                        Toast.makeText(requireContext(), "Please enter a valid tag", Toast.LENGTH_SHORT).show();
+
+                });
+            } else {
+                Log.e("ItemListContents", "Item list is null");
+            }
+            } else {
             // Handle the case where getArguments() returns null
+            applyButton.setVisibility(View.GONE);
+            createNewTagButton.setVisibility(View.VISIBLE);
+
             Log.e("CreateTagFragment", "Arguments are null");
         }
 
@@ -136,6 +196,7 @@ public class CreateTagFragment extends Fragment {
         // Set initial titles
         fragmentTitleName.setText(fragmentTitle);
         fragmentBodyTitleName.setText(fragmentBodyTitle);
+
         final String finalFragmentTitle = fragmentTitle;
         final String finalFragmentBodyTitle = fragmentBodyTitle;
 

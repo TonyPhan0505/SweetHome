@@ -46,6 +46,19 @@ public class ItemViewHolder {
 
     public ItemViewHolder() {}
 
+    public ItemViewHolder(TextView nameView, TextView purchaseDateView, TextView estimatedValueView, LinearLayout imageView, LinearLayout descriptionContainer, RelativeLayout noImagePlaceholder, LinearLayout sliderViewFrame, SliderView sliderView, LinearLayout tagsContainer) {
+        this.itemNameView = itemNameView;
+        this.itemPurchaseDateView = itemPurchaseDateView;
+        this.itemValueView = itemValueView;
+        this.itemImageView = itemImageView;
+        this.description_container = description_container;
+        this.noImagePlaceholder = noImagePlaceholder;
+        this.sliderViewFrame = sliderViewFrame;
+        this.sliderView = sliderView;
+        this.tags_container = tags_container;
+
+    }
+
     public TextView getItemNameView() {
         return itemNameView;
     }
