@@ -19,30 +19,18 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 public class LoginActivity extends AppCompatActivity {
-
+    private FirebaseFirestore db;
+    private CollectionReference usersRef;
     private EditText editTextUsername;
     private EditText editTextPassword;
     private Button loginButton;
-    private final String DOMAIN = "@cmput301f23t17.com";
     private FirebaseAuth userAuth;
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        // Check if user is signed in (non-null) and if so take them to the main activity
-        FirebaseUser currentUser = userAuth.getCurrentUser();
-        if(currentUser != null) {
-            String usernameWithDomain = currentUser.getEmail();
-            String username = usernameWithDomain.replace(DOMAIN, "");
-            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-            intent.putExtra("USERNAME", username); //send username to main activity
-            startActivity(intent);
-            finish(); // Close the LoginActivity once the process is complete
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,12 +39,17 @@ public class LoginActivity extends AppCompatActivity {
 
         // Get the TextView for Sign Up
         TextView textViewSignUp = findViewById(R.id.textViewSignUp);
+        /* get the TextView for forgot password */
+        TextView textViewForgotPassword = findViewById(R.id.textViewForgotPassword);
         // Initialize the EditTexts and Button
         editTextUsername = findViewById(R.id.editTextUsername);
         editTextPassword = findViewById(R.id.editTextPassword);
         loginButton = findViewById(R.id.buttonLogin);
-        // Initialize Firebase Auth
+        /* initialize firebase auth */
         userAuth = FirebaseAuth.getInstance();
+        /* set up a connection to our db and a reference to the users collection */
+        db = FirebaseFirestore.getInstance();
+        usersRef = db.collection("users");
 
         // Underline the text "Sign Up"
         String text = textViewSignUp.getText().toString();
@@ -71,6 +64,18 @@ public class LoginActivity extends AppCompatActivity {
                 // Start SignUpActivity
                 Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
                 startActivity(intent);
+                finish(); // Close the LoginActivity once the process is complete
+            }
+        });
+
+        /* set the on click listener for the forgot password TextView */
+        textViewForgotPassword.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                /* start ForgotPasswordActivity */
+                Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
+                startActivity(intent);
+                finish(); //close the LoginActivity
             }
         });
 
@@ -78,7 +83,7 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String enteredUsername = editTextUsername.getText().toString();
+                String enteredUsername = editTextUsername.getText().toString().trim();
                 String password = editTextPassword.getText().toString();
                 // Call method to handle the login process
                 attemptLogin(enteredUsername, password);
@@ -89,7 +94,7 @@ public class LoginActivity extends AppCompatActivity {
     private void attemptLogin(String enteredUsername, String password) {
 
         // Check for empty username input
-        if (enteredUsername.trim().isEmpty()) {
+        if (enteredUsername.isEmpty()) {
             editTextUsername.setError("Username cannot be empty.");
             return;
         }
@@ -98,36 +103,36 @@ public class LoginActivity extends AppCompatActivity {
             editTextPassword.setError("Password cannot be empty.");
             return;
         }
-        /* now actually try to sign the user into their account */
-        loginToUserAccount(enteredUsername, password);
 
-//        // Check if the username exists in the Firestore database
-//        FirebaseFirestore db = FirebaseFirestore.getInstance();
-//        db.collection("users")
-//                .document(enteredUsername)
-//                .get()
-//                .addOnCompleteListener(task -> {
-//                    if (task.isSuccessful()) {
-//                        DocumentSnapshot document = task.getResult();
-//                        if (document != null && document.exists()) {
-//                            // Username exists, proceed to show user data
-//                            proceedToMainActivity(enteredUsername);
-//                        } else {
-//                            // Username does not exist
-//                            editTextUsername.setError("Username does not exist. Please sign up.");
-//                        }
-//                    } else {
-//                        // Handle errors here
-//                        Toast.makeText(LoginActivity.this, "Error checking username.", Toast.LENGTH_SHORT).show();
-//                    }
-//                });
+        usersRef.whereEqualTo("username", enteredUsername)
+                .limit(1)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        QuerySnapshot q = task.getResult();
+                        if (q != null) {
+                            DocumentSnapshot doc = q.getDocuments().get(0);
+                            if (doc != null && doc.exists()) {
+                                // Username exists, now actually try to sign the user into their account
+                                User user = doc.toObject(User.class);
+                                assert user != null;
+                                String email = user.getEmail();
+                                loginToUserAccount(email, enteredUsername, password);
+                            } else {
+                                // Username does not exist
+                                editTextUsername.setError("Username does not exist. Please sign up.");
+                            }
+                        }
+                    } else {
+                        // Handle errors here
+                        Toast.makeText(LoginActivity.this, "Error checking username.", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
-    private void loginToUserAccount(String username, String password) {
-        /* make an "email" so we can use the firebase email and password user creation */
-        String usernameWithDomain = username + DOMAIN;
+    private void loginToUserAccount(String email, String username, String password) {
 
-        userAuth.signInWithEmailAndPassword(usernameWithDomain, password)
+        userAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
@@ -149,11 +154,4 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 });
     }
-
-//    private void proceedToMainActivity(String username) {
-//        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-//        intent.putExtra("USERNAME", username);
-//        startActivity(intent);
-//        finish(); // Close the LoginActivity once the process is complete
-//    }
 }

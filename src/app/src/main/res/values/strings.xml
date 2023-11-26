@@ -2,11 +2,15 @@
     <string name="app_name">SweetHome</string>
     <string name="username_hint">Username</string>
     <string name="password_hint">Password</string>
+    <string name="email_hint">Email</string>
     <string name="password_confirm">Re-enter Password</string>
     <string name="login">Login</string>
     <string name="sign_up">Sign Up</string>
     <string name="login_prompt">Already have an account?\t</string>
     <string name="sign_up_prompt">Don\'t have an account?\t</string>
+    <string name="forgot_password">Forgot your password?\t</string>
+    <string name="send_email">Send Email</string>
+    <string name="back_to_login">Go back to\t</string>
     <string name="item_name">Item Name</string>
     <string name="date_format">yyyy-MM-dd</string>
     <string name="cad_currency">CAD $</string>
