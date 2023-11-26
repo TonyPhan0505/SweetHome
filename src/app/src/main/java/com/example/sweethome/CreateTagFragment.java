@@ -120,7 +120,12 @@ public class CreateTagFragment extends Fragment {
                     Log.e("Firestore", error.toString()); //if there was any error, log it
                 }
                 if (value != null) {
+                    tagFilterSpinner = view.findViewById(R.id.tag_filter_field);
                     getAllTagsFromDatabase(tagsRef); //otherwise get all relevant tags currently in the items collection and display them in our list
+                    tagFilterAdapter = new ArrayAdapter<>(view.getContext(), android.R.layout.simple_spinner_dropdown_item, tagsList);
+                    tagFilterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    tagFilterSpinner.setAdapter(tagFilterAdapter);
+                    tagFilterAdapter.notifyDataSetChanged();
                 }
             }
         });
@@ -163,15 +168,13 @@ public class CreateTagFragment extends Fragment {
 
             // Show the Apply button
             applyButton.setVisibility(View.VISIBLE);
-            tagFilterSpinner = view.findViewById(R.id.tag_filter_field);
-            tagFilterAdapter = new ArrayAdapter<>(view.getContext(), android.R.layout.simple_spinner_dropdown_item, tagsList);
-            tagFilterSpinner.setAdapter(tagFilterAdapter);
-            if (tagsList != null && !tagsList.isEmpty()) {
-                String firstTag = tags.get(0).getTagName(); // Retrieve the first item from the list
-                Toast.makeText(view.getContext(), "First tag: " + firstTag, Toast.LENGTH_SHORT).show();
+            if (tagsRef != null) {
+                this.getAllTagsFromDatabase(tagsRef);
             } else {
-                Toast.makeText(view.getContext(), "No tags available", Toast.LENGTH_SHORT).show();
+                Log.e("CreateTagFragment", "tagsRef is null");
+                // Handle the null reference case accordingly
             }
+            // After populating tagsList in getAllTagsFromDatabase()
             fragmentTitle = args.getString("fragment_title", "Create a new tag");
             fragmentBodyTitle = args.getString("fragment_body_title", "Tags");
             ArrayList<Item> itemList = (ArrayList<Item>) args.getSerializable("item_list");
@@ -227,12 +230,39 @@ public class CreateTagFragment extends Fragment {
                         tag.setUsernames(usernames);
                         Log.i("Firestore", String.format("Tag %s fetched", tag.getTagName())); //log the name of the tag we successfully got from the db
                         tags.add(tag); //add the item object to our item list
+                        tagsList.add(tag.getTagName());
                     }
                 }
                 tagsAdapter.notifyDataSetChanged();
+                tagFilterAdapter.notifyDataSetChanged();
                 Log.i("Item count", Integer.toString(tagsAdapter.getItemCount()));
+                Toast.makeText(view.getContext(), "Username 1: " + username, Toast.LENGTH_SHORT).show();
 
             }
         });
     }
+
+    /**
+     * Updates a list of items in the Firestore database.
+     *
+     * @param itemsRef The reference to the Firestore collection where the items are stored.
+     * @param itemList The list of Item objects to be updated in the database.
+     */
+    private void updateItemsList(CollectionReference itemsRef, ArrayList<Item> itemList) {
+        // Loop through the itemList
+        for (Item item : itemList) {
+            // Use a unique identifier for the item (like its ID) to update in Firestore
+            itemsRef.document(item.getItemId()) // Use the document ID of the item
+                    .set(item) // Set the updated item object to update it in Firestore
+                    .addOnSuccessListener(aVoid -> {
+                        // Handle successful update
+                        Log.d("Update", "Item updated successfully: " + item.getItemId());
+                    })
+                    .addOnFailureListener(e -> {
+                        // Handle failure
+                        Log.e("Update", "Error updating item: " + item.getItemId(), e);
+                    });
+        }
+    }
+
 }
