@@ -96,11 +96,11 @@ public class CreateTagFragment extends Fragment {
     public static CreateTagFragment newInstance(String username) {
         CreateTagFragment fragment = new CreateTagFragment();
         Bundle args = new Bundle();
-//        args.putSerializable(TAGS_REF, (Serializable) tagsRef);
-        args.putString(USER, username);
+        args.putString("USER", username);
         fragment.setArguments(args);
         return fragment;
     }
+
 
     @Override
     public void onCreate(Bundle savedInstance) {
@@ -108,6 +108,8 @@ public class CreateTagFragment extends Fragment {
     }
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
         if (getArguments() != null) {
             username = requireArguments().getString(USER);
         }
@@ -126,9 +128,11 @@ public class CreateTagFragment extends Fragment {
                     tagFilterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                     tagFilterSpinner.setAdapter(tagFilterAdapter);
                     tagFilterAdapter.notifyDataSetChanged();
+
                 }
             }
         });
+
     }
 
     @Override
@@ -141,7 +145,10 @@ public class CreateTagFragment extends Fragment {
         tags = new ArrayList<Tag>();
         tagsAdapter = new TagsAdapter(view.getContext(), tags);
         tagsRecyclerView.setAdapter(tagsAdapter);
-
+        tagsList = new ArrayList<>();
+        tagsList.add("Healthy");
+        tagsList.add("Cute");
+        tagsList.add("Funny");
         // Get the arguments passed to the Fragment
         Bundle args = getArguments();
 
@@ -184,11 +191,48 @@ public class CreateTagFragment extends Fragment {
             createNewTagButton.setVisibility(View.GONE);
 
             if (itemList != null) {
-                // Find the TextInputEditText view
-             } else {
+                tagFilterSpinner = view.findViewById(R.id.tag_filter_field);
+                tagFilterSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        String selectedTag = tagFilterAdapter.getItem(position);
+                        if (selectedTag != null) {
+                            Toast.makeText(getContext(), "Selected Tag: " + selectedTag, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                        if (parent.getCount() > 0) {
+                            // Set selection to the item at index 0
+                            parent.setSelection(0);
+                            // Retrieve the selected item at index 0
+                            String selectedTag = (String) parent.getItemAtPosition(0);
+                        }
+                    }
+                });
+
+                // Find the Apply button in the fragment layout and set an OnClickListener
+                applyButton = view.findViewById(R.id.apply_new_tag_button);
+                applyButton.setOnClickListener(v -> {
+                    // Get the selected tag from the spinner
+                    String selectedTag = (String) tagFilterSpinner.getSelectedItem();
+
+                    // Check if a tag is selected
+                    if (selectedTag != null && !selectedTag.isEmpty()) {
+                        // Apply the selected tag to each item in the item list
+                        applyTagToItemList(itemList, selectedTag, tagsList);
+                    } else {
+                        // Show a message if no tag is selected
+                        Toast.makeText(getContext(), "No tag selected", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+
+            } else {
                 Log.e("ItemListContents", "Item list is null");
             }
-            } else {
+        } else {
             // Handle the case where getArguments() returns null
             applyButton.setVisibility(View.GONE);
             createNewTagButton.setVisibility(View.VISIBLE);
@@ -215,7 +259,11 @@ public class CreateTagFragment extends Fragment {
         return view;
 
     }
-
+    /**
+     * Retrieves all tags from the Firestore database and populates the local tags list.
+     *
+     * @param tagsRef Reference to the Firestore collection containing tags.
+     */
     private void getAllTagsFromDatabase(CollectionReference tagsRef) {
         tagsRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
@@ -224,43 +272,61 @@ public class CreateTagFragment extends Fragment {
                 for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                     ArrayList<String> usernames = (ArrayList<String>) doc.get("usernames");
                     if (usernames.contains(username)) {
-                        Tag tag = doc.toObject(Tag.class); //convert the contents of each document in the tags collection to an item object
-                        tag.setId(doc.getId()); //set the item ID
+                        Tag tag = doc.toObject(Tag.class);
+                        tag.setId(doc.getId());
                         tag.setName((String) doc.get("name"));
                         tag.setUsernames(usernames);
-                        Log.i("Firestore", String.format("Tag %s fetched", tag.getTagName())); //log the name of the tag we successfully got from the db
-                        tags.add(tag); //add the item object to our item list
+                        Log.i("Firestore", String.format("Tag %s fetched", tag.getTagName()));
+                        tags.add(tag);
                         tagsList.add(tag.getTagName());
                     }
                 }
                 tagsAdapter.notifyDataSetChanged();
                 tagFilterAdapter.notifyDataSetChanged();
                 Log.i("Item count", Integer.toString(tagsAdapter.getItemCount()));
-                Toast.makeText(view.getContext(), "Username 1: " + username, Toast.LENGTH_SHORT).show();
-
             }
         });
     }
 
     /**
-     * Updates a list of items in the Firestore database.
+     * Applies the selected tag to the tag list of each item in the provided itemList if the tag
+     * is not already present in the item's tag list. It updates the itemList in the database after
+     * applying the tags.
      *
-     * @param itemsRef The reference to the Firestore collection where the items are stored.
-     * @param itemList The list of Item objects to be updated in the database.
+     * @param itemList    The list of Item objects to which the selected tag will be applied.
+     * @param selectedTag The tag to be applied to the items.
+     * @param updatedTags The updated list of tags to be applied.
      */
-    private void updateItemsList(CollectionReference itemsRef, ArrayList<Item> itemList) {
-        // Loop through the itemList
+    private void applyTagToItemList(ArrayList<Item> itemList, String selectedTag, ArrayList<String> updatedTags) {
+        for (Item item : itemList) {
+            ArrayList<String> itemTags = item.getTags();
+            if (!itemTags.contains(selectedTag)) {
+                itemTags.add(selectedTag);
+            }
+        }
+        // Update the items in the database with the updated tags
+        updateItemsList(tagsRef, itemList, updatedTags);
+    }
+
+    /**
+     * Updates the list of items in the Firestore database with the updated tags.
+     *
+     * @param itemsRef    The reference to the Firestore collection where the items are stored.
+     * @param itemList    The list of Item objects to be updated in the database.
+     * @param updatedTags The updated list of tags to be applied to the items.
+     */
+    private void updateItemsList(CollectionReference itemsRef, ArrayList<Item> itemList, ArrayList<String> updatedTags) {
         for (Item item : itemList) {
             // Use a unique identifier for the item (like its ID) to update in Firestore
-            itemsRef.document(item.getItemId()) // Use the document ID of the item
-                    .set(item) // Set the updated item object to update it in Firestore
+            itemsRef.document(item.getItemId())
+                    .update("tags", updatedTags)
                     .addOnSuccessListener(aVoid -> {
-                        // Handle successful update
-                        Log.d("Update", "Item updated successfully: " + item.getItemId());
+                        // Handle success
+                        Log.d("Firestore", "Item tags updated successfully");
                     })
                     .addOnFailureListener(e -> {
                         // Handle failure
-                        Log.e("Update", "Error updating item: " + item.getItemId(), e);
+                        Log.e("Firestore", "Error updating item tags", e);
                     });
         }
     }

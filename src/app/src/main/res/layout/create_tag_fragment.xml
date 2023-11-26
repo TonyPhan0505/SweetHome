@@ -59,17 +59,6 @@
             android:orientation="horizontal"
             android:layout_marginTop="7dp"
             android:background="@drawable/filter_border">
-            <TextView
-                android:id="@+id/selected_filtering_tag_field"
-                android:layout_weight="2"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:textSize="16sp"
-                android:ellipsize="marquee"
-                android:paddingTop="3dp"
-                android:paddingLeft="10dp"
-                android:textColor="@color/black"
-                android:text="All"/>
             <Spinner
                 android:id="@+id/tag_filter_field"
                 android:layout_weight="1"

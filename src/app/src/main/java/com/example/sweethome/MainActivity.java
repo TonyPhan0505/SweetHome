@@ -47,10 +47,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.util.Pair;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentContainerView;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -499,6 +496,9 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             }
         });
 
+    /**
+        * Retrieves the selected items from the item list view and initiates the process of adding tags to those selected items.
+    */
         selectedItems = new ArrayList<Item>();
         for (int i = 0; i < itemListView.getCount(); i++) {
             Item item = itemAdapter.getItem(i);
@@ -508,6 +508,10 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             }
         }
 
+    /**
+    * Sets an OnClickListener on the 'Add Tag' button. Upon clicking, it hides the panel, checks if at least one item is selected,
+    * and if so, displays the fragment responsible for adding tags to the selected items.
+    */
         addTagButton = panelView.findViewById(R.id.add_tag_panel);
         addTagButton.setOnClickListener(view -> {
             hidePanel();
@@ -516,11 +520,14 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             } else {
                 fragmentContainer.setVisibility(View.VISIBLE);
                 if (savedInst == null) {
+                    // Prepare arguments to pass to the CreateTagFragment
                     Bundle arg = new Bundle();
-                    arg.putString("USER", app.getUsername());
-                    arg.putString("fragment_title", "Tags");
-                    arg.putString("fragment_body_title", "Selected Items");
-                    arg.putSerializable("item_list", selectedItems);
+                    arg.putString("USER", "Boss553"); // User information for the fragment
+                    arg.putString("fragment_title", "Tags"); // Title for the fragment
+                    arg.putString("fragment_body_title", "Selected Items"); // Body title for the fragment
+                    arg.putSerializable("item_list", selectedItems); // Selected items to add tags to
+
+                    // Begin the transaction to display the CreateTagFragment
                     getSupportFragmentManager().beginTransaction()
                             .setReorderingAllowed(true)
                             .add(R.id.fragment_container_view, CreateTagFragment.class, arg)
