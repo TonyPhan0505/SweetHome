@@ -30,7 +30,9 @@ public class Tag {
     public void setId(String id) {
         this.id = id;
     }
-
+    public void setUsernames(ArrayList<String> usernames) {
+        this.usernames = usernames;
+    }
     public void setName(String name) {
         this.name = name;
     }

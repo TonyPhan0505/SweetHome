@@ -14,10 +14,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -57,17 +60,15 @@ public class CreateTagFragment extends Fragment {
     private TextInputEditText tagEditText;
 
     // tags
-    private CustomAddTagsField add_tags_field;
-    private LinearLayout tags_container;
-    private ArrayList<Tag> tagsList = new ArrayList<>();
     private String tagInput;
     private ArrayList<Tag> tags;
-    private CustomAddTagsField tag_input;
-
-    private Map<String, Object> tagInfo;
-
+    private Spinner tagFilterSpinner;
+    private ArrayAdapter<String> tagFilterAdapter;
+    private ArrayList<String> tagsList = new ArrayList<>();
 
     private String username;
+
+    private FrameLayout tagInputWrapper;
 
     private TagsAdapter tagsAdapter;
     private Button doneButton;
@@ -136,29 +137,41 @@ public class CreateTagFragment extends Fragment {
         tagsAdapter = new TagsAdapter(view.getContext(), tags);
         tagsRecyclerView.setAdapter(tagsAdapter);
 
-//        // get arguments
+        // Get the arguments passed to the Fragment
         Bundle args = getArguments();
-        String fragmentTitle = "Create a new tags"; // Set a default title
-        String fragmentBodyTitle = "Existing tags"; // Set a default body title
+
+        // Set default titles
+        String fragmentTitle = "Create a new tags";
+        String fragmentBodyTitle = "Existing tags";
+
+        // Find views
         applyButton = view.findViewById(R.id.apply_new_tag_button);
         createNewTagButton = view.findViewById(R.id.create_new_tag_button);
-        tagEditText = view.findViewById(R.id.tag_editable_input);
+        tagInputWrapper = view.findViewById(R.id.tag_input_wrapper);
+
+        // Initially, hide the Apply button and show the tag input wrapper
         applyButton.setVisibility(View.GONE);
+        tagInputWrapper.setVisibility(View.VISIBLE);
+
+        // Check if arguments are present
         if (args != null) {
+            // If arguments exist, hide the tag input wrapper
+            tagInputWrapper.setVisibility(View.GONE);
+
+            // Additionally, hide the RecyclerView
             tagsRecyclerView.setVisibility(View.GONE);
+
+            // Show the Apply button
             applyButton.setVisibility(View.VISIBLE);
-
-            applyButton.setOnClickListener(v -> {
-                tagInput = tagEditText.getText().toString();
-                if (!tagInput.isEmpty()) {
-                    Toast.makeText(view.getContext(), "Entered Tag: " + tagInput, Toast.LENGTH_SHORT).show();
-                    tagEditText.getText().clear(); // Clear the text input
-                } else {
-                    Toast.makeText(view.getContext(), "Entered Tag: " + tagInput, Toast.LENGTH_SHORT).show();
-
-                }
-            });
-
+            tagFilterSpinner = view.findViewById(R.id.tag_filter_field);
+            tagFilterAdapter = new ArrayAdapter<>(view.getContext(), android.R.layout.simple_spinner_dropdown_item, tagsList);
+            tagFilterSpinner.setAdapter(tagFilterAdapter);
+            if (tagsList != null && !tagsList.isEmpty()) {
+                String firstTag = tags.get(0).getTagName(); // Retrieve the first item from the list
+                Toast.makeText(view.getContext(), "First tag: " + firstTag, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(view.getContext(), "No tags available", Toast.LENGTH_SHORT).show();
+            }
             fragmentTitle = args.getString("fragment_title", "Create a new tag");
             fragmentBodyTitle = args.getString("fragment_body_title", "Tags");
             ArrayList<Item> itemList = (ArrayList<Item>) args.getSerializable("item_list");
@@ -169,18 +182,7 @@ public class CreateTagFragment extends Fragment {
 
             if (itemList != null) {
                 // Find the TextInputEditText view
-
-                createNewTagButton.setOnClickListener(v -> {
-                    // Get the entered tag text
-
-                    // Check if the entered tag is not empty
-                        // Loop through the itemList and update the tag list for each item
-                        Toast.makeText(requireContext(), "not empty tag", Toast.LENGTH_SHORT).show();
-                        // Show a toast or handle an empty tag entry
-                        Toast.makeText(requireContext(), "Please enter a valid tag", Toast.LENGTH_SHORT).show();
-
-                });
-            } else {
+             } else {
                 Log.e("ItemListContents", "Item list is null");
             }
             } else {
@@ -215,19 +217,20 @@ public class CreateTagFragment extends Fragment {
         tagsRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                if (tags != null) {
-                    tags.clear();
-                }
+                tags.clear();
                 for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                     ArrayList<String> usernames = (ArrayList<String>) doc.get("usernames");
                     if (usernames.contains(username)) {
-                        Tag tag = doc.toObject(Tag.class); //convert the contents of each document in the items collection to an item object
+                        Tag tag = doc.toObject(Tag.class); //convert the contents of each document in the tags collection to an item object
                         tag.setId(doc.getId()); //set the item ID
-                        Log.i("Firestore", String.format("Item %s fetched", tag.getTagName())); //log the name of the item we successfully got from the db
+                        tag.setName((String) doc.get("name"));
+                        tag.setUsernames(usernames);
+                        Log.i("Firestore", String.format("Tag %s fetched", tag.getTagName())); //log the name of the tag we successfully got from the db
                         tags.add(tag); //add the item object to our item list
                     }
                 }
                 tagsAdapter.notifyDataSetChanged();
+                Log.i("Item count", Integer.toString(tagsAdapter.getItemCount()));
 
             }
         });

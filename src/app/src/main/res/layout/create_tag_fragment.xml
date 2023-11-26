@@ -30,20 +30,57 @@
             android:textStyle="bold" />
 
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="262dp"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            app:counterEnabled="true"
-            app:counterMaxLength="15">
+        <FrameLayout
+            android:id="@+id/tag_input_wrapper"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/tag_editable_input"
-                android:inputType="textCapSentences"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Type a new tag name" />
-        </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tag_editable_input_field"
+                android:layout_width="262dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                app:counterEnabled="true"
+                app:counterMaxLength="15">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/tag_editable_input"
+                    android:inputType="textCapSentences"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Type a new tag name" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:orientation="horizontal"
+            android:layout_marginTop="7dp"
+            android:background="@drawable/filter_border">
+            <TextView
+                android:id="@+id/selected_filtering_tag_field"
+                android:layout_weight="2"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:textSize="16sp"
+                android:ellipsize="marquee"
+                android:paddingTop="3dp"
+                android:paddingLeft="10dp"
+                android:textColor="@color/black"
+                android:text="All"/>
+            <Spinner
+                android:id="@+id/tag_filter_field"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_vertical"
+                android:dropDownSelector="@drawable/spinner_bg"
+                android:popupBackground="@drawable/spinner_bg"
+                android:spinnerMode="dropdown" />
+        </LinearLayout>
+
 
         <Button
             android:id="@+id/create_new_tag_button"
