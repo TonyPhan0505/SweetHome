@@ -27,6 +27,8 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -35,6 +37,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -54,6 +57,7 @@ public class CreateTagFragment extends Fragment {
 
     // TODO: Rename and change types of parameters
     private CollectionReference tagsRef;
+    private CollectionReference itemsRef;
     private RecyclerView tagsRecyclerView;
     private View view;
     private TextView tagFragmentTitle; // Reference to the TextView
@@ -114,6 +118,16 @@ public class CreateTagFragment extends Fragment {
             username = requireArguments().getString(USER);
         }
         db = FirebaseFirestore.getInstance();
+        itemsRef = db.collection("items");
+        /* listen for changes in the collection and update our list of items accordingly */
+        itemsRef.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                if (error != null) {
+                    Log.e("Firestore", error.toString()); //if there was any error, log it
+                }
+            }
+        });
         tagsRef = db.collection("tags");
         tagsRef.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
@@ -302,10 +316,11 @@ public class CreateTagFragment extends Fragment {
             ArrayList<String> itemTags = item.getTags();
             if (!itemTags.contains(selectedTag)) {
                 itemTags.add(selectedTag);
+                updatedTags.add(selectedTag);
             }
         }
         // Update the items in the database with the updated tags
-        updateItemsList(tagsRef, itemList, updatedTags);
+        updateItemsList(itemsRef, itemList, updatedTags);
     }
 
     /**
@@ -317,17 +332,38 @@ public class CreateTagFragment extends Fragment {
      */
     private void updateItemsList(CollectionReference itemsRef, ArrayList<Item> itemList, ArrayList<String> updatedTags) {
         for (Item item : itemList) {
-            // Use a unique identifier for the item (like its ID) to update in Firestore
-            itemsRef.document(item.getItemId())
-                    .update("tags", updatedTags)
-                    .addOnSuccessListener(aVoid -> {
-                        // Handle success
-                        Log.d("Firestore", "Item tags updated successfully");
-                    })
-                    .addOnFailureListener(e -> {
-                        // Handle failure
-                        Log.e("Firestore", "Error updating item tags", e);
-                    });
+            DocumentReference itemRef = itemsRef.document(item.getItemId());
+
+            // fetch current tags from firestore
+            itemRef.get().addOnCompleteListener(task -> {
+               if (task.isSuccessful()) {
+                   DocumentSnapshot document = task.getResult();
+                   if (document.exists()) {
+                       // Get the current tags
+                       ArrayList<String> currentTags = (ArrayList<String>) document.get("tags");
+
+                       /// Add new tags to the current tags
+                       if (currentTags != null) {
+                           currentTags.addAll(updatedTags);
+
+                           // Update the "tags" field in Firestore with the modified ArrayList
+                           itemRef.update("tags", currentTags)
+                                   .addOnSuccessListener(aVoid -> {
+                                       // Handle success
+                                       Log.d("Firestore", "Item tags updated successfully");
+                                   })
+                                   .addOnFailureListener(e -> {
+                                       // Handle failure
+                                       Log.e("Firestore", "Error updating item tags", e);
+                                   });
+                       }
+                   } else {
+                       Log.d("Firestore", "No such document");
+                   }
+               } else {
+                   Log.e("Firestore", "Error getting document", task.getException());
+               }
+            });
         }
     }
 
