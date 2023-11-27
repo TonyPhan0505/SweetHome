@@ -17,10 +17,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.List;
 
 public class ForgotPasswordActivity extends AppCompatActivity {
     private EditText editTextSendEmail;
     private Button sendEmailButton;
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private CollectionReference usersRef = db.collection("users");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,29 +66,47 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                 if (email.isEmpty()) { //check that the email is not empty
                     editTextSendEmail.setError("Email cannot be empty.");
                 } else { //otherwise try to send the password reset email
-                    FirebaseAuth.getInstance().sendPasswordResetEmail(email)
-                            .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    if (task.isSuccessful()) {
-                                        Log.d("Firestore", "password reset email sent:success");
-                                        Toast.makeText(ForgotPasswordActivity.this, "Password reset email sent",Toast.LENGTH_SHORT).show();
-                                        // Start LoginActivity
-                                        Intent intent = new Intent(ForgotPasswordActivity.this, LoginActivity.class);
-                                        startActivity(intent);
-                                        finish(); // Close the ForgotPasswordActivity
+                    usersRef.whereEqualTo("email", email)
+                            .limit(1)
+                            .get()
+                            .addOnCompleteListener(task -> {
+                                if (task.isSuccessful()) {
+                                    QuerySnapshot q = task.getResult();
+                                    if (q != null) {
+                                        List docs = q.getDocuments();
+                                        if (docs.size() != 0 && docs.get(0) != null) {
+                                            FirebaseAuth.getInstance().sendPasswordResetEmail(email)
+                                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                        @Override
+                                                        public void onComplete(@NonNull Task<Void> vtask) {
+                                                            if (vtask.isSuccessful()) {
+                                                                Log.d("Firestore", "password reset email sent:success");
+                                                                Toast.makeText(ForgotPasswordActivity.this, "Password reset email sent", Toast.LENGTH_SHORT).show();
+                                                                // Start LoginActivity
+                                                                Intent intent = new Intent(ForgotPasswordActivity.this, LoginActivity.class);
+                                                                startActivity(intent);
+                                                                finish(); // Close the ForgotPasswordActivity
+                                                            } else {
+                                                                Log.w("Firestore", "password reset email sent:failure", task.getException());
+                                                                String error = task.getException().getMessage();
+                                                                Toast.makeText(ForgotPasswordActivity.this, "Password reset email could not be sent\n" + error, Toast.LENGTH_SHORT).show();
+                                                            }
+                                                        }
+                                                    });
+                                        } else { // if we cannot find the email in our db
+                                            editTextSendEmail.setError("Email is not linked to an existing account");
+                                        }
+                                    } else {
+                                        editTextSendEmail.setError("Email is not linked to an existing account");
                                     }
-                                    else {
-                                        Log.w("Firestore", "password reset email sent:failure", task.getException());
-                                        String error = task.getException().getMessage();
-                                        Toast.makeText(ForgotPasswordActivity.this, "Password reset email could not be sent\n" + error, Toast.LENGTH_SHORT).show();
-                                    }
+                                } else {
+                                    editTextSendEmail.setError("Email is not linked to an existing account");
                                 }
                             });
                 }
             }
+
         });
 
     }
-
 }
