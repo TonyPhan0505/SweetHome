@@ -198,6 +198,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         filterApplyButton = findViewById(R.id.apply_filter_button);
         makeField = findViewById(R.id.make_field);
         keywordField = findViewById(R.id.keyword_field);
+        calendar_data = findViewById(R.id.calendar_data);
 
         /* set the view of the filter panel and onclicklisteners for the icon and button */
         filterPanel.setVisibility(View.GONE); //should be invisible until the filterIcon is pressed
@@ -217,6 +218,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                     filtered = false; //set the filtered flag as false
                     selectedStartDate = 0L; //restart the start day
                     selectedEndDate = 0L; //restart the end day
+                    calendar_data.setText(""); //clear the textview
                     dateRangePicker = createMaterialDatePicker(); //reset the picker
                 }
             }
@@ -245,8 +247,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                     /* get the selected dates by the user, adding extra time due to epoch conversion error */
                     Date dateStart = new Date(selectedStartDate + ONE_DAY - ((ONE_DAY / 4) *3) + ONE_HOUR);
                     Date dateEnd = new Date(selectedEndDate + ONE_DAY + (ONE_DAY / 4) + ONE_HOUR - ONE_SECOND);
-                    /* let the user know the time constraints */
-                    Toast.makeText(MainActivity.this, "START: " + dateStart.toString() + " END: " + dateEnd.toString(), Toast.LENGTH_SHORT).show();
                     /* convert them to timestamps like our items store purchaseDate as */
                     Timestamp start = new Timestamp(dateStart);
                     Timestamp end = new Timestamp(dateEnd);
@@ -255,6 +255,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 }
                 if (!selectedTagForFiltering.equals("All")) {
                     filterByTag();
+                    filtered = true;
                 }
                 if(make.trim().isEmpty() && keyword.trim().isEmpty() && (selectedEndDate==0L || selectedStartDate==0L) && selectedTagForFiltering.equals("All")) { //if apply filter was selected but nothing is inputted
                     getAllItemsFromDatabase(itemsRef);
@@ -277,7 +278,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         displaySavedDateRange();
 
         // Update the button text with the saved date range
-        calendar_data = findViewById(R.id.calendar_data);
         updateCalendar(calendar_data, selectedStartDate, selectedEndDate);
 
         // Date range picker
@@ -331,6 +331,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                         /* clear the edit texts for the next time the user uses the panel */
                         makeField.setText("");
                         keywordField.setText("");
+                        calendar_data.setText("");
                         getAllItemsFromDatabase(itemsRef); //also clear all of the filters
                     }
                     deleteDialog.dismiss();
@@ -440,7 +441,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             // Save the selected date range
             saveDateRange(selectedStartDate, selectedEndDate);
             // Update the button text
-            updateCalendar(findViewById(R.id.calendar_data), selectedStartDate, selectedEndDate);
+            updateCalendar(calendar_data, selectedStartDate, selectedEndDate);
         });
         return builder;
     }
@@ -458,7 +459,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         selectedEndDate = sharedPreferences.getLong(END_DATE_KEY, 0);
 
         // Display the saved date range on the button
-        updateCalendar(findViewById(R.id.calendar_data), selectedStartDate, selectedEndDate);
+        updateCalendar(calendar_data, selectedStartDate, selectedEndDate);
     }
 
     private void updateCalendar(TextView calendar_data, Long startDate, Long endDate) {
@@ -466,6 +467,8 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             // Format the date range string
             String formattedDateRange = formatDateRange(startDate, endDate);
             calendar_data.setText(formattedDateRange);
+        } else {
+            calendar_data.setText("");
         }
     }
 
