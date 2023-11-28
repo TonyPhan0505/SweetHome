@@ -24,6 +24,8 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.util.List;
+
 public class LoginActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private CollectionReference usersRef;
@@ -111,17 +113,25 @@ public class LoginActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         QuerySnapshot q = task.getResult();
                         if (q != null) {
-                            DocumentSnapshot doc = q.getDocuments().get(0);
-                            if (doc != null && doc.exists()) {
+                            List docs = q.getDocuments();
+                            if (docs.size() != 0 && q.getDocuments().get(0) != null && q.getDocuments().get(0).exists()) {
                                 // Username exists, now actually try to sign the user into their account
+                                DocumentSnapshot doc = q.getDocuments().get(0);
                                 User user = doc.toObject(User.class);
-                                assert user != null;
-                                String email = user.getEmail();
-                                loginToUserAccount(email, enteredUsername, password);
+                                if (user != null) {
+                                    String email = user.getEmail();
+                                    loginToUserAccount(email, enteredUsername, password);
+                                } else {
+                                    // Username does not exist
+                                    editTextUsername.setError("Username does not exist. Please sign up.");
+                                }
                             } else {
                                 // Username does not exist
                                 editTextUsername.setError("Username does not exist. Please sign up.");
                             }
+                        } else {
+                            // Username does not exist
+                            editTextUsername.setError("Username does not exist. Please sign up.");
                         }
                     } else {
                         // Handle errors here
