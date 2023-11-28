@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
-
     <TextView
         android:id="@+id/app_header"
         android:layout_width="match_parent"
@@ -70,7 +69,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
-            android:layout_marginLeft="8dp"
+            android:layout_marginLeft="10dp"
             android:text="@string/add_item"
             android:paddingVertical="7dp"
             android:minHeight="0dp"
@@ -126,195 +125,267 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         app:layout_constraintTop_toBottomOf="@+id/sort_filter_container"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-
         <LinearLayout
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_marginEnd="5dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
-            <TextView
-                android:id="@+id/calendar_textview"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="Date"
-                android:textColor="@color/black"
-                android:layout_gravity="center_vertical"
-                android:textStyle="bold"/>
+            android:orientation="horizontal">
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:orientation="horizontal"
-                android:layout_marginTop="7dp"
-                android:background="@drawable/filter_border">
-                <ImageView
-                    android:id="@+id/calendar_button"
-                    android:clickable="true"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:layout_marginStart="12dp"
-                    android:src="@drawable/calendar_icon"
-                    android:layout_gravity="center"
-                    android:contentDescription="calendar icon" />
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="5dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
                 <TextView
-                    android:id="@+id/calendar_data"
+                    android:id="@+id/calendar_textview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="Date"
+                    android:textColor="@color/black"
+                    android:layout_gravity="center_vertical"
+                    android:textStyle="bold"/>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="7dp"
+                    android:background="@drawable/filter_border">
+                    <ImageView
+                        android:id="@+id/calendar_button"
+                        android:clickable="true"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_marginStart="12dp"
+                        android:src="@drawable/calendar_icon"
+                        android:layout_gravity="center"
+                        android:contentDescription="calendar icon" />
+                    <TextView
+                        android:id="@+id/calendar_data"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:scrollHorizontally="true"
+                        android:singleLine="true"
+                        android:ellipsize="marquee"
+                        android:layout_marginTop="5dp"
+                        android:layout_marginStart="7dp"
+                        android:textColor="@color/black"
+                        android:textSize="14sp"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_marginStart="5dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginEnd="5dp">
+                <TextView
+                    android:id="@+id/keyword_textview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="Keyword"
+                    android:textColor="@color/black"
+                    android:layout_gravity="center_vertical"
+                    android:textStyle="bold"/>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="7dp"
+                    android:background="@drawable/filter_border">
+                    <ImageView
+                        android:clickable="true"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_marginStart="12dp"
+                        android:src="@drawable/search_icon"
+                        android:layout_gravity="center"
+                        android:contentDescription="search icon" />
+                    <EditText
+                        android:id="@+id/keyword_field"
+                        android:layout_width="match_parent"
+                        android:layout_height="30dp"
+                        android:layout_gravity="center_vertical"
+                        android:autoSizeMinTextSize="8sp"
+                        android:imeOptions="actionSearch"
+                        android:inputType="text"
+                        android:padding="5dp"
+                        android:textSize="14sp"
+                        android:background="@android:color/transparent"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_marginStart="5dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginEnd="5dp">
+                <TextView
+                    android:id="@+id/make_textview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="Make"
+                    android:textColor="@color/black"
+                    android:layout_gravity="center_vertical"
+                    android:textStyle="bold"/>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="7dp"
+                    android:background="@drawable/filter_border">
+                    <ImageView
+                        android:clickable="true"
+                        android:layout_width="19dp"
+                        android:layout_height="19dp"
+                        android:layout_marginStart="12dp"
+                        android:src="@drawable/make_icon"
+                        android:layout_gravity="center"
+                        android:contentDescription="search icon" />
+                    <EditText
+                        android:id="@+id/make_field"
+                        android:layout_width="match_parent"
+                        android:layout_height="30dp"
+                        android:layout_gravity="center_vertical"
+                        android:imeOptions="actionSearch"
+                        android:inputType="text"
+                        android:maxLength="20"
+                        android:padding="5dp"
+                        android:background="@android:color/transparent"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_marginStart="5dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/tags_textview"
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:scrollHorizontally="true"
-                    android:singleLine="true"
-                    android:ellipsize="marquee"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginStart="7dp"
+                    android:layout_height="wrap_content"
+                    android:text="Tag"
                     android:textColor="@color/black"
-                    android:textSize="14sp"/>
-            </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_marginStart="5dp"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginEnd="5dp">
-            <TextView
-                android:id="@+id/keyword_textview"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="Keyword"
-                android:textColor="@color/black"
-                android:layout_gravity="center_vertical"
-                android:textStyle="bold"/>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:orientation="horizontal"
-                android:layout_marginTop="7dp"
-                android:background="@drawable/filter_border">
-                <ImageView
-                    android:clickable="true"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:layout_marginStart="12dp"
-                    android:src="@drawable/search_icon"
-                    android:layout_gravity="center"
-                    android:contentDescription="search icon" />
-                <EditText
-                    android:id="@+id/keyword_field"
+                    android:layout_gravity="center_vertical"
+                    android:textStyle="bold"/>
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="30dp"
-                    android:layout_gravity="center_vertical"
-                    android:autoSizeMinTextSize="8sp"
-                    android:imeOptions="actionSearch"
-                    android:inputType="text"
-                    android:padding="5dp"
-                    android:textSize="14sp"
-                    android:background="@android:color/transparent"/>
+                    android:orientation="horizontal"
+                    android:layout_marginTop="7dp"
+                    android:background="@drawable/filter_border">
+                    <TextView
+                        android:id="@+id/selected_filtering_tag_field"
+                        android:layout_weight="2"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:textSize="16sp"
+                        android:ellipsize="marquee"
+                        android:maxLines="1"
+                        android:paddingTop="3dp"
+                        android:paddingLeft="10dp"
+                        android:textColor="@color/black"
+                        android:text="All"/>
+                    <Spinner
+                        android:id="@+id/tag_filter_field"
+                        android:layout_weight="1"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center_vertical"
+                        android:dropDownSelector="@drawable/spinner_bg"
+                        android:popupBackground="@drawable/spinner_bg"
+                        android:spinnerMode="dropdown" />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
-            android:layout_marginStart="5dp"
-            android:layout_width="0dp"
-            android:layout_weight="1"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginEnd="5dp">
-            <TextView
-                android:id="@+id/make_textview"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="Make"
-                android:textColor="@color/black"
-                android:layout_gravity="center_vertical"
-                android:textStyle="bold"/>
+            android:orientation="horizontal">
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:orientation="horizontal"
-                android:layout_marginTop="7dp"
-                android:background="@drawable/filter_border">
-                <ImageView
-                    android:clickable="true"
-                    android:layout_width="19dp"
-                    android:layout_height="19dp"
-                    android:layout_marginStart="12dp"
-                    android:src="@drawable/make_icon"
-                    android:layout_gravity="center"
-                    android:contentDescription="search icon" />
-                <EditText
-                    android:id="@+id/make_field"
-                    android:layout_width="match_parent"
-                    android:layout_height="30dp"
-                    android:layout_gravity="center_vertical"
-                    android:imeOptions="actionSearch"
-                    android:inputType="text"
-                    android:maxLength="20"
-                    android:padding="5dp"
-                    android:background="@android:color/transparent"/>
-            </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_marginStart="5dp"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-            <TextView
-                android:id="@+id/tags_textview"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tag"
-                android:textColor="@color/black"
-                android:layout_gravity="center_vertical"
-                android:textStyle="bold"/>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:orientation="horizontal"
-                android:layout_marginTop="7dp"
-                android:background="@drawable/filter_border">
-                <TextView
-                    android:id="@+id/selected_filtering_tag_field"
-                    android:layout_weight="2"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:textSize="16sp"
-                    android:ellipsize="marquee"
-                    android:paddingTop="3dp"
-                    android:paddingLeft="10dp"
+                android:orientation="horizontal">
+                <Button
+                    android:id="@+id/clear_date_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="20dp"
+                    android:paddingVertical="7dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:text="Clear date"
+                    android:textAllCaps="false"
+                    android:textSize="12sp"
                     android:textColor="@color/black"
-                    android:text="All"/>
-                <Spinner
-                    android:id="@+id/tag_filter_field"
-                    android:layout_weight="1"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="center_vertical"
-                    android:dropDownSelector="@drawable/spinner_bg"
-                    android:popupBackground="@drawable/spinner_bg"
-                    android:spinnerMode="dropdown" />
+                    android:backgroundTint="@color/light_grey"/>
             </LinearLayout>
-            <Button
-                android:id="@+id/apply_filter_button"
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="20dp"
-                android:layout_gravity="end"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                android:paddingVertical="7dp"
-                android:text="@string/apply_filter"
-                android:textAllCaps="false"
-                android:textSize="12sp" />
+                android:orientation="horizontal">
+                <Button
+                    android:id="@+id/apply_filter_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="20dp"
+                    android:paddingVertical="7dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:text="@string/apply_filter"
+                    android:textAllCaps="false"
+                    android:textSize="12sp" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/items_count_frame"
+        android:layout_marginHorizontal="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="15dp"
+        android:layout_marginBottom="13dp"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@+id/filter_panel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+        <TextView
+            android:id="@+id/items_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 items."
+            android:textSize="19sp"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/no_items_found"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="No items found"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/items_count_frame"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/line2"/>
 
     <ListView
         android:id="@+id/item_list"
@@ -324,7 +395,7 @@
         android:paddingRight="30dp"
         android:paddingBottom="60dp"
         app:layout_constraintBottom_toTopOf="@id/line2"
-        app:layout_constraintTop_toBottomOf="@+id/filter_panel"
+        app:layout_constraintTop_toBottomOf="@+id/items_count_frame"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
     </ListView>
@@ -406,7 +477,7 @@
     </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/tag_action_button"
+        android:id="@+id/tag_action_on_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
@@ -436,7 +507,7 @@
 
 
     <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/fragment_container_view"
+        android:id="@+id/create_tag_fragment"
         android:name="com.example.sweethome.CreateTagFragment"
         android:layout_width="333dp"
         android:layout_height="538dp"
@@ -446,5 +517,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        />
+        android:visibility="gone"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

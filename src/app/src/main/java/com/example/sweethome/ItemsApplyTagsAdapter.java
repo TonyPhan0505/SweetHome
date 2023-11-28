@@ -147,4 +147,8 @@ public class ItemsApplyTagsAdapter extends ArrayAdapter<Item> {
         float density = context.getResources().getDisplayMetrics().density;
         return Math.round(dp * density);
     }
+
+    public int getItemCount() {
+        return items.size();
+    }
 }

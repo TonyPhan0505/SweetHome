@@ -5,9 +5,6 @@
     <string name="cad_currency">CAD $</string>
     <string name="add_item">Add New</string>
     <string name="total">Total Estimated Value:\t\t\t\t\t CAD $</string>
-    <string name="no_adding_msg">oops no adding yet</string>
-    <string name="no_tag_sort_msg">oops no sorting by tags yet</string>
-    <string name="no_tag_filter_msg">oops no filtering by tags yet</string>
     <string name="item_tag">Tag</string>
     <string name="search_hint">Search...</string>
     <string name="search_icon">Search Icon</string>
@@ -37,6 +34,4 @@
         <item>@string/sort_tags_az</item>
         <item>@string/sort_tags_za</item>
     </string-array>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
