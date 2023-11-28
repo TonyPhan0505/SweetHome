@@ -351,6 +351,7 @@ public class CreateTagFragment extends Fragment {
                                     .addOnSuccessListener(aVoid -> {
                                         // Handle success
                                         Log.d("Firestore", "Item tags updated successfully");
+                                        Toast.makeText(getContext(), "Tag applied", Toast.LENGTH_SHORT).show();
                                     })
                                     .addOnFailureListener(e -> {
                                         // Handle failure
