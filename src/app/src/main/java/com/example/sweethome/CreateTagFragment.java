@@ -51,20 +51,13 @@ public class CreateTagFragment extends Fragment {
     private static final String TAGS_REF = "tags_ref";
     private static final String USER = "username";
 
-    private static final String FRAGMENT_TITLE = "fragment_title";
-
-    private static final String FRAGMENT_BODY_TITLE = "fragment_body_title";
-
     // TODO: Rename and change types of parameters
     private CollectionReference tagsRef;
     private CollectionReference itemsRef;
     private RecyclerView tagsRecyclerView;
     private View view;
-    private TextView tagFragmentTitle; // Reference to the TextView
-    private TextInputEditText tagEditText;
 
     // tags
-    private String tagInput;
     private ArrayList<Tag> tags;
     private Spinner tagFilterSpinner;
     private ArrayAdapter<String> tagFilterAdapter;
@@ -235,7 +228,7 @@ public class CreateTagFragment extends Fragment {
                     // Check if a tag is selected
                     if (selectedTag != null && !selectedTag.isEmpty()) {
                         // Apply the selected tag to each item in the item list
-                        applyTagToItemList(itemList, selectedTag, tagsList);
+                        applyTagToItemList(itemList, selectedTag);
                     } else {
                         // Show a message if no tag is selected
                         Toast.makeText(getContext(), "No tag selected", Toast.LENGTH_SHORT).show();
@@ -259,10 +252,6 @@ public class CreateTagFragment extends Fragment {
         // Set initial titles
         fragmentTitleName.setText(fragmentTitle);
         fragmentBodyTitleName.setText(fragmentBodyTitle);
-
-        final String finalFragmentTitle = fragmentTitle;
-        final String finalFragmentBodyTitle = fragmentBodyTitle;
-
         doneButton = view.findViewById(R.id.done_create_button);
         doneButton.setOnClickListener(view -> {
 //            getActivity().getFragmentManager().popBackStack();
@@ -309,62 +298,60 @@ public class CreateTagFragment extends Fragment {
      *
      * @param itemList    The list of Item objects to which the selected tag will be applied.
      * @param selectedTag The tag to be applied to the items.
-     * @param updatedTags The updated list of tags to be applied.
      */
-    private void applyTagToItemList(ArrayList<Item> itemList, String selectedTag, ArrayList<String> updatedTags) {
+    private void applyTagToItemList(ArrayList<Item> itemList, String selectedTag) {
+        Toast.makeText(getContext(), "Selected Tag: " + selectedTag, Toast.LENGTH_SHORT).show();
+
         for (Item item : itemList) {
             ArrayList<String> itemTags = item.getTags();
             if (!itemTags.contains(selectedTag)) {
-                itemTags.add(selectedTag);
-                updatedTags.add(selectedTag);
+                // Check if the item does not contain the selected tag and update it
+                updateItemTags(item, selectedTag);
             }
         }
-        // Update the items in the database with the updated tags
-        updateItemsList(itemsRef, itemList, updatedTags);
     }
 
     /**
-     * Updates the list of items in the Firestore database with the updated tags.
+     * Updates the Firestore database with a new tag for a specific item if the tag is not already present in the item's tags.
      *
-     * @param itemsRef    The reference to the Firestore collection where the items are stored.
-     * @param itemList    The list of Item objects to be updated in the database.
-     * @param updatedTags The updated list of tags to be applied to the items.
+     * @param item        The Item object to be updated.
+     * @param selectedTag The tag to be added to the item's tags.
      */
-    private void updateItemsList(CollectionReference itemsRef, ArrayList<Item> itemList, ArrayList<String> updatedTags) {
-        for (Item item : itemList) {
-            DocumentReference itemRef = itemsRef.document(item.getItemId());
+    private void updateItemTags(Item item, String selectedTag) {
+        DocumentReference itemRef = itemsRef.document(item.getItemId());
 
-            // fetch current tags from firestore
-            itemRef.get().addOnCompleteListener(task -> {
-               if (task.isSuccessful()) {
-                   DocumentSnapshot document = task.getResult();
-                   if (document.exists()) {
-                       // Get the current tags
-                       ArrayList<String> currentTags = (ArrayList<String>) document.get("tags");
+        // Fetch current tags from Firestore
+        itemRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot document = task.getResult();
+                if (document.exists()) {
+                    // Get the current tags
+                    ArrayList<String> currentTags = (ArrayList<String>) document.get("tags");
 
-                       /// Add new tags to the current tags
-                       if (currentTags != null) {
-                           currentTags.addAll(updatedTags);
+                    if (currentTags != null) {
+                        // Check if the current tags of this specific item do not contain the selected tag
+                        if (!currentTags.contains(selectedTag)) {
+                            // Update the tags for this specific item
+                            currentTags.add(selectedTag);
 
-                           // Update the "tags" field in Firestore with the modified ArrayList
-                           itemRef.update("tags", currentTags)
-                                   .addOnSuccessListener(aVoid -> {
-                                       // Handle success
-                                       Log.d("Firestore", "Item tags updated successfully");
-                                   })
-                                   .addOnFailureListener(e -> {
-                                       // Handle failure
-                                       Log.e("Firestore", "Error updating item tags", e);
-                                   });
-                       }
-                   } else {
-                       Log.d("Firestore", "No such document");
-                   }
-               } else {
-                   Log.e("Firestore", "Error getting document", task.getException());
-               }
-            });
-        }
+                            // Update the "tags" field in Firestore for this specific item
+                            itemRef.update("tags", currentTags)
+                                    .addOnSuccessListener(aVoid -> {
+                                        // Handle success
+                                        Log.d("Firestore", "Item tags updated successfully");
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        // Handle failure
+                                        Log.e("Firestore", "Error updating item tags", e);
+                                    });
+                        }
+                    }
+                } else {
+                    Log.d("Firestore", "No such document");
+                }
+            } else {
+                Log.e("Firestore", "Error getting document", task.getException());
+            }
+        });
     }
-
 }
