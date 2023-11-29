@@ -14,15 +14,13 @@ package com.example.sweethome;
 
 /* necessary imports */
 import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 
-import android.widget.CheckBox;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -68,18 +66,18 @@ public class ItemsApplyTagsAdapter extends ArrayAdapter<Item> {
 
         /* view attached to the item list content layout that we created */
         if(view == null) {
-            view = LayoutInflater.from(context).inflate(R.layout.custom_item_list_content, parent, false);
+            view = LayoutInflater.from(context).inflate(R.layout.apply_tags_item_list_content, parent, false);
 
             /* find the text views inside the view */
-            imageView = view.findViewById(R.id.item_image);
-            description_container = view.findViewById(R.id.description_container);
-            nameView = view.findViewById(R.id.item_name);
-            purchaseDateView = view.findViewById(R.id.item_purchase_date);
-            estimatedValueView = view.findViewById(R.id.item_estimated_value);
-            noImagePlaceholder = view.findViewById(R.id.item_no_image_placeholder);
-            sliderViewFrame = view.findViewById(R.id.item_image_slider_frame);
-            sliderView = view.findViewById(R.id.item_image_slider);
-            tags_container = view.findViewById(R.id.tags_container);
+            imageView = view.findViewById(R.id.custom_item_image);
+            description_container = view.findViewById(R.id.custom_description_container);
+            nameView = view.findViewById(R.id.custom_item_name);
+            purchaseDateView = view.findViewById(R.id.custom_item_purchase_date);
+            estimatedValueView = view.findViewById(R.id.custom_item_estimated_value);
+            noImagePlaceholder = view.findViewById(R.id.custom_item_no_image_placeholder);
+            sliderViewFrame = view.findViewById(R.id.custom_item_image_slider_frame);
+            sliderView = view.findViewById(R.id.custom_item_image_slider);
+            tags_container = view.findViewById(R.id.custom_tags_container);
 
             // Modify the layout params to suit your image dimensions
             ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
@@ -99,7 +97,6 @@ public class ItemsApplyTagsAdapter extends ArrayAdapter<Item> {
             sliderViewFrame = itemViewHolder.getItemSliderViewFrame();
             sliderView = itemViewHolder.getItemSliderView();
             tags_container = itemViewHolder.getItemTagsContainer();
-//            tags_container.removeAllViews();
             description_container = itemViewHolder.getItemDescriptionContainer();
         }
 
@@ -122,22 +119,34 @@ public class ItemsApplyTagsAdapter extends ArrayAdapter<Item> {
             View tag_item = LayoutInflater.from(getContext()).inflate(R.layout.tag, null);
             TextView tag_name_field = tag_item.findViewById(R.id.tag_name);
             tag_name_field.setText(tagName);
-            tags_container.addView(tag_item);
+            if(tags_container != null) {
+                tags_container.addView(tag_item);
+            }
         }
 
-        nameView.setText(item.getName());
+        if (nameView != null){
+            nameView.setText(item.getName());
+        }
 
         SimpleDateFormat df = new SimpleDateFormat(context.getString(R.string.date_format)); //create a new format for the date to be in YYYY/MM/DD format
         if (item.getPurchaseDate() != null) {
             String dateString = df.format(item.getPurchaseDate().toDate()); //convert the date to a string in the specified format
-            purchaseDateView.setText(dateString);
+            if (purchaseDateView != null){
+                purchaseDateView.setText(dateString);
+            }
         } else {
-            purchaseDateView.setText("");
+            if (purchaseDateView != null) {
+                purchaseDateView.setText("");
+            }
         }
 
         String value = String.format("%.2f", item.getEstimatedValue()); //ensure there are only 2 places after the decimal when formatting the string
-        estimatedValueView.setText(context.getString(R.string.cad_currency) + value); //format the estimated value to include the currency ie. CAD$*.xx
-        description_container.setTag(item);
+        if (estimatedValueView != null){
+            estimatedValueView.setText(context.getString(R.string.cad_currency) + value); //format the estimated value to include the currency ie. CAD$*.xx
+        }
+        if (description_container != null){
+            description_container.setTag(item);
+        }
 
         /* return the view we inflated */
         return view;
