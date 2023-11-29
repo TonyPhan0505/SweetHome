@@ -45,6 +45,14 @@ public class ItemsCustomAdapter extends ArrayAdapter<Item> {
         this.context = context;
     }
 
+    // Inside your ItemsCustomAdapter
+    public void updateItems(ArrayList<Item> newItems) {
+        this.items.clear();
+        this.items.addAll(newItems);
+        notifyDataSetChanged();
+    }
+
+
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
@@ -171,5 +179,13 @@ public class ItemsCustomAdapter extends ArrayAdapter<Item> {
 
         /* return the view we inflated */
         return view;
+    }
+
+    public void setCurrentItemList(ArrayList<Item> itemList) {
+        this.items = new ArrayList<>(itemList);
+    }
+
+    public ArrayList<Item> getCurrentItemList() {
+        return this.items;
     }
 }
