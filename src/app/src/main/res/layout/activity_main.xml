@@ -26,7 +26,7 @@
         android:layout_height="wrap_content"
         android:src="@drawable/ic_user"
         android:contentDescription="@string/logout"
-        android:padding="16dp"
+        android:padding="20dp"
         android:clickable="true"
         android:focusable="true"
         app:layout_constraintEnd_toEndOf="parent"

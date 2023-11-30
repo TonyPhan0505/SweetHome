@@ -110,7 +110,7 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
     private EditText make_field;
     private EditText model_field;
     private EditText comment_field;
-    private RelativeLayout noImagePlaceholder;
+    private LinearLayout noImagePlaceholder;
     private ImageView remove_image_button;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
     private ArrayList<com.example.sweethome.Item> itemsList = new ArrayList<>();

@@ -256,7 +256,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 }
                 if (!selectedTagForFiltering.equals("All")) {
                     filterByTag();
-                    filtered = true;
                 }
                 if(make.trim().isEmpty() && keyword.trim().isEmpty() && (selectedEndDate==0L || selectedStartDate==0L) && selectedTagForFiltering.equals("All")) { //if apply filter was selected but nothing is inputted
                     getAllItemsFromDatabase(itemsRef);
@@ -413,10 +412,10 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 profileDialog.setContentView(R.layout.profile_popup);
                 TextView profileUsername = (TextView) profileDialog.findViewById(R.id.profile_username);
                 profileUsername.setText(app.getUsername() + "'s\t" + getString(R.string.app_name));
-                Button logoutButton = (Button) profileDialog.findViewById(R.id.profile_logout);
-                Button cancelProfielButton = (Button) profileDialog.findViewById(R.id.profile_cancel);
+                Button dialogLogoutButton = (Button) profileDialog.findViewById(R.id.profile_logout);
+                Button dialogCancelButton = (Button) profileDialog.findViewById(R.id.profile_cancel);
                 profileDialog.show();
-                logoutButton.setOnClickListener(new View.OnClickListener() {
+                dialogLogoutButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         // Clear any logged-in user data if necessary, like SharedPreferences
@@ -427,14 +426,16 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clear the activity stack
                         startActivity(intent);
                         finish(); // Close the current activity
-                        }
-                    });
-                cancelProfielButton.setOnClickListener(new View.OnClickListener() {
+                    }
+                });
+                dialogCancelButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         profileDialog.dismiss();
                     }
                 });
+            }
+        });
         searchInput = findViewById(R.id.search_input);
         noItemsFound = findViewById(R.id.no_items_found);
 
@@ -608,25 +609,25 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             }
             // remove the item
             itemsRef.document(item.getItemId())
-                    .delete()
-                    .addOnSuccessListener(new OnSuccessListener<Void>() {
-                        @Override
-                        public void onSuccess(Void unused) {
-                            Log.d("Firestore", "DocumentSnapshot successfully deleted!");
-                            int count = deletedItemsCount.incrementAndGet();
-                            if (count == totalItems) {
-                                // All items are deleted, show toast
-                                Toast.makeText(context, "Deleted successfully.", Toast.LENGTH_SHORT).show();
-                            }
+                .delete()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Log.d("Firestore", "DocumentSnapshot successfully deleted!");
+                        int count = deletedItemsCount.incrementAndGet();
+                        if (count == totalItems) {
+                            // All items are deleted, show toast
+                            Toast.makeText(context, "Deleted successfully.", Toast.LENGTH_SHORT).show();
                         }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.e("Firestore", "DocumentSnapshot deleted failed!");
-                            Toast.makeText(context, "Failed to delete.", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("Firestore", "DocumentSnapshot deleted failed!");
+                        Toast.makeText(context, "Failed to delete.", Toast.LENGTH_SHORT).show();
+                    }
+                });
         }
     }
 
@@ -676,30 +677,30 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
      */
     private void getAllItemsFromDatabase(CollectionReference itemsRef) {
         itemsRef.get()
-                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                        itemList.clear(); //clear whatever data we currently have stored in our item list
-                        for (QueryDocumentSnapshot doc : queryDocumentSnapshots){ //get everything that is stored in our db at the moment
-                            Item item = doc.toObject(Item.class); //convert the contents of each document in the items collection to an item object
-                            item.setItemId(doc.getId()); //set the item ID
-                            Log.i("Firestore", String.format("Item %s fetched", item.getName())); //log the name of the item we successfully got from the db
-                            if (doc.getString("username").equals(app.getUsername())) {
-                                itemList.add(item); //add the item object to our item list if it belongs to the current user
-                            }
+            .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                @Override
+                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                    itemList.clear(); //clear whatever data we currently have stored in our item list
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots){ //get everything that is stored in our db at the moment
+                        Item item = doc.toObject(Item.class); //convert the contents of each document in the items collection to an item object
+                        item.setItemId(doc.getId()); //set the item ID
+                        Log.i("Firestore", String.format("Item %s fetched", item.getName())); //log the name of the item we successfully got from the db
+                        if (doc.getString("username").equals(app.getUsername())) {
+                            itemList.add(item); //add the item object to our item list if it belongs to the current user
                         }
-                        items_count_field.setText(String.valueOf(itemList.size()) + " items.");
-                        noItemsFound.setVisibility(View.GONE);
-                        String currentSortOption = sortSpinner.getSelectedItem().toString(); //get the currently selected sort option
-                        sortDataList(currentSortOption, getApplicationContext()); //sort the list accordingly and notify changes were made to update frontend
-                        calculateTotalEstimatedValue(); //recalculate and display the total estimated value
                     }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.e("Firestore", "Error fetching data", e);
-                    }
-                });
+                    items_count_field.setText(String.valueOf(itemList.size()) + " items.");
+                    noItemsFound.setVisibility(View.GONE);
+                    String currentSortOption = sortSpinner.getSelectedItem().toString(); //get the currently selected sort option
+                    sortDataList(currentSortOption, getApplicationContext()); //sort the list accordingly and notify changes were made to update frontend
+                    calculateTotalEstimatedValue(); //recalculate and display the total estimated value
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.e("Firestore", "Error fetching data", e);
+                }
+            });
     }
 
     private void getAllTagsFromDatabase(CollectionReference tagsRef) {
