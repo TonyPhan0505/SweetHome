@@ -133,7 +133,7 @@ public class ItemsCustomAdapter extends ArrayAdapter<Item> {
             sliderViewFrame = itemViewHolder.getItemSliderViewFrame();
             sliderView = itemViewHolder.getItemSliderView();
             tags_container = itemViewHolder.getItemTagsContainer();
-//            tags_container.removeAllViews();
+            tags_container.removeAllViews();
             description_container = itemViewHolder.getItemDescriptionContainer();
         }
 
