@@ -21,7 +21,7 @@ import java.util.ArrayList;
 
 /**
  * This class implements the adapter for tag entry views on the list
- * of existing tags found in CreateTagFragment
+ * of existing tags found in CreateApplyTagFragment
  *
  * Sources: https://youtu.be/yTvwfEmzMZY
  */

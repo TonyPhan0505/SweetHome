@@ -1,6 +1,5 @@
 package com.example.sweethome;
 
-import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -16,8 +15,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -49,7 +46,7 @@ import java.util.Map;
  * Sources: https://developer.android.com/guide/fragments/
  *
  */
-public class CreateTagFragment extends Fragment {
+public class CreateApplyTagFragment extends Fragment {
 
     private CollectionReference itemsRef;
     private RecyclerView tagsRecyclerView;
@@ -84,14 +81,14 @@ public class CreateTagFragment extends Fragment {
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference tagsRef = db.collection("tags");
 
-    public CreateTagFragment() {
+    public CreateApplyTagFragment() {
         // Required empty public constructor
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        view = inflater.inflate(R.layout.create_tag_fragment, container, false);
+        view = inflater.inflate(R.layout.create_apply_tag_fragment, container, false);
         return view;
     }
 
@@ -151,10 +148,6 @@ public class CreateTagFragment extends Fragment {
         tags = new ArrayList<Tag>();
         tagsAdapter = new TagsAdapter(view.getContext(), tags);
         tagsRecyclerView.setAdapter(tagsAdapter);
-//        tagsList.add("Healthy");
-//        tagsList.add("Cute");
-//        tagsList.add("Funny");
-
 
         // Find views
         applyButton = view.findViewById(R.id.apply_new_tag_button);
@@ -193,10 +186,7 @@ public class CreateTagFragment extends Fragment {
                 tagFilterSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        String selectedTag = tagFilterAdapter.getItem(position);
-                        if (selectedTag != null) {
-                            Toast.makeText(getContext(), "Selected Tag: " + selectedTag, Toast.LENGTH_SHORT).show();
-                        }
+
                     }
 
                     @Override
@@ -312,8 +302,6 @@ public class CreateTagFragment extends Fragment {
      * @param selectedTag The tag to be applied to the items.
      */
     private void applyTagToItemList(ArrayList<Item> itemList, String selectedTag) {
-        Toast.makeText(getContext(), "Selected Tag: " + selectedTag, Toast.LENGTH_SHORT).show();
-
         for (Item item : itemList) {
             ArrayList<String> itemTags = item.getTags();
             if (!itemTags.contains(selectedTag)) {

@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private String searchText = "";
     private TextView noItemsFound;
     private TextView items_count_field;
-    private CreateTagFragment ctFragment;
+    private CreateApplyTagFragment ctFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -299,7 +299,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             Bundle args = new Bundle();
             args.putString("USER", app.getUsername());
             args.putString("PURPOSE", "create_tag");
-            ctFragment = new CreateTagFragment();
+            ctFragment = new CreateApplyTagFragment();
             ctFragment.setArguments(args);
             getSupportFragmentManager().beginTransaction()
                     .setReorderingAllowed(true)
@@ -338,13 +338,13 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             } else {
                 action_panel.setVisibility(View.GONE);
                 defineTagsFragmentContainer.setVisibility(View.VISIBLE);
-                // Prepare arguments to pass to the CreateTagFragment
+                // Prepare arguments to pass to the CreateApplyTagFragment
                 Bundle args = new Bundle();
                 args.putString("USER", app.getUsername());
                 args.putString("PURPOSE", "apply_tag");
                 args.putSerializable("item_list", selectedItems); // Selected items to add tags to
 
-                ctFragment = new CreateTagFragment();
+                ctFragment = new CreateApplyTagFragment();
                 ctFragment.setArguments(args);
                 getSupportFragmentManager().beginTransaction()
                         .setReorderingAllowed(true)
