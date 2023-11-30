@@ -26,9 +26,9 @@ import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
-import android.support.test.espresso.contrib.*;
 
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -57,7 +57,7 @@ public class AddItemTest {
         onView(withId(R.id.tag_input)).perform(ViewActions.pressImeActionButton());
         Thread.sleep(3000);
         closeSoftKeyboard();
-        onView(withId(R.id.description_field)).perform(ViewActions.typeText("This is a add test"));
+        onView(withId(R.id.description_field)).perform(ViewActions.typeText("This is an add test"));
         closeSoftKeyboard();
         onView(withId(R.id.make_field)).perform(ViewActions.typeText("testMake"));
         closeSoftKeyboard();
@@ -77,6 +77,15 @@ public class AddItemTest {
 
 
         onData(anything()).inAdapterView(withId(R.id.item_list)).atPosition(0).onChildView(withId(R.id.item_name)).check(matches(withText("AddItemTest")));
+    }
+
+    @After
+    public void clear() throws InterruptedException {
+        onData(anything()).inAdapterView(withId(R.id.item_list)).atPosition(0).onChildView(withId(R.id.item_checkBox)).perform(click());
+        Thread.sleep(3000);
+        onView(withId(R.id.delete_action_button)).perform(click());
+        Thread.sleep(3000);
+        onView(withId(R.id.delete_button)).perform(click());
     }
 }
 
