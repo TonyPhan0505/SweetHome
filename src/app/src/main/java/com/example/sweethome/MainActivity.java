@@ -93,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private EditText keywordField;
     private EditText makeField;
     private TextView calendar_data;
+    private Boolean datePickerShown = false;
     private static final String PREF_NAME = "DateRangePrefs";
     private static final String START_DATE_KEY = "startDate";
     private static final String END_DATE_KEY = "endDate";
@@ -149,7 +150,9 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         loggedInUsername = app.getUsername(); // Assuming `getUsername` fetches the current user's username
 
         /* Retrieve all existing items(if there are any) from Firestore Database */
-        getAllItemsFromDatabase(itemsRef);
+        if (itemList.size() <= 0) {
+            getAllItemsFromDatabase(itemsRef);
+        }
 
         /* setup the sorting spinner */
         sortSpinner = findViewById(R.id.spinner_sort_options);
@@ -172,7 +175,9 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         });
 
         /* Retrieve all existing tags(if there are any) from Firestore Database */
-        getAllTagsFromDatabase(tagsRef);
+        if (tagsList.size() <= 0) {
+            getAllTagsFromDatabase(tagsRef);
+        }
 
         /* setup the filter by tag spinner */
         selected_filtering_tag_field = findViewById(R.id.selected_filtering_tag_field);
@@ -230,7 +235,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                     selectedStartDate = 0L; //restart the start day
                     selectedEndDate = 0L; //restart the end day
                     calendar_data.setText(""); //clear the textview
-                    dateRangePicker = createMaterialDatePicker(); //reset the picker
                 }
             }
         });
@@ -252,12 +256,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             }
         });
 
-        // Initialize the date range values from SharedPreferences
-        displaySavedDateRange();
-
-        // Update the button text with the saved date range
-        updateCalendar(calendar_data, selectedStartDate, selectedEndDate);
-
         // Date range picker
         ImageView openCalendarButton = findViewById(R.id.calendar_button);
 
@@ -265,12 +263,12 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         openCalendarButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Create the MaterialDatePicker if not already created
-                if (dateRangePicker == null) {
+                if (!datePickerShown) {
                     dateRangePicker = createMaterialDatePicker();
+                    datePickerShown = true;
+                    String uniqueTag = "MaterialDatePicker_" + System.currentTimeMillis();
+                    dateRangePicker.show(getSupportFragmentManager(), uniqueTag);
                 }
-                // Show the date range picker
-                dateRangePicker.show(getSupportFragmentManager(), dateRangePicker.toString());
             }
         });
 
@@ -388,8 +386,8 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         clear_date_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                selectedEndDate = 0L;
                 selectedStartDate = 0L;
+                selectedEndDate = 0L;
                 calendar_data.setText("");
             }
         });
@@ -563,38 +561,34 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
 
     // Create the MaterialDatePicker with optional initial range
     private MaterialDatePicker<Pair<Long, Long>> createMaterialDatePicker() {
-        MaterialDatePicker<Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker().build();
+        MaterialDatePicker<Pair<Long, Long>> builder;
+
+        if (calendar_data.getText().toString().length() > 0 && selectedStartDate != 0 && selectedEndDate != 0) {
+            builder = MaterialDatePicker.Builder.dateRangePicker()
+                    .setSelection(Pair.create(selectedStartDate, selectedEndDate))
+                    .build();
+        } else {
+            builder = MaterialDatePicker.Builder.dateRangePicker().build();
+        }
 
         // Set a listener for when the user confirms the date range
         builder.addOnPositiveButtonClickListener(selection -> {
+            datePickerShown = false;
             // Get the selected date range
             selectedStartDate = selection.first;
             selectedEndDate = selection.second;
-            // Save the selected date range
-            saveDateRange(selectedStartDate, selectedEndDate);
             // Update the button text
-            updateCalendar(calendar_data, selectedStartDate, selectedEndDate);
+            updateCalendar(selectedStartDate, selectedEndDate);
+        });
+
+        // Set a listener for when the user clicks on the cancel/close button
+        builder.addOnNegativeButtonClickListener(dialog -> {
+            datePickerShown = false;
         });
         return builder;
     }
 
-    private void saveDateRange(Long startDate, Long endDate) {
-        SharedPreferences.Editor editor = getSharedPreferences(PREF_NAME, MODE_PRIVATE).edit();
-        editor.putLong(START_DATE_KEY, startDate);
-        editor.putLong(END_DATE_KEY, endDate);
-        editor.apply();
-    }
-
-    private void displaySavedDateRange() {
-        SharedPreferences sharedPreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-        selectedStartDate = sharedPreferences.getLong(START_DATE_KEY, 0);
-        selectedEndDate = sharedPreferences.getLong(END_DATE_KEY, 0);
-
-        // Display the saved date range on the button
-        updateCalendar(calendar_data, selectedStartDate, selectedEndDate);
-    }
-
-    private void updateCalendar(TextView calendar_data, Long startDate, Long endDate) {
+    private void updateCalendar(Long startDate, Long endDate) {
         if (startDate != 0 && endDate != 0) {
             // Format the date range string
             String formattedDateRange = formatDateRange(startDate, endDate);
@@ -634,7 +628,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             for (String associatedTag : associatedTags) {
                 int count = 0;
                 for (Item itemObject : itemList) {
-                    if (itemObject.getTags().contains(associatedTag)) {
+                    if (itemObject.getTags().contains(associatedTag) && itemObject.getUsername().equals(app.getUsername())) {
                         count += 1;
                     }
                     if (count >= 2) {

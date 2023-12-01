@@ -37,9 +37,10 @@ public class Item implements Serializable {
     private ArrayList<String> photos;
     private String id;
     private ArrayList<String> tags;
+    private String username;
 
     /* constructor for this class */
-    public Item(String id, String name, String description, String make, String model, String serialNumber, double estimatedValue, Timestamp purchaseDate, String comment, ArrayList<String> photos, ArrayList<String> tags) {
+    public Item(String id, String name, String description, String make, String model, String serialNumber, double estimatedValue, Timestamp purchaseDate, String comment, ArrayList<String> photos, ArrayList<String> tags, String username) {
         this.id = id;
         this.name = name;
         this.make = make;
@@ -51,9 +52,10 @@ public class Item implements Serializable {
         this.comment = comment;
         this.photos = new ArrayList<>(photos);
         this.tags = new ArrayList<>(tags);
+        this.username = username;
     }
 
-    public Item(String id, String name, String description, String make, String model, String serialNumber, double estimatedValue, Timestamp purchaseDate, String comment, ArrayList<String> photos, ArrayList<String> tags, Boolean selected) {
+    public Item(String id, String name, String description, String make, String model, String serialNumber, double estimatedValue, Timestamp purchaseDate, String comment, ArrayList<String> photos, ArrayList<String> tags, Boolean selected, String username) {
         this.id = id;
         this.name = name;
         this.make = make;
@@ -66,6 +68,7 @@ public class Item implements Serializable {
         this.photos = new ArrayList<>(photos);
         this.selected = selected;
         this.tags = new ArrayList<>(tags);
+        this.username = username;
     }
 
     /* no-arg constructor for this class */
@@ -177,5 +180,13 @@ public class Item implements Serializable {
     }
     public void setTags(ArrayList<String> tags) {
         this.tags = tags;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

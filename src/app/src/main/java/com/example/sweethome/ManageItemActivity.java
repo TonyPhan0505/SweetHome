@@ -30,7 +30,6 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.graphics.PorterDuff;
 import android.widget.Toast;
@@ -235,7 +234,8 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
                     if (associatedPhotos == null) {
                         associatedPhotos = new ArrayList<>();
                     }
-                    Item newItem = new Item(id, name, description, make, model, serialNumber, estimatedValue, purchaseDate, comment, associatedPhotos, tags);
+                    String username = documentSnapshot.getString("username");
+                    Item newItem = new Item(id, name, description, make, model, serialNumber, estimatedValue, purchaseDate, comment, associatedPhotos, tags, username);
                     itemsList.add(newItem);
                 }
             }
@@ -362,33 +362,6 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
                             itemInfo.put("comment", comment);
                             tags.sort((tag1, tag2) -> tag1.compareTo(tag2)); // sort in alphabetical order
                             itemInfo.put("tags", tags);
-                            ArrayList<String> removedTagNames = add_tags_field.getRemovedTagNames();
-                            removedTagNames.removeAll(tags);
-                            for (String removedTagName : removedTagNames) {
-                                int count = 0;
-                                for (Item itemObject : itemsList) {
-                                    if (itemObject.getTags().contains(removedTagName)) {
-                                        count += 1;
-                                    }
-                                    if (count >= 2) {
-                                        break;
-                                    }
-                                }
-                                if (count < 2) {
-                                    tagsCollection
-                                        .whereEqualTo("name", removedTagName)
-                                        .get()
-                                        .addOnCompleteListener(task -> {
-                                            if (task.isSuccessful()) {
-                                                for (QueryDocumentSnapshot document : task.getResult()) {
-                                                    List<String> usernames = (List<String>) document.get("usernames");
-                                                    usernames.remove(app.getUsername());
-                                                    tagsCollection.document(document.getId()).update("usernames", usernames);
-                                                }
-                                            }
-                                    });
-                                }
-                            }
                             List<Uri> addedPhotoUris = photoUris.subList(numOfExistingPhotos, numOfExistingPhotos + numOfAddedPhotos);
                             if (addedMorePhotos) {
                                 for (Uri photoUri : addedPhotoUris) {
@@ -649,7 +622,7 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
             itemInfo.put("username", app.getUsername());
             DocumentReference newItem = itemsCollection.document();
             newItem.set(itemInfo);
-            itemsList.add(new Item(newItem.getId(), name, description, make, model, serialNumber, estimatedValue, purchaseDateTS, comment, photoUrls, tags));
+            itemsList.add(new Item(newItem.getId(), name, description, make, model, serialNumber, estimatedValue, purchaseDateTS, comment, photoUrls, tags, app.getUsername()));
             Toast.makeText(ManageItemActivity.this, "Successfully added new item.", Toast.LENGTH_SHORT).show();
         } else {
             DocumentReference curItem = itemsCollection.document(itemId);
@@ -667,6 +640,37 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
                     item.setPhotos(photoUrls);
                     item.setTags(tags);
                     break;
+                }
+            }
+            ArrayList<String> removedTagNames = add_tags_field.getRemovedTagNames();
+            removedTagNames.removeAll(tags);
+            for (String removedTagName : removedTagNames) {
+                int count = 0;
+                for (Item itemObject : itemsList) {
+                    if (itemObject.getTags().contains(removedTagName) && itemObject.getUsername().equals(app.getUsername())) {
+                        count += 1;
+                    }
+                    if (count >= 2) {
+                        break;
+                    }
+                }
+                if (count < 2) {
+                    tagsCollection
+                        .whereEqualTo("name", removedTagName)
+                        .get()
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                for (QueryDocumentSnapshot document : task.getResult()) {
+                                    List<String> usernames = (List<String>) document.get("usernames");
+                                    if (usernames.size() <= 0) {
+                                        tagsCollection.document(document.getId()).delete();
+                                    } else {
+                                        usernames.remove(app.getUsername());
+                                        tagsCollection.document(document.getId()).update("usernames", usernames);
+                                    }
+                                }
+                            }
+                        });
                 }
             }
             if (removedPhotoUrls.size() > 0) {
