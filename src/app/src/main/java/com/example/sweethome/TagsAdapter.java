@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -58,6 +57,7 @@ public class TagsAdapter extends RecyclerView.Adapter<TagViewHolder> {
         holder.getRemoveTagIconView().setOnClickListener(v -> {
             positionToRemove = holder.getAdapterPosition();
             String tagId = tags.get(positionToRemove).getTagId();
+            // only delete a tag document if it's all yours and it's not associated with any item in db, otherwise just update the usernames list of the tag document
             tagsRef.document(tagId).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                 @Override
                 public void onSuccess(DocumentSnapshot tagDocumentSnapshot) {
@@ -67,28 +67,29 @@ public class TagsAdapter extends RecyclerView.Adapter<TagViewHolder> {
                         itemsRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                             @Override
                             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                                Boolean associatedWithItem = false;
-                                Boolean cannotDeleteTag = false;
                                 String itemName = "";
-                                String itemUsername = "";
-                                if (tagUsernames.size() > 1) {
-                                    cannotDeleteTag = true;
-                                } else {
-                                    for (QueryDocumentSnapshot itemDocumentSnapshot : queryDocumentSnapshots) {
-                                        ArrayList<String> tags = (ArrayList<String>) itemDocumentSnapshot.get("tags");
-                                        itemName = itemDocumentSnapshot.getString("name");
-                                        itemUsername = itemDocumentSnapshot.getString("username");
-                                        if (tags.contains(tagName) && username.equals(itemUsername)) {
-                                            associatedWithItem = true;
-                                            break;
+                                ArrayList<String> associatedWithItemsOf = new ArrayList<>();
+                                for (QueryDocumentSnapshot itemDocumentSnapshot : queryDocumentSnapshots) {
+                                    ArrayList<String> tags = (ArrayList<String>) itemDocumentSnapshot.get("tags");
+                                    String itemUsername = itemDocumentSnapshot.getString("username");
+                                    if (tags.contains(tagName) && !associatedWithItemsOf.contains(itemUsername)) {
+                                        associatedWithItemsOf.add(itemUsername);
+                                        if (itemName.length() < 1 && itemUsername.equals(username)) {
+                                            itemName = itemDocumentSnapshot.getString("name");
                                         }
                                     }
                                 }
-                                if (associatedWithItem) {
-                                    Toast.makeText(context,"Cannot remove tag. Tag belongs to item: '" + itemName + "'.", Toast.LENGTH_SHORT).show();
+                                if (tagUsernames.size() <= 1 && associatedWithItemsOf.size() < 1) {
+                                    deleteTagFromDatabase(tagId);
                                 } else {
-                                    if (!cannotDeleteTag) {
-                                        deleteTagFromDatabase(tagId);
+                                    if (associatedWithItemsOf.contains(username)) {
+                                        Toast.makeText(context,"Cannot remove tag. Tag belongs to item: '" + itemName + "'.", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        if (tagUsernames.size() > 1) {
+                                            tagUsernames.remove(username);
+                                            tagsRef.document(tagId).update("usernames", tagUsernames);
+                                            Toast.makeText(context,"Tag deleted.", Toast.LENGTH_SHORT).show();
+                                        }
                                     }
                                 }
                             }

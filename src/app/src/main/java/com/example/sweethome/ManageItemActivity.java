@@ -625,23 +625,6 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
             itemsList.add(new Item(newItem.getId(), name, description, make, model, serialNumber, estimatedValue, purchaseDateTS, comment, photoUrls, tags, app.getUsername()));
             Toast.makeText(ManageItemActivity.this, "Successfully added new item.", Toast.LENGTH_SHORT).show();
         } else {
-            DocumentReference curItem = itemsCollection.document(itemId);
-            curItem.update(itemInfo);
-            for (Item item : itemsList) {
-                if (item.getItemId().equals(itemId)) {
-                    item.setName(name);
-                    item.setDescription(description);
-                    item.setMake(make);
-                    item.setModel(model);
-                    item.setSerialNumber(serialNumber);
-                    item.setEstimatedValue(estimatedValue);
-                    item.setPurchaseDate(purchaseDateTS);
-                    item.setComment(comment);
-                    item.setPhotos(photoUrls);
-                    item.setTags(tags);
-                    break;
-                }
-            }
             ArrayList<String> removedTagNames = add_tags_field.getRemovedTagNames();
             removedTagNames.removeAll(tags);
             for (String removedTagName : removedTagNames) {
@@ -662,7 +645,7 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
                             if (task.isSuccessful()) {
                                 for (QueryDocumentSnapshot document : task.getResult()) {
                                     List<String> usernames = (List<String>) document.get("usernames");
-                                    if (usernames.size() <= 0) {
+                                    if (usernames.size() <= 1) {
                                         tagsCollection.document(document.getId()).delete();
                                     } else {
                                         usernames.remove(app.getUsername());
@@ -671,6 +654,23 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
                                 }
                             }
                         });
+                }
+            }
+            DocumentReference curItem = itemsCollection.document(itemId);
+            curItem.update(itemInfo);
+            for (Item item : itemsList) {
+                if (item.getItemId().equals(itemId)) {
+                    item.setName(name);
+                    item.setDescription(description);
+                    item.setMake(make);
+                    item.setModel(model);
+                    item.setSerialNumber(serialNumber);
+                    item.setEstimatedValue(estimatedValue);
+                    item.setPurchaseDate(purchaseDateTS);
+                    item.setComment(comment);
+                    item.setPhotos(photoUrls);
+                    item.setTags(tags);
+                    break;
                 }
             }
             if (removedPhotoUrls.size() > 0) {
