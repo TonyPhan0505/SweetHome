@@ -37,6 +37,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-storage:20.0.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.8.0'
+    implementation 'com.google.firebase:firebase-auth:22.3.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.annotation:annotation:1.7.0'
     implementation 'com.github.smarteist:autoimageslider:1.4.0'
@@ -48,4 +49,5 @@ dependencies {
         exclude(group: "com.google.protobuf", module: "protobuf-lite")
     }
     androidTestImplementation "org.mockito:mockito-core:3.12.4"
+    androidTestImplementation("androidx.test.espresso:espresso-intents:3.5.1");
 }

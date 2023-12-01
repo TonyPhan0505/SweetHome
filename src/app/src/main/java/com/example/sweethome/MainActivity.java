@@ -52,6 +52,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -108,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private ArrayList<String> tagsList = new ArrayList<>();
     private String selectedTagForFiltering = "All";
     private TextView selected_filtering_tag_field;
+    private String loggedInUsername;
     private EditText searchInput;
     private String searchText = "";
     private TextView noItemsFound;
@@ -118,7 +120,14 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // get the current user
         app = (AppContext) getApplication();
+        Intent main = getIntent();
+        loggedInUsername = main.getStringExtra("USERNAME");
+        if (loggedInUsername != null) {
+            app.setUsername(loggedInUsername);
+        }
 
         items_count_field = findViewById(R.id.items_count);
 
@@ -137,6 +146,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         itemListView = findViewById(R.id.item_list);
         itemAdapter = new ItemsCustomAdapter(this, itemList);
         itemListView.setAdapter(itemAdapter);
+        loggedInUsername = app.getUsername(); // Assuming `getUsername` fetches the current user's username
 
         /* Retrieve all existing items(if there are any) from Firestore Database */
         getAllItemsFromDatabase(itemsRef);
@@ -200,6 +210,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         filterApplyButton = findViewById(R.id.apply_filter_button);
         makeField = findViewById(R.id.make_field);
         keywordField = findViewById(R.id.keyword_field);
+        calendar_data = findViewById(R.id.calendar_data);
 
         /* set the view of the filter panel and onClicklisteners for the icon and button */
         filterPanel.setVisibility(View.GONE); //should be invisible until the filterIcon is pressed
@@ -218,6 +229,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                     filterPanel.setVisibility(View.VISIBLE); //otherwise just show the panel since it must currently be invisible
                     selectedStartDate = 0L; //restart the start day
                     selectedEndDate = 0L; //restart the end day
+                    calendar_data.setText(""); //clear the textview
                     dateRangePicker = createMaterialDatePicker(); //reset the picker
                 }
             }
@@ -225,32 +237,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         filterApplyButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String make = makeField.getText().toString();
-                String keyword = keywordField.getText().toString();
-                itemAdapter.setCurrentItemList(itemList);
-                if (!make.trim().isEmpty()){ //apply filter by make if it was provided
-                    filterByMake(make);
-                }
-                if(!keyword.trim().isEmpty()) { //apply filter by keyword if it was provided
-                    filterByKeyword(keyword);
-                }
-                if(selectedEndDate!=0L && selectedStartDate!=0L) { //apply filter by date range if it was selected
-                    /* get the selected dates by the user, adding extra time due to epoch conversion error */
-                    Date dateStart = new Date(selectedStartDate + ONE_DAY - ((ONE_DAY / 4) *3) + ONE_HOUR);
-                    Date dateEnd = new Date(selectedEndDate + ONE_DAY + (ONE_DAY / 4) + ONE_HOUR - ONE_SECOND);
-                    /* let the user know the time constraints */
-                    Toast.makeText(MainActivity.this, "START: " + dateStart.toString() + " END: " + dateEnd.toString(), Toast.LENGTH_SHORT).show();
-                    /* convert them to timestamps like our items store purchaseDate as */
-                    Timestamp start = new Timestamp(dateStart);
-                    Timestamp end = new Timestamp(dateEnd);
-                    filterByDate(start, end);
-                }
-                if (!selectedTagForFiltering.equals("All")) {
-                    filterByTag();
-                }
-                if(make.trim().isEmpty() && keyword.trim().isEmpty() && (selectedEndDate==0L || selectedStartDate==0L) && selectedTagForFiltering.equals("All")) { //if apply filter was selected but nothing is inputted
-                    getAllItemsFromDatabase(itemsRef);
-                }
+                executeFilters();
             }
         });
 
@@ -269,7 +256,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         displaySavedDateRange();
 
         // Update the button text with the saved date range
-        calendar_data = findViewById(R.id.calendar_data);
         updateCalendar(calendar_data, selectedStartDate, selectedEndDate);
 
         // Date range picker
@@ -377,6 +363,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                         /* clear the edit texts for the next time the user uses the panel */
                         makeField.setText("");
                         keywordField.setText("");
+                        calendar_data.setText("");
                         getAllItemsFromDatabase(itemsRef); //also clear all of the filters
                     }
                     deleteDialog.dismiss();
@@ -433,6 +420,45 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             }
         });
 
+        /* logout popup that shows the current signed in username */
+        ImageView logoutButton = findViewById(R.id.btn_logout);
+        logoutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final Dialog profileDialog = new Dialog(context);
+                profileDialog.setContentView(R.layout.profile_popup);
+                TextView profileUsername = (TextView) profileDialog.findViewById(R.id.profile_username);
+                profileUsername.setText(app.getUsername() + "'s\t" + getString(R.string.app_name));
+                Button dialogLogoutButton = (Button) profileDialog.findViewById(R.id.profile_logout);
+                Button dialogCancelButton = (Button) profileDialog.findViewById(R.id.profile_cancel);
+                profileDialog.show();
+                dialogLogoutButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        // Clear any logged-in user data if necessary, like SharedPreferences
+                        // Sign out
+                        FirebaseAuth.getInstance().signOut();
+                        profileDialog.dismiss();
+                        // cache username
+                        SharedPreferences preferences = getSharedPreferences("user_preferences", Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = preferences.edit();
+                        editor.putString("username", app.getUsername());
+                        editor.apply();
+                        // Start LoginActivity
+                        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clear the activity stack
+                        startActivity(intent);
+                        finish(); // Close the current activity
+                    }
+                });
+                dialogCancelButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        profileDialog.dismiss();
+                    }
+                });
+            }
+        });
         searchInput = findViewById(R.id.search_input);
         noItemsFound = findViewById(R.id.no_items_found);
 
@@ -450,8 +476,11 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 String keyword = keywordField.getText().toString();
                 if (searchText.length() > 0) {
                     performSearch(searchText);
-                } else if (make.trim().isEmpty() && keyword.trim().isEmpty() && (selectedEndDate==0L || selectedStartDate==0L) && selectedTagForFiltering.equals("All")) {
+                } else if ((searchText.length() <= 0) && (make.trim().isEmpty() && keyword.trim().isEmpty() && (selectedEndDate==0L || selectedStartDate==0L) && selectedTagForFiltering.equals("All"))) {
                     getAllItemsFromDatabase(itemsRef);
+                } else if ((searchText.length() <= 0) && (!make.trim().isEmpty() || !keyword.trim().isEmpty() || (selectedEndDate!=0L && selectedStartDate!=0L) || !selectedTagForFiltering.equals("All"))) {
+                    noItemsFound.setVisibility(View.GONE);
+                    executeFilters();
                 }
             }
 
@@ -505,6 +534,33 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         super.onDestroy();
     }
 
+    private void executeFilters() {
+        String make = makeField.getText().toString();
+        String keyword = keywordField.getText().toString();
+        itemAdapter.setCurrentItemList(itemList);
+        if (!make.trim().isEmpty()){ //apply filter by make if it was provided
+            filterByMake(make);
+        }
+        if(!keyword.trim().isEmpty()) { //apply filter by keyword if it was provided
+            filterByKeyword(keyword);
+        }
+        if(selectedEndDate!=0L && selectedStartDate!=0L) { //apply filter by date range if it was selected
+            /* get the selected dates by the user, adding extra time due to epoch conversion error */
+            Date dateStart = new Date(selectedStartDate + ONE_DAY - ((ONE_DAY / 4) *3) + ONE_HOUR);
+            Date dateEnd = new Date(selectedEndDate + ONE_DAY + (ONE_DAY / 4) + ONE_HOUR - ONE_SECOND);
+            /* convert them to timestamps like our items store purchaseDate as */
+            Timestamp start = new Timestamp(dateStart);
+            Timestamp end = new Timestamp(dateEnd);
+            filterByDate(start, end);
+        }
+        if (!selectedTagForFiltering.equals("All")) {
+            filterByTag();
+        }
+        if(make.trim().isEmpty() && keyword.trim().isEmpty() && (selectedEndDate==0L || selectedStartDate==0L) && selectedTagForFiltering.equals("All")) { //if apply filter was selected but nothing is inputted
+            getAllItemsFromDatabase(itemsRef);
+        }
+    }
+
     // Create the MaterialDatePicker with optional initial range
     private MaterialDatePicker<Pair<Long, Long>> createMaterialDatePicker() {
         MaterialDatePicker<Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker().build();
@@ -517,7 +573,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             // Save the selected date range
             saveDateRange(selectedStartDate, selectedEndDate);
             // Update the button text
-            updateCalendar(findViewById(R.id.calendar_data), selectedStartDate, selectedEndDate);
+            updateCalendar(calendar_data, selectedStartDate, selectedEndDate);
         });
         return builder;
     }
@@ -535,7 +591,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         selectedEndDate = sharedPreferences.getLong(END_DATE_KEY, 0);
 
         // Display the saved date range on the button
-        updateCalendar(findViewById(R.id.calendar_data), selectedStartDate, selectedEndDate);
+        updateCalendar(calendar_data, selectedStartDate, selectedEndDate);
     }
 
     private void updateCalendar(TextView calendar_data, Long startDate, Long endDate) {
@@ -543,6 +599,8 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             // Format the date range string
             String formattedDateRange = formatDateRange(startDate, endDate);
             calendar_data.setText(formattedDateRange);
+        } else {
+            calendar_data.setText("");
         }
     }
 
@@ -604,25 +662,25 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             }
             // remove the item
             itemsRef.document(item.getItemId())
-                    .delete()
-                    .addOnSuccessListener(new OnSuccessListener<Void>() {
-                        @Override
-                        public void onSuccess(Void unused) {
-                            Log.d("Firestore", "DocumentSnapshot successfully deleted!");
-                            int count = deletedItemsCount.incrementAndGet();
-                            if (count == totalItems) {
-                                // All items are deleted, show toast
-                                Toast.makeText(context, "Deleted successfully.", Toast.LENGTH_SHORT).show();
-                            }
+                .delete()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Log.d("Firestore", "DocumentSnapshot successfully deleted!");
+                        int count = deletedItemsCount.incrementAndGet();
+                        if (count == totalItems) {
+                            // All items are deleted, show toast
+                            Toast.makeText(context, "Deleted successfully.", Toast.LENGTH_SHORT).show();
                         }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.e("Firestore", "DocumentSnapshot deleted failed!");
-                            Toast.makeText(context, "Failed to delete.", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("Firestore", "DocumentSnapshot deleted failed!");
+                        Toast.makeText(context, "Failed to delete.", Toast.LENGTH_SHORT).show();
+                    }
+                });
         }
     }
 
@@ -672,30 +730,30 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
      */
     private void getAllItemsFromDatabase(CollectionReference itemsRef) {
         itemsRef.get()
-                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                        itemList.clear(); //clear whatever data we currently have stored in our item list
-                        for (QueryDocumentSnapshot doc : queryDocumentSnapshots){ //get everything that is stored in our db at the moment
-                            Item item = doc.toObject(Item.class); //convert the contents of each document in the items collection to an item object
-                            item.setItemId(doc.getId()); //set the item ID
-                            Log.i("Firestore", String.format("Item %s fetched", item.getName())); //log the name of the item we successfully got from the db
-                            if (doc.getString("username").equals(app.getUsername())) {
-                                itemList.add(item); //add the item object to our item list if it belongs to the current user
-                            }
+            .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                @Override
+                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                    itemList.clear(); //clear whatever data we currently have stored in our item list
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots){ //get everything that is stored in our db at the moment
+                        Item item = doc.toObject(Item.class); //convert the contents of each document in the items collection to an item object
+                        item.setItemId(doc.getId()); //set the item ID
+                        Log.i("Firestore", String.format("Item %s fetched", item.getName())); //log the name of the item we successfully got from the db
+                        if (doc.getString("username").equals(app.getUsername())) {
+                            itemList.add(item); //add the item object to our item list if it belongs to the current user
                         }
-                        items_count_field.setText(String.valueOf(itemList.size()) + " items.");
-                        noItemsFound.setVisibility(View.GONE);
-                        String currentSortOption = sortSpinner.getSelectedItem().toString(); //get the currently selected sort option
-                        sortDataList(currentSortOption, getApplicationContext()); //sort the list accordingly and notify changes were made to update frontend
-                        calculateTotalEstimatedValue(); //recalculate and display the total estimated value
                     }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.e("Firestore", "Error fetching data", e);
-                    }
-                });
+                    items_count_field.setText(String.valueOf(itemList.size()) + " items.");
+                    noItemsFound.setVisibility(View.GONE);
+                    String currentSortOption = sortSpinner.getSelectedItem().toString(); //get the currently selected sort option
+                    sortDataList(currentSortOption, getApplicationContext()); //sort the list accordingly and notify changes were made to update frontend
+                    calculateTotalEstimatedValue(); //recalculate and display the total estimated value
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.e("Firestore", "Error fetching data", e);
+                }
+            });
     }
 
     private void getAllTagsFromDatabase(CollectionReference tagsRef) {

@@ -46,7 +46,7 @@ public class TagsAdapter extends RecyclerView.Adapter<TagViewHolder> {
         tagsRef = db.collection("tags");
         itemsRef = db.collection("items");
 
-        return new TagViewHolder(LayoutInflater.from(context).inflate(R.layout.tag_list_content, parent, false));
+        return new TagViewHolder(LayoutInflater.from(context).inflate(R.layout.tag_created, parent, false));
     }
 
     @Override
