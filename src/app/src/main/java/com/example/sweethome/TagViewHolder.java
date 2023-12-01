@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 /**
  * This class implements the viewholder for each tag entries on the
- * list found inside CreateTagFragment
+ * list found inside CreateApplyTagFragment
  *
  * Sources: https://developer.android.com/develop/ui/views/layout/recyclerview
  */

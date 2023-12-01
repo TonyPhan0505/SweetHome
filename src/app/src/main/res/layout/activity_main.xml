@@ -508,7 +508,7 @@
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/create_tag_fragment"
-        android:name="com.example.sweethome.CreateTagFragment"
+        android:name="com.example.sweethome.CreateApplyTagFragment"
         android:layout_width="333dp"
         android:layout_height="538dp"
         android:tag="container_tag"
