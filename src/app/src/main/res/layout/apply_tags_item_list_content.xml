@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_marginTop="10dp">
+    <LinearLayout
+        android:id="@+id/custom_description_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:clickable="true">
+        <LinearLayout
+            android:id="@+id/custom_item_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginRight="15dp">
+            <RelativeLayout
+                android:id="@+id/custom_item_no_image_placeholder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <ImageView
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:src="@drawable/item_no_image"
+                    android:layout_centerHorizontal="true"
+                    android:background="@drawable/item_image_frame"/>
+            </RelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/custom_item_image_slider_frame"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone">
+                <com.smarteist.autoimageslider.SliderView
+                    android:id="@+id/custom_item_image_slider"
+                    android:layout_width="match_parent"
+                    android:layout_height="150dp"
+                    android:layout_centerInParent="true"
+                    app:sliderIndicatorEnabled="true"
+                    app:sliderIndicatorGravity="center_horizontal|bottom"
+                    app:sliderIndicatorMargin="15dp"
+                    app:sliderIndicatorOrientation="horizontal"
+                    app:sliderIndicatorPadding="3dp"
+                    app:sliderIndicatorRadius="2dp"
+                    app:sliderIndicatorSelectedColor="#5A5A5A"
+                    app:sliderIndicatorUnselectedColor="#FFF"
+                    app:sliderScrollTimeInSec="1" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/custom_description_with_tag_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:clickable="true"
+            android:layout_marginTop="10dp">
+            <TextView
+                android:id="@+id/custom_item_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:padding="5dp"
+                android:text="@string/item_name"
+                android:maxLines="1"
+                android:maxEms="8"
+                android:ellipsize="marquee"
+                android:textAllCaps="false"
+                android:textColor="@color/black"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/custom_item_text_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:clickable="true"
+                android:layout_marginTop="10dp">
+                <TextView
+                    android:id="@+id/custom_item_purchase_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.75"
+                    android:padding="5dp"
+                    android:singleLine="true"
+                    android:textAllCaps="true"
+                    android:text="@string/date_format"
+                    android:maxEms="4"
+                    android:ellipsize="marquee"
+                    android:textColor="@color/grey"
+                    android:textSize="17sp" />
+
+                <TextView
+                    android:id="@+id/custom_item_estimated_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:padding="5dp"
+                    android:autoSizeMinTextSize="7sp"
+                    android:text="@string/cad_currency"
+                    android:maxEms="4"
+                    android:ellipsize="marquee"
+                    android:maxLines="1"
+                    android:textColor="@color/black"
+                    android:textSize="17sp" />
+            </LinearLayout>
+
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:layout_marginTop="10dp">
+                <LinearLayout
+                    android:id="@+id/custom_tags_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"/>
+            </HorizontalScrollView>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

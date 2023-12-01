@@ -89,6 +89,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private Button filterApplyButton;
     private Button clear_date_button;
     private Button createTagButton;
+    private Button addTagButton;
     private EditText keywordField;
     private EditText makeField;
     private TextView calendar_data;
@@ -113,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private String searchText = "";
     private TextView noItemsFound;
     private TextView items_count_field;
-    private CreateTagFragment ctFragment;
+    private CreateApplyTagFragment ctFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -236,30 +237,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         filterApplyButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String make = makeField.getText().toString();
-                String keyword = keywordField.getText().toString();
-                itemAdapter.setCurrentItemList(itemList);
-                if (!make.trim().isEmpty()){ //apply filter by make if it was provided
-                    filterByMake(make);
-                }
-                if(!keyword.trim().isEmpty()) { //apply filter by keyword if it was provided
-                    filterByKeyword(keyword);
-                }
-                if(selectedEndDate!=0L && selectedStartDate!=0L) { //apply filter by date range if it was selected
-                    /* get the selected dates by the user, adding extra time due to epoch conversion error */
-                    Date dateStart = new Date(selectedStartDate + ONE_DAY - ((ONE_DAY / 4) *3) + ONE_HOUR);
-                    Date dateEnd = new Date(selectedEndDate + ONE_DAY + (ONE_DAY / 4) + ONE_HOUR - ONE_SECOND);
-                    /* convert them to timestamps like our items store purchaseDate as */
-                    Timestamp start = new Timestamp(dateStart);
-                    Timestamp end = new Timestamp(dateEnd);
-                    filterByDate(start, end);
-                }
-                if (!selectedTagForFiltering.equals("All")) {
-                    filterByTag();
-                }
-                if(make.trim().isEmpty() && keyword.trim().isEmpty() && (selectedEndDate==0L || selectedStartDate==0L) && selectedTagForFiltering.equals("All")) { //if apply filter was selected but nothing is inputted
-                    getAllItemsFromDatabase(itemsRef);
-                }
+                executeFilters();
             }
         });
 
@@ -304,10 +282,11 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         createTagButton.setOnClickListener(view -> {
             action_panel.setVisibility(View.GONE);
             defineTagsFragmentContainer.setVisibility(View.VISIBLE);
-            Bundle arg = new Bundle();
-            arg.putString("USER", app.getUsername());
-            ctFragment = new CreateTagFragment();
-            ctFragment.setArguments(arg);
+            Bundle args = new Bundle();
+            args.putString("USER", app.getUsername());
+            args.putString("PURPOSE", "create_tag");
+            ctFragment = new CreateApplyTagFragment();
+            ctFragment.setArguments(args);
             getSupportFragmentManager().beginTransaction()
                     .setReorderingAllowed(true)
                     .replace(R.id.create_tag_fragment, ctFragment)
@@ -321,6 +300,44 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         tagActionOffButton.setOnClickListener(view -> {
             tagActionOnButton.setVisibility(View.VISIBLE);
             action_panel.setVisibility(View.GONE);
+        });
+
+        /**
+         * Sets an OnClickListener on the 'Add Tag' button. Upon clicking, it hides the panel, checks if at least one item is selected,
+         * and if so, displays the fragment responsible for adding tags to the selected items.
+         */
+        addTagButton = action_panel.findViewById(R.id.add_tag_panel);
+        addTagButton.setOnClickListener(view -> {
+            /**
+             * Retrieves the selected items from the item list view and initiates the process of adding tags to those selected items.
+             */
+            selectedItems = new ArrayList<Item>();
+            for (int i = 0; i < itemListView.getCount(); i++) {
+                Item item = itemAdapter.getItem(i);
+                Boolean selected = item.isSelected();
+                if (item != null && selected) {
+                    selectedItems.add(item);
+                }
+            }
+            if (selectedItems.size() < 1) {
+                Toast.makeText(MainActivity.this, "Please select at least 1 item.", Toast.LENGTH_SHORT).show();
+            } else {
+                action_panel.setVisibility(View.GONE);
+                defineTagsFragmentContainer.setVisibility(View.VISIBLE);
+                // Prepare arguments to pass to the CreateApplyTagFragment
+                Bundle args = new Bundle();
+                args.putString("USER", app.getUsername());
+                args.putString("PURPOSE", "apply_tag");
+                args.putSerializable("item_list", selectedItems); // Selected items to add tags to
+
+                ctFragment = new CreateApplyTagFragment();
+                ctFragment.setArguments(args);
+                getSupportFragmentManager().beginTransaction()
+                        .setReorderingAllowed(true)
+                        .replace(R.id.create_tag_fragment, ctFragment)
+                        .commit();
+                tagActionOnButton.setVisibility(View.VISIBLE);
+            }
         });
 
         final FloatingActionButton deleteActionButton = findViewById(R.id.delete_action_button);
@@ -421,6 +438,12 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                         // Clear any logged-in user data if necessary, like SharedPreferences
                         // Sign out
                         FirebaseAuth.getInstance().signOut();
+                        profileDialog.dismiss();
+                        // cache username
+                        SharedPreferences preferences = getSharedPreferences("user_preferences", Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = preferences.edit();
+                        editor.putString("username", app.getUsername());
+                        editor.apply();
                         // Start LoginActivity
                         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clear the activity stack
@@ -453,8 +476,11 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 String keyword = keywordField.getText().toString();
                 if (searchText.length() > 0) {
                     performSearch(searchText);
-                } else if (make.trim().isEmpty() && keyword.trim().isEmpty() && (selectedEndDate==0L || selectedStartDate==0L) && selectedTagForFiltering.equals("All")) {
+                } else if ((searchText.length() <= 0) && (make.trim().isEmpty() && keyword.trim().isEmpty() && (selectedEndDate==0L || selectedStartDate==0L) && selectedTagForFiltering.equals("All"))) {
                     getAllItemsFromDatabase(itemsRef);
+                } else if ((searchText.length() <= 0) && (!make.trim().isEmpty() || !keyword.trim().isEmpty() || (selectedEndDate!=0L && selectedStartDate!=0L) || !selectedTagForFiltering.equals("All"))) {
+                    noItemsFound.setVisibility(View.GONE);
+                    executeFilters();
                 }
             }
 
@@ -506,6 +532,33 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         keywordField.setText("");
         getApplicationContext().getCacheDir().delete();
         super.onDestroy();
+    }
+
+    private void executeFilters() {
+        String make = makeField.getText().toString();
+        String keyword = keywordField.getText().toString();
+        itemAdapter.setCurrentItemList(itemList);
+        if (!make.trim().isEmpty()){ //apply filter by make if it was provided
+            filterByMake(make);
+        }
+        if(!keyword.trim().isEmpty()) { //apply filter by keyword if it was provided
+            filterByKeyword(keyword);
+        }
+        if(selectedEndDate!=0L && selectedStartDate!=0L) { //apply filter by date range if it was selected
+            /* get the selected dates by the user, adding extra time due to epoch conversion error */
+            Date dateStart = new Date(selectedStartDate + ONE_DAY - ((ONE_DAY / 4) *3) + ONE_HOUR);
+            Date dateEnd = new Date(selectedEndDate + ONE_DAY + (ONE_DAY / 4) + ONE_HOUR - ONE_SECOND);
+            /* convert them to timestamps like our items store purchaseDate as */
+            Timestamp start = new Timestamp(dateStart);
+            Timestamp end = new Timestamp(dateEnd);
+            filterByDate(start, end);
+        }
+        if (!selectedTagForFiltering.equals("All")) {
+            filterByTag();
+        }
+        if(make.trim().isEmpty() && keyword.trim().isEmpty() && (selectedEndDate==0L || selectedStartDate==0L) && selectedTagForFiltering.equals("All")) { //if apply filter was selected but nothing is inputted
+            getAllItemsFromDatabase(itemsRef);
+        }
     }
 
     // Create the MaterialDatePicker with optional initial range

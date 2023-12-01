@@ -57,7 +57,7 @@
                     android:id="@+id/barcode_scan_icon"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
+                    android:layout_marginStart="15dp"
                     android:layout_marginTop="5dp"
                     android:src="@drawable/barcode_scan_icon"
                     android:contentDescription="scan barcode button"
@@ -83,13 +83,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            android:layout_marginTop="20dp">
+            android:layout_marginTop="20dp"
+            android:gravity="center_horizontal"
+            android:paddingHorizontal="16dp">
             <ImageView
-                android:layout_width="0dp"
-                android:layout_weight="0.92"
-                android:layout_height="211dp"
-                android:src="@drawable/no_image_placeholder"
-                android:layout_centerHorizontal="true" />
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:src="@drawable/no_image_placeholder" />
         </LinearLayout>
 
         <LinearLayout
@@ -125,97 +126,89 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:orientation="horizontal">
-
-            <Space
+            android:orientation="horizontal"
+            android:gravity="center_horizontal">
+            <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="0.1"/>
-
-            <androidx.cardview.widget.CardView
-                android:id="@+id/open_gallery_button"
-                android:layout_width="0dp"
-                android:layout_weight="0.5"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="10dp"
-                android:clickable="true"
-                app:cardBackgroundColor="@color/dark_green"
-                app:cardCornerRadius="10dp"
-                app:cardElevation="4dp"
-                app:cardUseCompatPadding="true"
-                app:contentPadding="10dp">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
+                android:padding="16dp">
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/open_gallery_button"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:gravity="center"
-                    android:orientation="horizontal">
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginEnd="8dp"
-                        android:contentDescription="gallery icon"
-                        android:src="@drawable/open_gallery_icon"
-                        app:tint="@color/white" />
-
-                    <TextView
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="10dp"
+                    android:clickable="true"
+                    app:cardBackgroundColor="@color/dark_green"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="4dp"
+                    app:cardUseCompatPadding="true"
+                    app:contentPadding="10dp"
+                    app:contentPaddingLeft="35dp">
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Gallery"
-                        android:textColor="@color/white"
-                        android:textSize="18sp" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+                        android:gravity="center"
+                        android:orientation="horizontal">
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_marginEnd="8dp"
+                            android:contentDescription="gallery icon"
+                            android:src="@drawable/open_gallery_icon"
+                            app:tint="@color/white" />
 
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="0.1"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Gallery"
+                            android:textColor="@color/white"
+                            android:textSize="18sp" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+            </LinearLayout>
 
-            <androidx.cardview.widget.CardView
-                android:id="@+id/open_camera_button"
+            <LinearLayout
                 android:layout_width="0dp"
-                android:layout_weight="0.5"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="10dp"
-                android:clickable="true"
-                app:cardBackgroundColor="@color/light_grey"
-                app:cardCornerRadius="10dp"
-                app:cardElevation="4dp"
-                app:cardUseCompatPadding="true"
-                app:contentPadding="10dp">
-                <LinearLayout
-                    android:layout_width="wrap_content"
+                android:padding="16dp">
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/open_camera_button"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:gravity="center"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginEnd="8dp"
-                        android:contentDescription="camera icon"
-                        android:src="@drawable/open_camera_icon"
-                        app:tint="@color/dark_grey" />
-
-                    <TextView
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="10dp"
+                    android:clickable="true"
+                    app:cardBackgroundColor="@color/light_grey"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="4dp"
+                    app:cardUseCompatPadding="true"
+                    app:contentPadding="10dp"
+                    app:contentPaddingLeft="35dp">
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Camera"
-                        android:textColor="@color/black"
-                        android:textSize="18sp" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+                        android:gravity="center"
+                        android:orientation="horizontal">
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_marginEnd="8dp"
+                            android:contentDescription="camera icon"
+                            android:src="@drawable/open_camera_icon"
+                            app:tint="@color/dark_grey" />
 
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="0.1"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Camera"
+                            android:textColor="@color/black"
+                            android:textSize="18sp" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout

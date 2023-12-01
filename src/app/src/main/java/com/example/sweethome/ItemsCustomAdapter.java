@@ -153,7 +153,7 @@ public class ItemsCustomAdapter extends ArrayAdapter<Item> {
         }
 
         for (String tagName : item.getTags()) {
-            View tag_item = LayoutInflater.from(getContext()).inflate(R.layout.tag, null);
+            View tag_item = LayoutInflater.from(getContext()).inflate(R.layout.tag_applied, null);
             TextView tag_name_field = tag_item.findViewById(R.id.tag_name);
             tag_name_field.setText(tagName);
             tags_container.addView(tag_item);

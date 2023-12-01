@@ -1,9 +1,12 @@
 package com.example.sweethome;
 // source : https://firebase.google.com/docs/auth/android/password-auth#java_2
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.SpannableString;
+import android.text.TextUtils;
 import android.text.style.UnderlineSpan;
 import android.util.Log;
 import android.view.View;
@@ -52,6 +55,12 @@ public class LoginActivity extends AppCompatActivity {
         /* set up a connection to our db and a reference to the users collection */
         db = FirebaseFirestore.getInstance();
         usersRef = db.collection("users");
+
+        SharedPreferences preferences = getSharedPreferences("user_preferences", Context.MODE_PRIVATE);
+        String savedUsername = preferences.getString("username", "");
+        if (!TextUtils.isEmpty(savedUsername)) {
+            editTextUsername.setText(savedUsername);
+        }
 
         // Underline the text "Sign Up"
         String text = textViewSignUp.getText().toString();

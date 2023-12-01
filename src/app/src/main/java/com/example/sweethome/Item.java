@@ -31,7 +31,7 @@ public class Item implements Serializable {
     private String model;
     private String serialNumber;
     private double estimatedValue;
-    private Timestamp purchaseDate;
+    private transient Timestamp purchaseDate;
     private String comment;
     private Boolean selected = false;
     private ArrayList<String> photos;

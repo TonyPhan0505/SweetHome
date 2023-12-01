@@ -433,22 +433,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
     </TextView>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/tag_action_on_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:src="@drawable/modify_icon"
-        app:tint="@android:color/white"
-        android:foregroundGravity="center"
-        android:foregroundTintMode="src_atop"
-        app:backgroundTint="@color/dark_green"
-        app:layout_constraintBottom_toTopOf="@+id/delete_action_button"
-        app:layout_constraintEnd_toEndOf="parent" />
-
     <LinearLayout
         android:id="@+id/action_panel"
         android:layout_width="wrap_content"
@@ -505,6 +489,21 @@
     </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/tag_action_on_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:src="@drawable/modify_icon"
+        app:tint="@android:color/white"
+        android:foregroundGravity="center"
+        android:foregroundTintMode="src_atop"
+        app:backgroundTint="@color/dark_green"
+        app:layout_constraintBottom_toTopOf="@+id/delete_action_button"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/delete_action_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -521,7 +520,7 @@
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/create_tag_fragment"
-        android:name="com.example.sweethome.CreateTagFragment"
+        android:name="com.example.sweethome.CreateApplyTagFragment"
         android:layout_width="333dp"
         android:layout_height="538dp"
         android:tag="container_tag"

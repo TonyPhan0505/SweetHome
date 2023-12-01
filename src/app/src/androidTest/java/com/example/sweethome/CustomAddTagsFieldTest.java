@@ -1,13 +1,8 @@
 package com.example.sweethome;
 
-import static android.support.test.InstrumentationRegistry.getContext;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.ImageView;
 
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
