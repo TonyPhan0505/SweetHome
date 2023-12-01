@@ -125,7 +125,7 @@ public class CreateTagFragment extends Fragment {
         });
         tagsRef = db.collection("tags");
         tagsList = new ArrayList<>();
-        tagFilterSpinner = view.findViewById(R.id.tag_filter_field);
+        tagFilterSpinner = view.findViewById(R.id.tag_filter_spinner);
         tagsRef.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {

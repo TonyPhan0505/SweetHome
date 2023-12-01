@@ -38,7 +38,7 @@
             android:visibility="gone"
             android:background="@drawable/filter_border">
             <Spinner
-                android:id="@+id/tag_filter_field"
+                android:id="@+id/tag_filter_spinner"
                 android:layout_weight="1"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
