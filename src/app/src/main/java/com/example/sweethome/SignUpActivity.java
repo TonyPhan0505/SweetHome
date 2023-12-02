@@ -101,6 +101,9 @@ public class SignUpActivity extends AppCompatActivity {
         if (desiredUsername.isEmpty() || desiredUsername.contains(" ")) {
             usernameEditText.setError("Username cannot be empty or contain spaces.");
             return;
+        } else if (desiredUsername.length() > 25) {
+            usernameEditText.setError("Username cannot be longer than 25 characters.");
+            return;
         }
         /* check if the password contains any spaces or is empty */
         if (password.isEmpty() || password.contains(" ")) {

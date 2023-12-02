@@ -20,9 +20,11 @@ import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.PorterDuff;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -67,7 +69,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class MainActivity extends AppCompatActivity implements IFilterable {
+public class MainActivity extends AppCompatActivity implements IFilterable, NetworkChangeReceiver.NetworkChangeListener {
     /* attributes of this class */
     private ArrayList<Item> itemList;  // do not ever mutate, except for sorting and populating
     private ListView itemListView;
@@ -94,9 +96,6 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private EditText makeField;
     private TextView calendar_data;
     private Boolean datePickerShown = false;
-    private static final String PREF_NAME = "DateRangePrefs";
-    private static final String START_DATE_KEY = "startDate";
-    private static final String END_DATE_KEY = "endDate";
     // Declare MaterialDatePicker as a field
     private MaterialDatePicker<Pair<Long, Long>> dateRangePicker;
     private Long selectedStartDate;
@@ -116,6 +115,7 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
     private TextView noItemsFound;
     private TextView items_count_field;
     private CreateApplyTagFragment ctFragment;
+    private NetworkChangeReceiver networkChangeReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -486,6 +486,9 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
             public void afterTextChanged(Editable editable) {
             }
         });
+
+        networkChangeReceiver = new NetworkChangeReceiver();
+        networkChangeReceiver.setListener(this);
     }
 
     // Performs the search
@@ -511,11 +514,35 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Register the receiver
+        IntentFilter intentFilter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(networkChangeReceiver, intentFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Unregister the receiver
+        unregisterReceiver(networkChangeReceiver);
+    }
+
+    @Override
+    public void onNetworkChanged(boolean isConnected) {
+        if (!isConnected) {
+            Toast.makeText(MainActivity.this, "No internet connection.", Toast.LENGTH_SHORT).show();
+            // Redirect to the login screen
+            Intent loginIntent = new Intent(this, LoginActivity.class);
+            startActivity(loginIntent);
+        }
+    }
 
     @Override
     protected void onStop() {
-        getApplicationContext().getCacheDir().delete();
         super.onStop();
+        getApplicationContext().getCacheDir().delete();
     }
 
     public void closeFragment() {
@@ -524,12 +551,12 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
         calendar_data.setText("");
         filterPanel.setVisibility(View.GONE);
         makeField.setText("");
         keywordField.setText("");
         getApplicationContext().getCacheDir().delete();
-        super.onDestroy();
     }
 
     private void executeFilters() {
@@ -637,17 +664,17 @@ public class MainActivity extends AppCompatActivity implements IFilterable {
                 }
                 if (count < 2) {
                     tagsRef
-                            .whereEqualTo("name", associatedTag)
-                            .get()
-                            .addOnCompleteListener(task -> {
-                                if (task.isSuccessful()) {
-                                    for (QueryDocumentSnapshot document : task.getResult()) {
-                                        List<String> usernames = (List<String>) document.get("usernames");
-                                        usernames.remove(app.getUsername());
-                                        tagsRef.document(document.getId()).update("usernames", usernames);
-                                    }
+                        .whereEqualTo("name", associatedTag)
+                        .get()
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                for (QueryDocumentSnapshot document : task.getResult()) {
+                                    List<String> usernames = (List<String>) document.get("usernames");
+                                    usernames.remove(app.getUsername());
+                                    tagsRef.document(document.getId()).update("usernames", usernames);
                                 }
-                            });
+                            }
+                        });
                     tagsList.remove(associatedTag);
                     tagFilterAdapter.notifyDataSetChanged();
                     selectedTagForFiltering = "";

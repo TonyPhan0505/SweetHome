@@ -21,7 +21,9 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/textViewLoginTitle"
         android:hint="@string/username_hint"
-        android:layout_marginTop="30dp"/>
+        android:maxLines="1"
+        android:layout_marginTop="30dp"
+        android:maxLength="25"/>
 
     <EditText
         android:id="@+id/editTextPassword"
@@ -30,7 +32,8 @@
         android:hint="@string/password_hint"
         android:inputType="textPassword"
         android:layout_below="@id/editTextUsername"
-        android:layout_marginTop="30dp"/>
+        android:layout_marginTop="30dp"
+        android:maxLines="1"/>
 
     <TextView
         android:id="@+id/textViewForgotPassword"
