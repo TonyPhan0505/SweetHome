@@ -23,7 +23,8 @@
         android:hint="@string/username_hint"
         android:maxLines="1"
         android:layout_marginTop="30dp"
-        android:maxLength="25"/>
+        android:maxLength="25"
+        android:inputType="text|textNoSuggestions"/>
 
     <EditText
         android:id="@+id/editTextPassword"
