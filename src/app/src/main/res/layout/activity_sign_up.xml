@@ -21,6 +21,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/textViewSignUpTitle"
         android:layout_marginTop="30dp"
+        android:maxLines="1"
         android:hint="@string/email_hint" />
 
     <EditText
@@ -29,7 +30,9 @@
         android:layout_height="wrap_content"
         android:hint="@string/username_hint"
         android:layout_below="@id/editTextEmailSignUp"
-        android:layout_marginTop="30dp"/>
+        android:layout_marginTop="30dp"
+        android:maxLines="1"
+        android:maxLength="25"/>
 
     <EditText
         android:id="@+id/editTextPasswordSignUp"
@@ -38,7 +41,9 @@
         android:hint="@string/password_hint"
         android:inputType="textPassword"
         android:layout_below="@id/editTextUsernameSignUp"
-        android:layout_marginTop="30dp"/>
+        android:layout_marginTop="30dp"
+        android:maxLines="1"/>
+
     <EditText
         android:id="@+id/editTextConfirmPasswordSignUp"
         android:layout_width="match_parent"
@@ -46,7 +51,8 @@
         android:hint="@string/password_confirm"
         android:inputType="textPassword"
         android:layout_below="@id/editTextPasswordSignUp"
-        android:layout_marginTop="30dp"/>
+        android:layout_marginTop="30dp"
+        android:maxLines="1"/>
 
     <Button
         android:id="@+id/buttonSignUp"

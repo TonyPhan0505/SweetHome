@@ -111,7 +111,8 @@ public class CustomAddTagsField extends AppCompatEditText {
      * @param tagName The name of the tag to be added.
      */
     public void addTag(String tagName) {
-        if (!tagName.isEmpty()) {
+        this.setError(null);
+        if (!tagName.isEmpty() && tagName.length() <= 20) {
             tagName = tagName.substring(0, 1).toUpperCase() + tagName.substring(1); // capitalize the first letter
             this.addedTagNames.add(tagName);
             setTypeface(Typeface.defaultFromStyle(Typeface.NORMAL));
@@ -136,6 +137,8 @@ public class CustomAddTagsField extends AppCompatEditText {
                 tags_container.removeView(tag_item);
             });
             setText(null);
+        } else if (tagName.length() > 20) {
+            this.setError("Tag cannot be longer than 20 characters.");
         }
     }
 

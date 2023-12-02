@@ -4,6 +4,8 @@ package com.example.sweethome;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.TextUtils;
@@ -72,10 +74,14 @@ public class LoginActivity extends AppCompatActivity {
         textViewSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Start SignUpActivity
-                Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
-                startActivity(intent);
-                finish(); // Close the LoginActivity once the process is complete
+                if (isInternetAvailable()) {
+                    // Start SignUpActivity
+                    Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
+                    startActivity(intent);
+                    finish(); // Close the LoginActivity once the process is complete
+                } else {
+                    Toast.makeText(LoginActivity.this, "No internet connection.", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -83,10 +89,14 @@ public class LoginActivity extends AppCompatActivity {
         textViewForgotPassword.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                /* start ForgotPasswordActivity */
-                Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
-                startActivity(intent);
-                finish(); //close the LoginActivity
+                if (isInternetAvailable()) {
+                    /* start ForgotPasswordActivity */
+                    Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
+                    startActivity(intent);
+                    finish(); //close the LoginActivity
+                } else {
+                    Toast.makeText(LoginActivity.this, "No internet connection.", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -94,12 +104,25 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String enteredUsername = editTextUsername.getText().toString().trim();
-                String password = editTextPassword.getText().toString();
-                // Call method to handle the login process
-                attemptLogin(enteredUsername, password);
+                if (isInternetAvailable()) {
+                    String enteredUsername = editTextUsername.getText().toString().trim();
+                    String password = editTextPassword.getText().toString();
+                    // Call method to handle the login process
+                    attemptLogin(enteredUsername, password);
+                } else {
+                    Toast.makeText(LoginActivity.this, "No internet connection.", Toast.LENGTH_SHORT).show();
+                }
             }
         });
+    }
+
+    private boolean isInternetAvailable() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+            return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+        }
+        return false;
     }
 
     private void attemptLogin(String enteredUsername, String password) {
@@ -107,6 +130,9 @@ public class LoginActivity extends AppCompatActivity {
         // Check for empty username input
         if (enteredUsername.isEmpty()) {
             editTextUsername.setError("Username cannot be empty.");
+            return;
+        } else if (enteredUsername.length() > 25) {
+            editTextUsername.setError("Username cannot be longer than 25 characters.");
             return;
         }
         /* check if the password is empty */

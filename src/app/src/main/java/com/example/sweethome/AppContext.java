@@ -26,4 +26,5 @@ public class AppContext extends Application {
     public void setUsername(String username) {
         this.username = username;
     }
+
 }

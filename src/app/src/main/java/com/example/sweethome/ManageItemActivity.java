@@ -17,7 +17,9 @@ import androidx.core.content.ContextCompat;
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -65,7 +67,7 @@ import java.util.Calendar;
 
 import javax.annotation.Nullable;
 
-public class ManageItemActivity extends AppCompatActivity implements BarcodeLookupApi.BarcodeLookupListener {
+public class ManageItemActivity extends AppCompatActivity implements BarcodeLookupApi.BarcodeLookupListener, NetworkChangeReceiver.NetworkChangeListener {
     /* attributes and variables of this class */
     private StorageReference photosStorageRef = FirebaseStorage.getInstance().getReference();
     private StorageReference photosRef = photosStorageRef.child("images");
@@ -129,6 +131,7 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
     private String scannedBarcode;
     private static final int SCAN_SN_REQUEST_CODE = 4;
     public AppContext app;
+    private NetworkChangeReceiver networkChangeReceiver;
 
     /**
      * Called when the activity is first created. Initializes UI components, sets up listeners,
@@ -444,6 +447,34 @@ public class ManageItemActivity extends AppCompatActivity implements BarcodeLook
                 }
             }
         });
+
+        networkChangeReceiver = new NetworkChangeReceiver();
+        networkChangeReceiver.setListener(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Register the receiver
+        IntentFilter intentFilter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(networkChangeReceiver, intentFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Unregister the receiver
+        unregisterReceiver(networkChangeReceiver);
+    }
+
+    @Override
+    public void onNetworkChanged(boolean isConnected) {
+        if (!isConnected) {
+            Toast.makeText(ManageItemActivity.this, "Lost internet connection.", Toast.LENGTH_SHORT).show();
+            // Redirect to the login screen
+            Intent loginIntent = new Intent(ManageItemActivity.this, LoginActivity.class);
+            startActivity(loginIntent);
+        }
     }
 
     @Override
