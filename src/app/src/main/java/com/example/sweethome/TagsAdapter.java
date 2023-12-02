@@ -18,6 +18,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class implements the adapter for tag entry views on the list
@@ -33,10 +34,12 @@ public class TagsAdapter extends RecyclerView.Adapter<TagViewHolder> {
     CollectionReference tagsRef;
     CollectionReference itemsRef;
     int positionToRemove;
+    String username;
 
-    public TagsAdapter(Context context, ArrayList<Tag> tags) {
+    public TagsAdapter(Context context, ArrayList<Tag> tags, String username) {
         this.context = context;
         this.tags = tags;
+        this.username = username;
     }
 
     @NonNull
@@ -45,7 +48,6 @@ public class TagsAdapter extends RecyclerView.Adapter<TagViewHolder> {
         db = FirebaseFirestore.getInstance();
         tagsRef = db.collection("tags");
         itemsRef = db.collection("items");
-
         return new TagViewHolder(LayoutInflater.from(context).inflate(R.layout.tag_created, parent, false));
     }
 
@@ -55,28 +57,40 @@ public class TagsAdapter extends RecyclerView.Adapter<TagViewHolder> {
         holder.getRemoveTagIconView().setOnClickListener(v -> {
             positionToRemove = holder.getAdapterPosition();
             String tagId = tags.get(positionToRemove).getTagId();
+            // only delete a tag document if it's all yours and it's not associated with any item in db, otherwise just update the usernames list of the tag document
             tagsRef.document(tagId).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                 @Override
                 public void onSuccess(DocumentSnapshot tagDocumentSnapshot) {
                     if (tagDocumentSnapshot.exists()) {
                         String tagName = tagDocumentSnapshot.getString("name");
+                        List<String> tagUsernames = (List<String>) tagDocumentSnapshot.get("usernames");
                         itemsRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                             @Override
                             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                                Boolean associatedWithItem = false;
                                 String itemName = "";
+                                ArrayList<String> associatedWithItemsOf = new ArrayList<>();
                                 for (QueryDocumentSnapshot itemDocumentSnapshot : queryDocumentSnapshots) {
                                     ArrayList<String> tags = (ArrayList<String>) itemDocumentSnapshot.get("tags");
-                                    itemName = itemDocumentSnapshot.getString("name");
-                                    if (tags.contains(tagName)) {
-                                        associatedWithItem = true;
-                                        break;
+                                    String itemUsername = itemDocumentSnapshot.getString("username");
+                                    if (tags.contains(tagName) && !associatedWithItemsOf.contains(itemUsername)) {
+                                        associatedWithItemsOf.add(itemUsername);
+                                        if (itemName.length() < 1 && itemUsername.equals(username)) {
+                                            itemName = itemDocumentSnapshot.getString("name");
+                                        }
                                     }
                                 }
-                                if (associatedWithItem) {
-                                    Toast.makeText(context,"Cannot remove tag. Tag belongs to item: '" + itemName + "'.", Toast.LENGTH_SHORT).show();
-                                } else {
+                                if (tagUsernames.size() <= 1 && associatedWithItemsOf.size() < 1) {
                                     deleteTagFromDatabase(tagId);
+                                } else {
+                                    if (associatedWithItemsOf.contains(username)) {
+                                        Toast.makeText(context,"Cannot remove tag. Tag belongs to item: '" + itemName + "'.", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        if (tagUsernames.size() > 1) {
+                                            tagUsernames.remove(username);
+                                            tagsRef.document(tagId).update("usernames", tagUsernames);
+                                            Toast.makeText(context,"Tag deleted.", Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
                                 }
                             }
                         });
@@ -88,21 +102,21 @@ public class TagsAdapter extends RecyclerView.Adapter<TagViewHolder> {
 
     public void deleteTagFromDatabase(String tagId) {
         tagsRef.document(tagId)
-                .delete()
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void unused) {
-                        Log.d("Firestore", "DocumentSnapshot successfully deleted!");
-                        Toast.makeText(context,"Tag deleted.", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.e("Firestore", "DocumentSnapshot deleted failed!");
-                        Toast.makeText(context, "Failed to delete tag.", Toast.LENGTH_SHORT).show();
-                    }
-                });
+            .delete()
+            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void unused) {
+                    Log.d("Firestore", "DocumentSnapshot successfully deleted!");
+                    Toast.makeText(context,"Tag deleted.", Toast.LENGTH_SHORT).show();
+                }
+            })
+            .addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.e("Firestore", "DocumentSnapshot deleted failed!");
+                    Toast.makeText(context, "Failed to delete tag.", Toast.LENGTH_SHORT).show();
+                }
+            });
         tags.remove(positionToRemove);
         notifyDataSetChanged();
     }

@@ -56,6 +56,7 @@ public class CreateApplyTagFragment extends Fragment {
 
     // tags
     private ArrayList<Tag> tags;
+    private ArrayList<Tag> allTags = new ArrayList<>();
     private LinearLayout spinnerContainer;
     private Spinner tagFilterSpinner;
     private ArrayAdapter<String> tagFilterAdapter;
@@ -146,7 +147,7 @@ public class CreateApplyTagFragment extends Fragment {
         tagsRecyclerView = view.findViewById(R.id.tags_recycler_view);
         tagsRecyclerView.setLayoutManager(new LinearLayoutManager(view.getContext()));
         tags = new ArrayList<Tag>();
-        tagsAdapter = new TagsAdapter(view.getContext(), tags);
+        tagsAdapter = new TagsAdapter(view.getContext(), tags, username);
         tagsRecyclerView.setAdapter(tagsAdapter);
 
         // Find views
@@ -268,12 +269,13 @@ public class CreateApplyTagFragment extends Fragment {
                 }
                 for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                     ArrayList<String> usernames = (ArrayList<String>) doc.get("usernames");
+                    Tag tag = doc.toObject(Tag.class); //convert the contents of each document in the tags collection to an item object
+                    tag.setId(doc.getId()); //set the item ID
+                    tag.setName((String) doc.get("name"));
+                    tag.setTimestamp((Timestamp) doc.get("timestamp"));
+                    tag.setUsernames(usernames);
+                    allTags.add(tag);
                     if (usernames.contains(username)) {
-                        Tag tag = doc.toObject(Tag.class); //convert the contents of each document in the tags collection to an item object
-                        tag.setId(doc.getId()); //set the item ID
-                        tag.setName((String) doc.get("name"));
-                        tag.setTimestamp((Timestamp) doc.get("timestamp"));
-                        tag.setUsernames(usernames);
                         Log.i("Firestore", String.format("Tag %s fetched", tag.getTagName())); //log the name of the tag we successfully got from the db
                         if (purpose == "create_tag") {
                             tags.add(tag); //add the item object to our item list
@@ -359,7 +361,7 @@ public class CreateApplyTagFragment extends Fragment {
     private void addTagToDatabase(String tagInput) {
         tagInput = tagInput.substring(0, 1).toUpperCase() + tagInput.substring(1);
         Tag existingTag = null;
-        for (Tag tagObject : tags) {
+        for (Tag tagObject : allTags) {
             if (tagObject.getTagName().equals(tagInput)) {
                 existingTag = tagObject;
                 break;
