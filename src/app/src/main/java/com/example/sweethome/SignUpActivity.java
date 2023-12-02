@@ -1,7 +1,10 @@
 package com.example.sweethome;
 // source : https://firebase.google.com/docs/auth/android/password-auth#java_2
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.style.UnderlineSpan;
@@ -80,14 +83,27 @@ public class SignUpActivity extends AppCompatActivity {
         signUpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String email = emailEditText.getText().toString().trim();
-                String desiredUsername = usernameEditText.getText().toString().trim();
-                String password = passwordEditText.getText().toString().trim();
-                String confirmPassword = confirmPasswordEditText.getText().toString().trim();
-                // Call method to handle the sign-up process
-                attemptSignUp(email, desiredUsername, password, confirmPassword);
+                if (isInternetAvailable()) {
+                    String email = emailEditText.getText().toString().trim();
+                    String desiredUsername = usernameEditText.getText().toString().trim();
+                    String password = passwordEditText.getText().toString().trim();
+                    String confirmPassword = confirmPasswordEditText.getText().toString().trim();
+                    // Call method to handle the sign-up process
+                    attemptSignUp(email, desiredUsername, password, confirmPassword);
+                } else {
+                    Toast.makeText(SignUpActivity.this, "No internet connection.", Toast.LENGTH_SHORT).show();
+                }
             }
         });
+    }
+
+    private boolean isInternetAvailable() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+            return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+        }
+        return false;
     }
 
     private void attemptSignUp(String email, String desiredUsername, String password, String confirmPassword) {

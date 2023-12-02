@@ -1,6 +1,9 @@
 package com.example.sweethome;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.style.UnderlineSpan;
@@ -61,12 +64,13 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         sendEmailButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                /* get the inputted email */
-                String email = editTextSendEmail.getText().toString().trim();
-                if (email.isEmpty()) { //check that the email is not empty
-                    editTextSendEmail.setError("Email cannot be empty.");
-                } else { //otherwise try to send the password reset email
-                    usersRef.whereEqualTo("email", email)
+                if (isInternetAvailable()) {
+                    /* get the inputted email */
+                    String email = editTextSendEmail.getText().toString().trim();
+                    if (email.isEmpty()) { //check that the email is not empty
+                        editTextSendEmail.setError("Email cannot be empty.");
+                    } else { //otherwise try to send the password reset email
+                        usersRef.whereEqualTo("email", email)
                             .limit(1)
                             .get()
                             .addOnCompleteListener(task -> {
@@ -76,23 +80,23 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                                         List docs = q.getDocuments();
                                         if (docs.size() != 0 && docs.get(0) != null) {
                                             FirebaseAuth.getInstance().sendPasswordResetEmail(email)
-                                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                        @Override
-                                                        public void onComplete(@NonNull Task<Void> vtask) {
-                                                            if (vtask.isSuccessful()) {
-                                                                Log.d("Firestore", "password reset email sent:success");
-                                                                Toast.makeText(ForgotPasswordActivity.this, "Password reset email sent", Toast.LENGTH_SHORT).show();
-                                                                // Start LoginActivity
-                                                                Intent intent = new Intent(ForgotPasswordActivity.this, LoginActivity.class);
-                                                                startActivity(intent);
-                                                                finish(); // Close the ForgotPasswordActivity
-                                                            } else {
-                                                                Log.w("Firestore", "password reset email sent:failure", task.getException());
-                                                                String error = task.getException().getMessage();
-                                                                Toast.makeText(ForgotPasswordActivity.this, "Password reset email could not be sent\n" + error, Toast.LENGTH_SHORT).show();
-                                                            }
+                                                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<Void> vtask) {
+                                                        if (vtask.isSuccessful()) {
+                                                            Log.d("Firestore", "password reset email sent:success");
+                                                            Toast.makeText(ForgotPasswordActivity.this, "Password reset email sent", Toast.LENGTH_SHORT).show();
+                                                            // Start LoginActivity
+                                                            Intent intent = new Intent(ForgotPasswordActivity.this, LoginActivity.class);
+                                                            startActivity(intent);
+                                                            finish(); // Close the ForgotPasswordActivity
+                                                        } else {
+                                                            Log.w("Firestore", "password reset email sent:failure", task.getException());
+                                                            String error = task.getException().getMessage();
+                                                            Toast.makeText(ForgotPasswordActivity.this, "Password reset email could not be sent\n" + error, Toast.LENGTH_SHORT).show();
                                                         }
-                                                    });
+                                                    }
+                                                });
                                         } else { // if we cannot find the email in our db
                                             editTextSendEmail.setError("Email is not linked to an existing account");
                                         }
@@ -103,10 +107,20 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                                     editTextSendEmail.setError("Email is not linked to an existing account");
                                 }
                             });
+                    }
+                } else {
+                    Toast.makeText(ForgotPasswordActivity.this, "No internet connection.", Toast.LENGTH_SHORT).show();
                 }
             }
-
         });
+    }
 
+    private boolean isInternetAvailable() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+            return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+        }
+        return false;
     }
 }
