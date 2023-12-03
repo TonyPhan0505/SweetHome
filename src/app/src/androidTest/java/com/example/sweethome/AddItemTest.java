@@ -3,6 +3,7 @@ package com.example.sweethome;
 import static androidx.test.espresso.Espresso.closeSoftKeyboard;
 import static androidx.test.espresso.Espresso.onData;
 import static androidx.test.espresso.Espresso.onView;
+import static androidx.test.espresso.action.ViewActions.clearText;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
@@ -35,15 +36,31 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 
-// sources: https://stackoverflow.com/questions/27382147/write-a-test-that-clicks-on-views-inside-popupwindow
+/**
+ * AddItemTest
+ *
+ * This class orchestrate an instrumented test named testAddItem to check
+ * if the item adding functionality is working properly.
+ *
+ * Date: November 10, 2023
+ *
+ * sources: https://stackoverflow.com/questions/27382147/write-a-test-that-clicks-on-views-inside-popupwindow
+ */
+
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class AddItemTest {
     @Rule
-    public ActivityScenarioRule<MainActivity> scenario=new ActivityScenarioRule<MainActivity>(MainActivity.class);
+    public ActivityScenarioRule<WelcomeActivity> scenario=new ActivityScenarioRule<WelcomeActivity>(WelcomeActivity.class);
 
     @Before
     public void setup() throws InterruptedException{
+        Thread.sleep(5000);
+        onView(withId(R.id.editTextUsername)).perform(clearText());
+        onView(withId(R.id.editTextUsername)).perform(ViewActions.typeText("logintest"));
+        onView(withId(R.id.editTextPassword)).perform(clearText());
+        onView(withId(R.id.editTextPassword)).perform(ViewActions.typeText("logintest"));
+        onView(withId(R.id.buttonLogin)).perform(click());
         Thread.sleep(5000);
     }
     @Test
@@ -75,17 +92,19 @@ public class AddItemTest {
         onView(withId(R.id.check_icon)).perform(click());
         Thread.sleep(3000);
 
-
+        /* Check if added item is on the item_list */
         onData(anything()).inAdapterView(withId(R.id.item_list)).atPosition(0).onChildView(withId(R.id.item_name)).check(matches(withText("AddItemTest")));
-    }
-
-    @After
-    public void clear() throws InterruptedException {
         onData(anything()).inAdapterView(withId(R.id.item_list)).atPosition(0).onChildView(withId(R.id.item_checkBox)).perform(click());
         Thread.sleep(3000);
         onView(withId(R.id.delete_action_button)).perform(click());
-        Thread.sleep(3000);
+        Thread.sleep(1000);
         onView(withId(R.id.delete_button)).perform(click());
+        Thread.sleep(1000);
+        onView(withId(R.id.btn_logout)).perform(click());
+        Thread.sleep(2000);
+        onView(withId(R.id.profile_logout)).perform(click());
+
     }
+
 }
 
