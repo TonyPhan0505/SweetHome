@@ -39,11 +39,11 @@ public class AttachPhotosFromCameraTest {
         // add image
         onView(withId(R.id.image_slider)).check(matches(isDisplayed()));
         // add other fields
-        onView(withId(R.id.item_name_field)).perform(ViewActions.typeText("DeletePhotoTest1"));
+        onView(withId(R.id.item_name_field)).perform(ViewActions.typeText("AttachPhotoGalleryTest1"));
         Thread.sleep(3000);
         onView(withId(R.id.serial_number_field)).perform(ViewActions.typeText("1234567"));
         onView(withId(R.id.serial_number_field)).perform(ViewActions.pressImeActionButton());
-        onView(withId(R.id.tag_input)).perform(ViewActions.typeText("DeletePhotoTest1"));
+        onView(withId(R.id.tag_input)).perform(ViewActions.typeText("AttachPhotoGalleryTest1"));
         onView(withId(R.id.tag_input)).perform(ViewActions.pressImeActionButton());
         Thread.sleep(3000);
         closeSoftKeyboard();
