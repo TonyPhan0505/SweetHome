@@ -22,7 +22,8 @@
         android:layout_below="@id/textViewSignUpTitle"
         android:layout_marginTop="30dp"
         android:maxLines="1"
-        android:hint="@string/email_hint" />
+        android:hint="@string/email_hint"
+        android:inputType="text|textNoSuggestions"/>
 
     <EditText
         android:id="@+id/editTextUsernameSignUp"
@@ -32,7 +33,8 @@
         android:layout_below="@id/editTextEmailSignUp"
         android:layout_marginTop="30dp"
         android:maxLines="1"
-        android:maxLength="25"/>
+        android:maxLength="25"
+        android:inputType="text|textNoSuggestions"/>
 
     <EditText
         android:id="@+id/editTextPasswordSignUp"
