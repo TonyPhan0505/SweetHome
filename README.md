@@ -4,7 +4,7 @@ Sweethome is an android app for managing items that are in your possession or un
 
 If you are a warehouse manager, this app will be a "sweet home" for your items. If you are a library manager, you can easily keep track of and update information about a book using this app. If you simply are looking for a solution to create a detailed inventory of your possessions at home, which can be helpful for insurance purposes in case of theft, fire, or other disasters, then this app will give you a peace of mind.
 
-You can add, view, edit, filter, sort, search items. You can also use the app's barcode and serial number scanners to support you to specify the details of your items. Each of your items comes with 1 or many tags which can help you organize your items. The total estimated value and the individual values of the items are displayed at all times. This app comes with a user-friendly and highly-intuitive interface.
+You can add, view, edit, filter, sort, and search for items. You can also use the app's barcode and serial number scanners to support you to specify the details of your items. Each of your items comes with 1 or many tags which can help you organize your items. The total estimated value and the individual values of the items are displayed at all times. This app comes with a user-friendly and highly-intuitive interface.
 
 ## API level:
 
