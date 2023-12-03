@@ -72,4 +72,4 @@ Note that you might need to wipe the data on your emulator before running.
 * com.github.smarteist:autoimageslider: v1.4.0
 
 ## License
-... pending
+This project comes with an [MIT license](https://github.com/CMPUT301F23T17/SweetHome/blob/main/LICENSE).
