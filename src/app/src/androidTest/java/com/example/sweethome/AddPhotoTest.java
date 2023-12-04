@@ -7,9 +7,11 @@ import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
-import static java.util.EnumSet.allOf;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
+
 
 import android.content.ComponentName;
 import android.net.Uri;
@@ -32,7 +34,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.regex.Matcher;
 
 public class AddPhotoTest {
     ArrayList<ImageSliderData> sliderDataArrayList = new ArrayList();
@@ -73,9 +74,41 @@ public class AddPhotoTest {
         // Add an image to the sliderDataArrayList for testing
         Uri testImageUri = Uri.parse("android.resource://com.example.sweethome/drawable/test_image1");
 
+        // Perform custom action to add the image to the slider
+        onView(withId(R.id.image_slider)).perform(addImageToSliderAction(testImageUri));
 
+        // You might want to wait for the image to load before asserting its presence
+        Thread.sleep(3000);
+
+        // Check if the image is displayed in the slider
+        onView(withId(R.id.image_slider)).check(matches(isImageInSlider(testImageUri)));
 
     }
+    private Matcher<View> isImageInSlider(final Uri expectedImageUri) {
+        return new TypeSafeMatcher<View>() {
+            @Override
+            protected boolean matchesSafely(View view) {
+                if (view instanceof SliderView) {
+                    SliderView sliderView = (SliderView) view;
+                    ImageSliderAdapter adapter = (ImageSliderAdapter) sliderView.getAdapter();
+
+                    for (int i = 0; i < adapter.getCount(); i++) {
+                        ImageSliderData sliderData = adapter.getItemAt(i);
+                        if (sliderData != null && sliderData.getImageUri().equals(expectedImageUri)) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("Image in slider with URI: " + expectedImageUri);
+            }
+        };
+    }
+
     @After
     public void dropWelcome() {
         Intents.release();
