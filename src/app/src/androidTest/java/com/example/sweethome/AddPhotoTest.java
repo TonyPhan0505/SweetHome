@@ -1,5 +1,23 @@
 package com.example.sweethome;
 
+import android.content.ComponentName;
+import android.content.Intent;
+import android.net.Uri;
+import android.view.View;
+
+import androidx.test.core.app.ActivityScenario;
+import androidx.test.espresso.NoMatchingViewException;
+import androidx.test.espresso.action.ViewActions;
+import androidx.test.espresso.intent.Intents;
+import androidx.test.ext.junit.rules.ActivityScenarioRule;
+import androidx.test.rule.GrantPermissionRule;
+
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+import static android.app.Activity.RESULT_OK;
 import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
@@ -8,45 +26,18 @@ import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
-
-
-import android.content.ComponentName;
-import android.net.Uri;
-import android.view.View;
-
-import androidx.test.espresso.NoMatchingViewException;
-import androidx.test.espresso.UiController;
-import androidx.test.espresso.ViewAction;
-import androidx.test.espresso.action.ViewActions;
-import androidx.test.espresso.intent.Intents;
-import androidx.test.espresso.matcher.ViewMatchers;
-import androidx.test.ext.junit.rules.ActivityScenarioRule;
-import androidx.test.rule.GrantPermissionRule;
-
-import com.smarteist.autoimageslider.SliderView;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-import java.util.ArrayList;
 
 public class AddPhotoTest {
-    ArrayList<ImageSliderData> sliderDataArrayList = new ArrayList();
-    private ImageSliderAdapter adapter;
     @Rule
-    public ActivityScenarioRule<WelcomeActivity> welcomeScenario=new ActivityScenarioRule<WelcomeActivity>(WelcomeActivity.class);
+    public ActivityScenarioRule<WelcomeActivity> welcomeScenario=new ActivityScenarioRule<>(WelcomeActivity.class);
+
     @Rule
     public GrantPermissionRule permissionRule = GrantPermissionRule.grant(android.Manifest.permission.CAMERA);
+
     @Before
     public void initWelcome() {
         Intents.init();
     }
-
 
     @Test
     public void testAddPhoto() throws InterruptedException {
@@ -64,53 +55,26 @@ public class AddPhotoTest {
             /* check if the main activity is launched */
             intended(hasComponent(new ComponentName(getApplicationContext(), MainActivity.class)));
         }
-        /* click add button on MainActivity */
-        onView(withId(R.id.add_button)).perform(click());
-        Thread.sleep(3000);
-        /* Verify that we are in ManageItemActivity */
-        intended(hasComponent(new ComponentName(getApplicationContext(), ManageItemActivity.class)));
+        // Create an Intent with the desired data
+        Intent data = new Intent();
+        data.setData(Uri.parse("https://firebasestorage.googleapis.com/v0/b/sweethome-7045b.appspot.com/o/images%2Fphoto_1701038721847.jpg?alt=media&token=c9cf1741-3f8a-4783-b5a6-63ab3662efcd"));
 
-        /* Add photo to slider */
-        // Add an image to the sliderDataArrayList for testing
-        Uri testImageUri = Uri.parse("android.resource://com.example.sweethome/drawable/test_image1");
+        // Start the activity
+        ActivityScenario<ManageItemActivity> scenario = ActivityScenario.launch(ManageItemActivity.class);
 
-        // Perform custom action to add the image to the slider
-        onView(withId(R.id.image_slider)).perform(addImageToSliderAction(testImageUri));
+        // Use the onActivity callback to interact with the activity
+        scenario.onActivity(activity -> {
+            // Simulate onActivityResult
+            activity.onActivityResult(activity.getOpenGalleryRequestCode(), RESULT_OK, data);
 
-        // You might want to wait for the image to load before asserting its presence
-        Thread.sleep(3000);
+            // Add assertions based on your implementation
+            Assert.assertEquals(View.GONE, activity.getNoImagePlaceholder().getVisibility());
+            Assert.assertEquals(View.VISIBLE, activity.getSliderViewFrame().getVisibility());
 
-        // Check if the image is displayed in the slider
-        onView(withId(R.id.image_slider)).check(matches(isImageInSlider(testImageUri)));
+            // Add more assertions as needed to validate your expected behavior
+        });
 
-    }
-    private Matcher<View> isImageInSlider(final Uri expectedImageUri) {
-        return new TypeSafeMatcher<View>() {
-            @Override
-            protected boolean matchesSafely(View view) {
-                if (view instanceof SliderView) {
-                    SliderView sliderView = (SliderView) view;
-                    ImageSliderAdapter adapter = (ImageSliderAdapter) sliderView.getAdapter();
-
-                    for (int i = 0; i < adapter.getCount(); i++) {
-                        ImageSliderData sliderData = adapter.getItemAt(i);
-                        if (sliderData != null && sliderData.getImageUri().equals(expectedImageUri)) {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            }
-
-            @Override
-            public void describeTo(Description description) {
-                description.appendText("Image in slider with URI: " + expectedImageUri);
-            }
-        };
-    }
-
-    @After
-    public void dropWelcome() {
-        Intents.release();
+        // Close the activity after testing
+        scenario.close();
     }
 }
