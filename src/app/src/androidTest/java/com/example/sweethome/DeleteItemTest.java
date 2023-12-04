@@ -20,11 +20,13 @@ import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.PerformException;
 import androidx.test.espresso.ViewAction;
 import androidx.test.espresso.action.ViewActions;
+import androidx.test.espresso.intent.Intents;
 import androidx.test.espresso.matcher.RootMatchers;
 import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
+import androidx.test.rule.GrantPermissionRule;
 
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -45,6 +47,9 @@ import org.junit.runner.RunWith;
 public class DeleteItemTest {
     @Rule
     public ActivityScenarioRule<WelcomeActivity> scenario=new ActivityScenarioRule<WelcomeActivity>(WelcomeActivity.class);
+
+    @Rule
+    public GrantPermissionRule permissionRule = GrantPermissionRule.grant(android.Manifest.permission.CAMERA);
 
     @Before
     public void setup() throws InterruptedException{
@@ -72,7 +77,7 @@ public class DeleteItemTest {
         onView(withId(R.id.item_name_field)).perform(ViewActions.typeText("DeleteTest"));
         Thread.sleep(3000);
         /* Type item's serial number */
-        onView(withId(R.id.serial_number_field)).perform(ViewActions.typeText("1234567"));
+        onView(withId(R.id.serial_number_field)).perform(ViewActions.typeText("tony3"));
         /* Press Enter */
         onView(withId(R.id.serial_number_field)).perform(ViewActions.pressImeActionButton());
         /* Create a tag by typing the tag name */
@@ -115,6 +120,7 @@ public class DeleteItemTest {
         onView(withId(R.id.delete_action_button)).perform(click());
         Thread.sleep(3000);
         onView(withId(R.id.delete_button)).perform(click());
+        Thread.sleep(3000);
         try {
             /* Check position 0 if the item that was supposed to be deleted are still in that that certain position */
             onData(anything()).inAdapterView(withId(R.id.item_list)).atPosition(0).onChildView(withId(R.id.item_name)).check((matches(not(withText("DeleteTest")))));
@@ -130,7 +136,7 @@ public class DeleteItemTest {
         onView(withId(R.id.add_button)).perform(click());
         onView(withId(R.id.item_name_field)).perform(ViewActions.typeText("DMI1"));
         Thread.sleep(3000);
-        onView(withId(R.id.serial_number_field)).perform(ViewActions.typeText("1234567"));
+        onView(withId(R.id.serial_number_field)).perform(ViewActions.typeText("tony1"));
         onView(withId(R.id.serial_number_field)).perform(ViewActions.pressImeActionButton());
         onView(withId(R.id.tag_input)).perform(ViewActions.typeText("testTag"));
         onView(withId(R.id.tag_input)).perform(ViewActions.pressImeActionButton());
@@ -162,7 +168,7 @@ public class DeleteItemTest {
         onView(withId(R.id.add_button)).perform(click());
         onView(withId(R.id.item_name_field)).perform(ViewActions.typeText("DMI2"));
         Thread.sleep(3000);
-        onView(withId(R.id.serial_number_field)).perform(ViewActions.typeText("1224567"));
+        onView(withId(R.id.serial_number_field)).perform(ViewActions.typeText("tony2"));
         onView(withId(R.id.serial_number_field)).perform(ViewActions.pressImeActionButton());
         onView(withId(R.id.tag_input)).perform(ViewActions.typeText("testTag"));
         onView(withId(R.id.tag_input)).perform(ViewActions.pressImeActionButton());
@@ -184,7 +190,7 @@ public class DeleteItemTest {
         onView(ViewMatchers.withId(R.id.scroll_view)).perform(ViewActions.swipeDown());
         Thread.sleep(3000);
         onView(withId(R.id.check_icon)).perform(click());
-        Thread.sleep(3000);
+        Thread.sleep(5000);
 
         /* Check if the second item was added to the list */
         onData(anything()).inAdapterView(withId(R.id.item_list)).atPosition(1).onChildView(withId(R.id.item_name)).check(matches(withText("DMI2")));
@@ -215,11 +221,12 @@ public class DeleteItemTest {
         } catch (PerformException e) {
             // Error means that there is one or no items on the list, nothing in position 1
         }
+        logout();
     }
 
     @After
     public void clear() throws InterruptedException{
-        logout();
+        Intents.release();
     }
 
     private boolean isLoggedIn(){

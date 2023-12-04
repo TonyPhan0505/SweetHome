@@ -13,10 +13,13 @@ import static org.hamcrest.CoreMatchers.anything;
 
 import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.action.ViewActions;
+import androidx.test.espresso.intent.Intents;
 import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
+import androidx.test.rule.GrantPermissionRule;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -39,6 +42,9 @@ import org.junit.runner.RunWith;
 public class AddItemTest {
     @Rule
     public ActivityScenarioRule<WelcomeActivity> scenario=new ActivityScenarioRule<WelcomeActivity>(WelcomeActivity.class);
+
+    @Rule
+    public GrantPermissionRule permissionRule = GrantPermissionRule.grant(android.Manifest.permission.CAMERA);
 
     @Before
     public void setup() throws InterruptedException{
@@ -116,6 +122,7 @@ public class AddItemTest {
     @After
     public void clear() throws InterruptedException {
         logout();
+        Intents.release();
     }
 
     private boolean isLoggedIn(){

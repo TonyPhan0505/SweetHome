@@ -13,6 +13,7 @@ import androidx.test.espresso.intent.Intents;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.rule.GrantPermissionRule;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -89,5 +90,10 @@ public class DeletePhotoTest {
 
         // Close the activity after testing
         scenario.close();
+    }
+
+    @After
+    public void after() {
+        Intents.release();
     }
 }

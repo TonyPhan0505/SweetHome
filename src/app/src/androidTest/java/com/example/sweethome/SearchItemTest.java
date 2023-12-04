@@ -1,59 +1,77 @@
 package com.example.sweethome;
 
+import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
 import static androidx.test.espresso.Espresso.closeSoftKeyboard;
 import static androidx.test.espresso.Espresso.onData;
 import static androidx.test.espresso.Espresso.onView;
-import static androidx.test.espresso.action.ViewActions.clearText;
 import static androidx.test.espresso.action.ViewActions.click;
-import static androidx.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.intent.Intents.intended;
+import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.CoreMatchers.anything;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.not;
 
-import android.app.DatePickerDialog;
-import android.widget.EditText;
+import android.content.ComponentName;
 
-import androidx.test.core.app.ActivityScenario;
-import androidx.test.espresso.ViewAction;
+import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.action.ViewActions;
-import androidx.test.espresso.matcher.RootMatchers;
+import androidx.test.espresso.intent.Intents;
 import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
+import androidx.test.rule.GrantPermissionRule;
 
-
-import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-
-// sources: https://stackoverflow.com/questions/27382147/write-a-test-that-clicks-on-views-inside-popupwindow
+/**
+ * @class SearchItemTest
+ * <p>This class tests searching for the name of an item</p>
+ *
+ * @date <p>December 4, 2023</p>
+ *
+ * @source Stackoverflow's answer to: Write a test that clicks on views inside PopupWindow. The answer was posted
+ * by Nishanth on Apr 17, 2016.
+ *
+ * The content of the posts on StackOverflow are licensed under Creative Commons Attribution-ShareAlike.
+ *
+ * @link https://stackoverflow.com/questions/27382147/write-a-test-that-clicks-on-views-inside-popupwindow
+ */
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class SearchItemTest {
     @Rule
     public ActivityScenarioRule<LoginActivity> scenario=new ActivityScenarioRule<LoginActivity>(LoginActivity.class);
 
+    @Rule
+    public GrantPermissionRule permissionRule = GrantPermissionRule.grant(android.Manifest.permission.CAMERA);
+
     @Before
-    public void setup() throws InterruptedException{
-        Thread.sleep(5000);
+    public void setup() {
+        Intents.init();
     }
     @Test
     public void testSearchItem() throws InterruptedException{
-        //login
-        onView(withId(R.id.editTextUsername)).perform(clearText(), ViewActions.typeText("logintest"));
-        onView(withId(R.id.editTextPassword)).perform(clearText(), ViewActions.typeText("logintest"));
-        onView(withId(R.id.buttonLogin)).perform(click());
-        Thread.sleep(5000);
+        try {
+            Thread.sleep(3000);
+            onView(withId(R.id.search_add_container)).check(matches(isDisplayed()));
+        } catch (NoMatchingViewException e) {
+            /* click the username field edit text, clear text (if applicable) and put our test username */
+            onView(withId(R.id.editTextUsername)).perform(click(), ViewActions.clearText(), ViewActions.typeText("logintest"));
+            /* click the password field edit text, clear text (if applicable) and put in our test password */
+            onView(withId(R.id.editTextPassword)).perform(click(), ViewActions.clearText(), ViewActions.typeText("logintest"));
+            /* click the login button */
+            onView(withId(R.id.buttonLogin)).perform(click());
+            Thread.sleep(3000);
+            /* check if the main activity is launched */
+            intended(hasComponent(new ComponentName(getApplicationContext(), MainActivity.class)));
+        }
 
         // Add first item
         onView(withId(R.id.add_button)).perform(click());
@@ -101,6 +119,11 @@ public class SearchItemTest {
         //logout
         onView(withId(R.id.btn_logout)).perform(click());
         onView(withId(R.id.profile_logout)).perform(click());
+    }
+
+    @After
+    public void after() {
+        Intents.release();
     }
 }
 

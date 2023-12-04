@@ -15,6 +15,8 @@ import androidx.test.espresso.intent.Intents;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
+import androidx.test.rule.GrantPermissionRule;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -33,6 +35,9 @@ import org.junit.runner.RunWith;
 public class ScanBarcodeTest {
     @Rule
     public ActivityScenarioRule<WelcomeActivity> welcomeScenario=new ActivityScenarioRule<>(WelcomeActivity.class);
+
+    @Rule
+    public GrantPermissionRule permissionRule = GrantPermissionRule.grant(android.Manifest.permission.CAMERA);
     @Before
     public void init() {
         Intents.init();
