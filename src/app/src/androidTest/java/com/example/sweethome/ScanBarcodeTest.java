@@ -21,6 +21,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+/**
+ * @class ScanBarcodeTest
+ * <p>This class tests scanning barcode when adding/updating an item</p>
+ *
+ * @date <p>December 4, 2023</p>
+ *
+ */
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class ScanBarcodeTest {

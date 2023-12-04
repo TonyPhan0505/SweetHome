@@ -28,6 +28,13 @@ import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 
+/**
+ * @class DeletePhotoTest
+ * <p>This class tests deleting a photo when adding/updating an item</p>
+ *
+ * @date <p>December 4, 2023</p>
+ *
+ */
 public class DeletePhotoTest {
     @Rule
     public ActivityScenarioRule<WelcomeActivity> welcomeScenario=new ActivityScenarioRule<>(WelcomeActivity.class);
