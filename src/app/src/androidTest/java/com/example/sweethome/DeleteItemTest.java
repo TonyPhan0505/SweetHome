@@ -187,7 +187,7 @@ public class DeleteItemTest {
         Thread.sleep(3000);
 
         /* Check if the second item was added to the list */
-        onData(anything()).inAdapterView(withId(R.id.item_list)).atPosition(0).onChildView(withId(R.id.item_name)).check(matches(withText("DMI2")));
+        onData(anything()).inAdapterView(withId(R.id.item_list)).atPosition(1).onChildView(withId(R.id.item_name)).check(matches(withText("DMI2")));
         Thread.sleep(3000);
         /* Click the items' checkboxes */
         onData(anything()).inAdapterView(withId(R.id.item_list)).atPosition(0).onChildView(withId(R.id.item_checkBox)).perform(click());
