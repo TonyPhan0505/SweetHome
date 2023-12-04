@@ -1,7 +1,6 @@
 package com.example.sweethome;
 
 import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
-import static androidx.test.espresso.Espresso.closeSoftKeyboard;
 import static androidx.test.espresso.Espresso.onData;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
@@ -21,16 +20,20 @@ import android.content.ComponentName;
 import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.action.ViewActions;
 import androidx.test.espresso.intent.Intents;
-import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
+
+import com.google.firebase.Timestamp;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 
 @RunWith(AndroidJUnit4.class)
@@ -42,100 +45,68 @@ public class FilterItemsTest {
     public void init() {
         Intents.init();
     }
-    /* check if the app is logged in */
-    private boolean isLoggedIn(){
-        try {
-            onView(withId(R.id.btn_logout)).check(matches(isDisplayed()));
-        } catch (NoMatchingViewException e) {
-            return false;
-        }
-        return true;
-    }
-    /* wait to log out before login again */
-    @Test
-    public void testLogOut() {
-        boolean state = isLoggedIn();
-        while (!state) {
-            state = isLoggedIn();
-        }
-    }
-    @Test
-    public void testGoToMain() throws InterruptedException {
-        /* click the username field edit text, clear text (if applicable) and put our test username */
-        onView(withId(R.id.editTextUsername)).perform(click(), ViewActions.clearText(), typeText("logintest"));
-        /* click the password field edit text, clear text (if applicable) and put in our test password */
-        onView(withId(R.id.editTextPassword)).perform(click(), ViewActions.clearText(), typeText("logintest"));
-        /* click the login button */
-        onView(withId(R.id.buttonLogin)).perform(click());
-        Thread.sleep(3000);
-        /* check if the main activity is launched */
-        intended(hasComponent(new ComponentName(getApplicationContext(), MainActivity.class)));
-    }
-    @Test
-    public void testAddItems() throws InterruptedException {
-        /* add 1st item */
-        onView(withId(R.id.add_button)).perform(click());
-        onView(withId(R.id.item_name_field)).perform(typeText("FilterItemTest1"));
-        Thread.sleep(3000);
-        onView(withId(R.id.serial_number_field)).perform(typeText("1224567"));
-        onView(withId(R.id.serial_number_field)).perform(pressImeActionButton());
-        onView(withId(R.id.tag_input)).perform(typeText("FilterItemTest1"));
-        onView(withId(R.id.tag_input)).perform(pressImeActionButton());
-        Thread.sleep(3000);
-        closeSoftKeyboard();
-        onView(withId(R.id.description_field)).perform(typeText("This is an add test"));
-        closeSoftKeyboard();
-        onView(withId(R.id.make_field)).perform(typeText("testMake"));
-        closeSoftKeyboard();
-        onView(withId(R.id.model_field)).perform(typeText("testModel"));
-        closeSoftKeyboard();
-        onView(withId(R.id.date_field)).perform(click());
-        onView(withText("OK")).perform(click());
-        Thread.sleep(3000);
-        onView(withId(R.id.value_field)).perform(typeText("119.98"));
-        closeSoftKeyboard();
-        onView(withId(R.id.comment_field)).perform(typeText("testComment"));
-        closeSoftKeyboard();
-        onView(ViewMatchers.withId(R.id.scroll_view)).perform(ViewActions.swipeDown());
-        Thread.sleep(3000);
-        onView(withId(R.id.check_icon)).perform(click());
-        /* check if the main activity is launched */
-        intended(hasComponent(new ComponentName(getApplicationContext(), MainActivity.class)));
 
-        /* add 2nd item */
-        onView(withId(R.id.add_button)).perform(click());
-        onView(withId(R.id.item_name_field)).perform(typeText("A FilterItemTest2"));
-        Thread.sleep(3000);
-        onView(withId(R.id.serial_number_field)).perform(typeText("1224567"));
-        onView(withId(R.id.serial_number_field)).perform(pressImeActionButton());
-        onView(withId(R.id.tag_input)).perform(typeText("A FilterItemTest2"));
-        onView(withId(R.id.tag_input)).perform(pressImeActionButton());
-        Thread.sleep(3000);
-        onView(withId(R.id.tag_input)).perform(typeText("FilterItem2Tag"));
-        onView(withId(R.id.tag_input)).perform(pressImeActionButton());
-        Thread.sleep(3000);
-        closeSoftKeyboard();
-        onView(withId(R.id.description_field)).perform(typeText("This is an add test"));
-        closeSoftKeyboard();
-        onView(withId(R.id.make_field)).perform(typeText("testMake2"));
-        closeSoftKeyboard();
-        onView(withId(R.id.model_field)).perform(typeText("testModel"));
-        closeSoftKeyboard();
-        onView(withId(R.id.date_field)).perform(click());
-        onView(withText("OK")).perform(click());
-        Thread.sleep(3000);
-        onView(withId(R.id.value_field)).perform(typeText("119.98"));
-        closeSoftKeyboard();
-        onView(withId(R.id.comment_field)).perform(typeText("testComment"));
-        closeSoftKeyboard();
-        onView(ViewMatchers.withId(R.id.scroll_view)).perform(ViewActions.swipeDown());
-        Thread.sleep(3000);
-        onView(withId(R.id.check_icon)).perform(click());
-        Thread.sleep(3000);
-    }
     @Test
     public void testFilterByDate() throws InterruptedException {
-        // In MainActivity
+        try {
+            Thread.sleep(3000);
+            onView(withId(R.id.search_add_container)).check(matches(isDisplayed()));
+        } catch (NoMatchingViewException e) {
+            /* click the username field edit text, clear text (if applicable) and put our test username */
+            onView(withId(R.id.editTextUsername)).perform(click(), ViewActions.clearText(), ViewActions.typeText("logintest"));
+            /* click the password field edit text, clear text (if applicable) and put in our test password */
+            onView(withId(R.id.editTextPassword)).perform(click(), ViewActions.clearText(), ViewActions.typeText("logintest"));
+            /* click the login button */
+            onView(withId(R.id.buttonLogin)).perform(click());
+            Thread.sleep(3000);
+            /* check if the main activity is launched */
+            intended(hasComponent(new ComponentName(getApplicationContext(), MainActivity.class)));
+        }
+
+        // create items for testing
+        Item item1 = new Item(
+                "1",                 // id
+                "Item 1",            // name
+                "Description 1",     // description
+                "Make 1",            // make
+                "Model 1",           // model
+                "SerialNumber 1",    // serialNumber
+                100.0,                // estimatedValue
+                Timestamp.now(),  // purchaseDate
+                "Comment 1",         // comment
+                new ArrayList<>(Arrays.asList("res/drawable/test_image1.png", "res/drawable/test_image2.png")),  // photos
+                new ArrayList<>(Arrays.asList("tag1", "tag2")),    // tags
+                "Username 1"         // username
+        );
+        Item item2 = new Item(
+                "2",                 // id
+                "Item 2",            // name
+                "Description 2",     // description
+                "Make 2",            // make
+                "Model 2",           // model
+                "SerialNumber 2",    // serialNumber
+                150.0,                // estimatedValue
+                Timestamp.now(),     // purchaseDate
+                "Comment 2",         // comment
+                new ArrayList<>(Arrays.asList("res/drawable/test_image1.png", "res/drawable/test_image2.png")),  // photos
+                new ArrayList<>(Arrays.asList("tag2", "tag3")),    // tags
+                "Username 2"         // username
+        );
+        Item item3 = new Item(
+                "3",                 // id
+                "Item 3",            // name
+                "Description 3",     // description
+                "Make 3",            // make
+                "Model 3",           // model
+                "SerialNumber 3",    // serialNumber
+                150.0,                // estimatedValue
+                Timestamp.now(),     // purchaseDate
+                "Comment 3",         // comment
+                new ArrayList<>(Arrays.asList("res/drawable/test_image1.png", "res/drawable/test_image2.png")),  // photos
+                new ArrayList<>(Arrays.asList("tag2", "tag4")),    // tags
+                "Username 3"         // username
+        );
+
         /* click filter button */
         onView(withId(R.id.filter_button)).perform(click());
         Thread.sleep(5000);
@@ -145,12 +116,72 @@ public class FilterItemsTest {
         Thread.sleep(3000);
         onView(withId(R.id.apply_filter_button)).perform(click());
         Thread.sleep(5000);
-        /* check if both item is shown */
-
+        /* check if all items are shown */
+        onView(withText("Item 1")).check(matches(isDisplayed()));
+        onView(withText("Item 2")).check(matches(isDisplayed()));
+        onView(withText("Item 3")).check(matches(isDisplayed()));
     }
     @Test
     public void testFilterByKeyword() throws InterruptedException {
-        // In MainActivity
+        try {
+            Thread.sleep(3000);
+            onView(withId(R.id.search_add_container)).check(matches(isDisplayed()));
+        } catch (NoMatchingViewException e) {
+            /* click the username field edit text, clear text (if applicable) and put our test username */
+            onView(withId(R.id.editTextUsername)).perform(click(), ViewActions.clearText(), ViewActions.typeText("logintest"));
+            /* click the password field edit text, clear text (if applicable) and put in our test password */
+            onView(withId(R.id.editTextPassword)).perform(click(), ViewActions.clearText(), ViewActions.typeText("logintest"));
+            /* click the login button */
+            onView(withId(R.id.buttonLogin)).perform(click());
+            Thread.sleep(3000);
+            /* check if the main activity is launched */
+            intended(hasComponent(new ComponentName(getApplicationContext(), MainActivity.class)));
+        }
+
+        // create items for testing
+        Item item1 = new Item(
+                "1",                 // id
+                "Item 1",            // name
+                "Description 1",     // description
+                "Make 1",            // make
+                "Model 1",           // model
+                "SerialNumber 1",    // serialNumber
+                100.0,                // estimatedValue
+                Timestamp.now(),  // purchaseDate
+                "Comment 1",         // comment
+                new ArrayList<>(Arrays.asList("res/drawable/test_image1.png", "res/drawable/test_image2.png")),  // photos
+                new ArrayList<>(Arrays.asList("tag1", "tag2")),    // tags
+                "Username 1"         // username
+        );
+        Item item2 = new Item(
+                "2",                 // id
+                "Item 2",            // name
+                "Description 2",     // description
+                "Make 2",            // make
+                "Model 2",           // model
+                "SerialNumber 2",    // serialNumber
+                150.0,                // estimatedValue
+                Timestamp.now(),     // purchaseDate
+                "Comment 2",         // comment
+                new ArrayList<>(Arrays.asList("res/drawable/test_image1.png", "res/drawable/test_image2.png")),  // photos
+                new ArrayList<>(Arrays.asList("tag2", "tag3")),    // tags
+                "Username 2"         // username
+        );
+        Item item3 = new Item(
+                "3",                 // id
+                "Item 3",            // name
+                "Description 3",     // description
+                "Make 3",            // make
+                "Model 3",           // model
+                "SerialNumber 3",    // serialNumber
+                150.0,                // estimatedValue
+                Timestamp.now(),     // purchaseDate
+                "Comment 3",         // comment
+                new ArrayList<>(Arrays.asList("res/drawable/test_image1.png", "res/drawable/test_image2.png")),  // photos
+                new ArrayList<>(Arrays.asList("tag2", "tag4")),    // tags
+                "Username 3"         // username
+        );
+
         /* click filter button */
         onView(withId(R.id.filter_button)).perform(click());
         Thread.sleep(5000);
@@ -160,25 +191,128 @@ public class FilterItemsTest {
         onView(withText("OK")).perform(click());
         Thread.sleep(5000);
         /* check if 2nd item is shown */
+        onView(withText("Item 2")).check(matches(isDisplayed()));
 
     }
     @Test
     public void testFilterByMake() throws InterruptedException {
-        // In MainActivity
+        try {
+            Thread.sleep(3000);
+            onView(withId(R.id.search_add_container)).check(matches(isDisplayed()));
+        } catch (NoMatchingViewException e) {
+            /* click the username field edit text, clear text (if applicable) and put our test username */
+            onView(withId(R.id.editTextUsername)).perform(click(), ViewActions.clearText(), ViewActions.typeText("logintest"));
+            /* click the password field edit text, clear text (if applicable) and put in our test password */
+            onView(withId(R.id.editTextPassword)).perform(click(), ViewActions.clearText(), ViewActions.typeText("logintest"));
+            /* click the login button */
+            onView(withId(R.id.buttonLogin)).perform(click());
+            Thread.sleep(3000);
+            /* check if the main activity is launched */
+            intended(hasComponent(new ComponentName(getApplicationContext(), MainActivity.class)));
+        }
+
+        // create items for testing
+        Item item1 = new Item(
+                "1",                 // id
+                "Item 1",            // name
+                "Description 1",     // description
+                "Make 1",            // make
+                "Model 1",           // model
+                "SerialNumber 1",    // serialNumber
+                100.0,                // estimatedValue
+                Timestamp.now(),  // purchaseDate
+                "Comment 1",         // comment
+                new ArrayList<>(Arrays.asList("res/drawable/test_image1.png", "res/drawable/test_image2.png")),  // photos
+                new ArrayList<>(Arrays.asList("tag1", "tag2")),    // tags
+                "Username 1"         // username
+        );
+        Item item2 = new Item(
+                "2",                 // id
+                "Item 2",            // name
+                "Description 2",     // description
+                "Make 2",            // make
+                "Model 2",           // model
+                "SerialNumber 2",    // serialNumber
+                150.0,                // estimatedValue
+                Timestamp.now(),     // purchaseDate
+                "Comment 2",         // comment
+                new ArrayList<>(Arrays.asList("res/drawable/test_image1.png", "res/drawable/test_image2.png")),  // photos
+                new ArrayList<>(Arrays.asList("tag2", "tag3")),    // tags
+                "Username 2"         // username
+        );
+
         /* click filter button */
         onView(withId(R.id.filter_button)).perform(click());
         Thread.sleep(5000);
         /* input make */
-        onView(withId(R.id.make_field)).perform(typeText("testMake2"), pressImeActionButton());
+        onView(withId(R.id.make_field)).perform(typeText("Make 2"), pressImeActionButton());
         Thread.sleep(3000);
         onView(withText("OK")).perform(click());
         Thread.sleep(5000);
-        /* check if 2nd item is shown */
-
+        /* check if item 2 is shown */
+        onView(withText("Item 2")).check(matches(isDisplayed()));
     }
     @Test
     public void testFilterByTag() throws InterruptedException {
-        // In MainActivity
+        try {
+            Thread.sleep(3000);
+            onView(withId(R.id.search_add_container)).check(matches(isDisplayed()));
+        } catch (NoMatchingViewException e) {
+            /* click the username field edit text, clear text (if applicable) and put our test username */
+            onView(withId(R.id.editTextUsername)).perform(click(), ViewActions.clearText(), ViewActions.typeText("logintest"));
+            /* click the password field edit text, clear text (if applicable) and put in our test password */
+            onView(withId(R.id.editTextPassword)).perform(click(), ViewActions.clearText(), ViewActions.typeText("logintest"));
+            /* click the login button */
+            onView(withId(R.id.buttonLogin)).perform(click());
+            Thread.sleep(3000);
+            /* check if the main activity is launched */
+            intended(hasComponent(new ComponentName(getApplicationContext(), MainActivity.class)));
+        }
+
+        // create items for testing
+        Item item1 = new Item(
+                "1",                 // id
+                "Item 1",            // name
+                "Description 1",     // description
+                "Make 1",            // make
+                "Model 1",           // model
+                "SerialNumber 1",    // serialNumber
+                100.0,                // estimatedValue
+                Timestamp.now(),  // purchaseDate
+                "Comment 1",         // comment
+                new ArrayList<>(Arrays.asList("res/drawable/test_image1.png", "res/drawable/test_image2.png")),  // photos
+                new ArrayList<>(Arrays.asList("tag1", "tag2")),    // tags
+                "Username 1"         // username
+        );
+        Item item2 = new Item(
+                "2",                 // id
+                "Item 2",            // name
+                "Description 2",     // description
+                "Make 2",            // make
+                "Model 2",           // model
+                "SerialNumber 2",    // serialNumber
+                150.0,                // estimatedValue
+                Timestamp.now(),     // purchaseDate
+                "Comment 2",         // comment
+                new ArrayList<>(Arrays.asList("res/drawable/test_image1.png", "res/drawable/test_image2.png")),  // photos
+                new ArrayList<>(Arrays.asList("tag2", "tag3")),    // tags
+                "Username 2"         // username
+        );
+        Item item3 = new Item(
+                "3",                 // id
+                "Item 3",            // name
+                "Description 3",     // description
+                "Make 3",            // make
+                "Model 3",           // model
+                "SerialNumber 3",    // serialNumber
+                150.0,                // estimatedValue
+                Timestamp.now(),     // purchaseDate
+                "Comment 3",         // comment
+                new ArrayList<>(Arrays.asList("res/drawable/test_image1.png", "res/drawable/test_image2.png")),  // photos
+                new ArrayList<>(Arrays.asList("tag2", "tag4")),    // tags
+                "Username 3"         // username
+        );
+
         /* click filter button */
         onView(withId(R.id.filter_button)).perform(click());
         Thread.sleep(5000);
@@ -190,7 +324,7 @@ public class FilterItemsTest {
         onView(withText("OK")).perform(click());
         Thread.sleep(5000);
         /* check if 1st item is shown */
-
+        onView(withText("Item 1")).check(matches(isDisplayed()));
     }
     @After
     public void drop() {

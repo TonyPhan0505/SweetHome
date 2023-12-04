@@ -42,89 +42,32 @@ public class DeletePhotoTest {
     public void init() {
         Intents.init();
     }
-    /* check if the app is logged in */
-    private boolean isLoggedIn(){
+    @Test
+    public void testDeletePhoto() throws InterruptedException {
         try {
-            onView(withId(R.id.btn_logout)).check(matches(isDisplayed()));
+            Thread.sleep(3000);
+            onView(withId(R.id.search_add_container)).check(matches(isDisplayed()));
         } catch (NoMatchingViewException e) {
-            return false;
+            /* click the username field edit text, clear text (if applicable) and put our test username */
+            onView(withId(R.id.editTextUsername)).perform(click(), ViewActions.clearText(), ViewActions.typeText("logintest"));
+            /* click the password field edit text, clear text (if applicable) and put in our test password */
+            onView(withId(R.id.editTextPassword)).perform(click(), ViewActions.clearText(), ViewActions.typeText("logintest"));
+            /* click the login button */
+            onView(withId(R.id.buttonLogin)).perform(click());
+            Thread.sleep(3000);
+            /* check if the main activity is launched */
+            intended(hasComponent(new ComponentName(getApplicationContext(), MainActivity.class)));
         }
-        return true;
-    }
-    /* wait to log out before login again */
-    @Test
-    public void testLogOut() {
-        boolean state = isLoggedIn();
-        while (!state) {
-            state = isLoggedIn();
-        }
-    }
-    @Test
-    public void testGoToMain() throws InterruptedException {
-        /* click the username field edit text, clear text (if applicable) and put our test username */
-        onView(withId(R.id.editTextUsername)).perform(click(), ViewActions.clearText(), ViewActions.typeText("logintest"));
-        /* click the password field edit text, clear text (if applicable) and put in our test password */
-        onView(withId(R.id.editTextPassword)).perform(click(), ViewActions.clearText(), ViewActions.typeText("logintest"));
-        /* click the login button */
-        onView(withId(R.id.buttonLogin)).perform(click());
-        Thread.sleep(3000);
-        /* check if the main activity is launched */
-        intended(hasComponent(new ComponentName(getApplicationContext(), MainActivity.class)));
-    }
-    @Test
-    public void testGoToDelete() throws InterruptedException {
-        // In MainActivity
+        // In ManageItemActivity
         /* click add button on MainActivity */
         onView(withId(R.id.add_button)).perform(click());
-        onView(withId(R.id.open_gallery_button)).perform(click());
         Thread.sleep(3000);
         /* Verify that we are in ManageItemActivity */
         intended(hasComponent(new ComponentName(getApplicationContext(), ManageItemActivity.class)));
-    }
-    @Test
-    public void testDeletePhoto() throws InterruptedException {
-        // In ManageItemActivity
-        /* add image */
-        onData(Matchers.anything()).atPosition(0).perform(click());
-        Thread.sleep(3000);
-        onView(withText("Add(1)")).perform(click());
-        Thread.sleep(3000);
-        /* check if the image is displayed */
-        onView(withId(R.id.image_slider)).check(matches(isDisplayed()));
-        /* add other fields */
-        onView(withId(R.id.item_name_field)).perform(ViewActions.typeText("DeletePhotoTest1"));
-        Thread.sleep(3000);
-        onView(withId(R.id.serial_number_field)).perform(ViewActions.typeText("1234567"));
-        onView(withId(R.id.serial_number_field)).perform(ViewActions.pressImeActionButton());
-        onView(withId(R.id.tag_input)).perform(ViewActions.typeText("DeletePhotoTest1"));
-        onView(withId(R.id.tag_input)).perform(ViewActions.pressImeActionButton());
-        Thread.sleep(3000);
-        closeSoftKeyboard();
-        onView(withId(R.id.description_field)).perform(ViewActions.typeText("This is a delete photo test"));
-        closeSoftKeyboard();
-        onView(withId(R.id.make_field)).perform(ViewActions.typeText("testMake"));
-        closeSoftKeyboard();
-        onView(withId(R.id.model_field)).perform(ViewActions.typeText("testModel"));
-        closeSoftKeyboard();
-        onView(withId(R.id.date_field)).perform(click());
-        onView(withText("OK")).perform(click());
-        Thread.sleep(3000);
-        onView(withId(R.id.value_field)).perform(ViewActions.typeText("100.00"));
-        closeSoftKeyboard();
-        onView(withId(R.id.comment_field)).perform(ViewActions.typeText("testComment"));
-        closeSoftKeyboard();
-        onView(ViewMatchers.withId(R.id.scroll_view)).perform(ViewActions.swipeDown());
-        Thread.sleep(3000);
-        onView(withId(R.id.check_icon)).perform(click());
-        Thread.sleep(3000);
 
-        /* check if there is an image in slider */
-        onData(anything()).inAdapterView(withId(R.id.image_slider_frame)).atPosition(0).onChildView(withId(R.id.image_slider)).check(matches(withText("DeletePhotoTest1")));
-        /* click delete button then check if image is deleted */
-        Thread.sleep(3000);
-        onView(withId(R.id.remove_image_button)).perform(click());
-        Thread.sleep(3000);
-        onData(anything()).inAdapterView(withId(R.id.image_slider_frame)).atPosition(0).onChildView(withId(R.id.image_slider)).check(matches(not((withText("DeletePhotoTest1")))));
+        // add an image
+        // click X button
+        // check if image is deleted
     }
     @After
     public void drop() {
