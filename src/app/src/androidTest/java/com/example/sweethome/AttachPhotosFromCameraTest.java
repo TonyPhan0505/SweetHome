@@ -17,9 +17,11 @@ import static org.mockito.AdditionalMatchers.not;
 
 import android.content.ComponentName;
 
+import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.action.ViewActions;
 import androidx.test.espresso.intent.Intents;
 import androidx.test.espresso.matcher.ViewMatchers;
+import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import androidx.test.rule.ActivityTestRule;
@@ -34,10 +36,27 @@ import org.junit.runner.RunWith;
 @LargeTest
 public class AttachPhotosFromCameraTest {
     @Rule
-    public ActivityTestRule<LoginActivity> scenario=new ActivityTestRule<LoginActivity>(LoginActivity.class);
+    public ActivityScenarioRule<WelcomeActivity> welcomeScenario=new ActivityScenarioRule<WelcomeActivity>(WelcomeActivity.class);
     @Before
-    public void initLogin() {
+    public void initWelcome() {
         Intents.init();
+    }
+    /* check if the app is logged in */
+    private boolean isLoggedIn(){
+        try {
+            onView(withId(R.id.btn_logout)).check(matches(isDisplayed()));
+        } catch (NoMatchingViewException e) {
+            return false;
+        }
+        return true;
+    }
+    /* wait to log out before login again */
+    @Test
+    public void testLogOut() {
+        boolean state = isLoggedIn();
+        while (!state) {
+            state = isLoggedIn();
+        }
     }
     @Test
     public void testGoToMain() throws InterruptedException {
@@ -51,16 +70,6 @@ public class AttachPhotosFromCameraTest {
         /* check if the main activity is launched */
         intended(hasComponent(new ComponentName(getApplicationContext(), MainActivity.class)));
     }
-    @After
-    public void dropLogin() {
-        Intents.release();
-    }
-    @Rule
-    public ActivityTestRule<MainActivity> mainActivity = new ActivityTestRule<>(MainActivity.class);
-    @Before
-    public void initMain() {
-        Intents.init();
-    }
     @Test
     public void testGoToAdd() throws InterruptedException {
         // In MainActivity
@@ -69,18 +78,7 @@ public class AttachPhotosFromCameraTest {
         onView(withId(R.id.open_gallery_button)).perform(click());
         Thread.sleep(3000);
         /* Verify that we are in ManageItemActivity */
-        intended(hasComponent(ManageItemActivity.class.getName()));
-    }
-    @After
-    public void dropMain() {
-        Intents.release();
-    }
-
-    @Rule
-    public ActivityTestRule<ManageItemActivity> manageItemActivity = new ActivityTestRule<ManageItemActivity>(ManageItemActivity.class);
-    @Before
-    public void initDelete() {
-        Intents.init();
+        intended(hasComponent(new ComponentName(getApplicationContext(), ManageItemActivity.class)));
     }
     @Test
     public void testAddPhotoFromCamera() throws InterruptedException {
@@ -119,7 +117,7 @@ public class AttachPhotosFromCameraTest {
         onData(anything()).inAdapterView(withId(R.id.image_slider_frame)).atPosition(0).onChildView(withId(R.id.image_slider)).check(matches(withText("DeletePhotoTest1")));
     }
     @After
-    public void dropDelete() {
+    public void dropWelcome() {
         Intents.release();
     }
 

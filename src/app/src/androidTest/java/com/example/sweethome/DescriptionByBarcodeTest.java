@@ -11,8 +11,10 @@ import static androidx.test.espresso.matcher.ViewMatchers.withId;
 
 import android.content.ComponentName;
 
+import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.action.ViewActions;
 import androidx.test.espresso.intent.Intents;
+import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import androidx.test.rule.ActivityTestRule;
@@ -27,10 +29,27 @@ import org.junit.runner.RunWith;
 @LargeTest
 public class DescriptionByBarcodeTest {
     @Rule
-    public ActivityTestRule<LoginActivity> scenario=new ActivityTestRule<LoginActivity>(LoginActivity.class);
+    public ActivityScenarioRule<WelcomeActivity> welcomeScenario=new ActivityScenarioRule<WelcomeActivity>(WelcomeActivity.class);
     @Before
-    public void initLogin() {
+    public void init() {
         Intents.init();
+    }
+    /* check if the app is logged in */
+    private boolean isLoggedIn(){
+        try {
+            onView(withId(R.id.btn_logout)).check(matches(isDisplayed()));
+        } catch (NoMatchingViewException e) {
+            return false;
+        }
+        return true;
+    }
+    /* wait to log out before login again */
+    @Test
+    public void testLogOut() {
+        boolean state = isLoggedIn();
+        while (!state) {
+            state = isLoggedIn();
+        }
     }
     @Test
     public void testGoToMain() throws InterruptedException {
@@ -44,17 +63,6 @@ public class DescriptionByBarcodeTest {
         /* check if the main activity is launched */
         intended(hasComponent(new ComponentName(getApplicationContext(), MainActivity.class)));
     }
-    @After
-    public void dropLogin() {
-        Intents.release();
-    }
-
-    @Rule
-    public ActivityTestRule<MainActivity> mainActivity = new ActivityTestRule<>(MainActivity.class);
-    @Before
-    public void initMain() {
-        Intents.init();
-    }
     @Test
     public void testGoToAdd() throws InterruptedException {
         // In MainActivity
@@ -63,21 +71,8 @@ public class DescriptionByBarcodeTest {
         onView(withId(R.id.open_gallery_button)).perform(click());
         Thread.sleep(3000);
         /* Verify that we are in ManageItemActivity */
-        intended(hasComponent(ManageItemActivity.class.getName()));
+        intended(hasComponent(new ComponentName(getApplicationContext(), ManageItemActivity.class)));
     }
-    @After
-    public void dropMain() {
-        Intents.release();
-    }
-
-    @Rule
-    public ActivityTestRule<ManageItemActivity> activityRule = new ActivityTestRule<>(ManageItemActivity.class);
-
-    @Before
-    public void initAdd() {
-        Intents.init();
-    }
-
     @Test
     public void testBarcode() throws InterruptedException {
         onView(withId(R.id.barcode_scan_icon)).perform(click());
@@ -86,9 +81,8 @@ public class DescriptionByBarcodeTest {
         onView(withId(R.id.item_name_field)).check(matches(isDisplayed()));
     }
     @After
-    public void dropAdd() {
+    public void drop() {
         Intents.release();
     }
-
 }
 
