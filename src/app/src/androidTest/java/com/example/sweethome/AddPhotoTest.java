@@ -12,6 +12,7 @@ import androidx.test.espresso.intent.Intents;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.rule.GrantPermissionRule;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,6 +28,13 @@ import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 
+/**
+ * @class AddPhotoTest
+ * <p>This class tests adding a photo when adding/updating an item</p>
+ *
+ * @date <p>December 4, 2023</p>
+ *
+ */
 public class AddPhotoTest {
     @Rule
     public ActivityScenarioRule<WelcomeActivity> welcomeScenario=new ActivityScenarioRule<>(WelcomeActivity.class);
@@ -76,5 +84,10 @@ public class AddPhotoTest {
 
         // Close the activity after testing
         scenario.close();
+    }
+
+    @After
+    public void after() {
+        Intents.release();
     }
 }

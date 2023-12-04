@@ -5,6 +5,13 @@ import static org.junit.Assert.*;
 
 import android.graphics.Color;
 
+/**
+ * @class ColorGeneratorTest
+ * <p>This class tests generating a random color code for tags</p>
+ *
+ * @date <p>December 4, 2023</p>
+ *
+ */
 public class ColorGeneratorTest {
 
     @Test

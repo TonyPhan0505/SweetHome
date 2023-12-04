@@ -16,10 +16,13 @@ import androidx.test.espresso.ViewAction;
 import androidx.test.espresso.action.ViewActions;
 import androidx.test.espresso.contrib.RecyclerViewActions;
 import androidx.test.espresso.UiController;
+import androidx.test.espresso.intent.Intents;
 import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
+import androidx.test.rule.GrantPermissionRule;
+
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
 import org.junit.After;
@@ -45,6 +48,9 @@ import org.junit.runner.RunWith;
 public class ApplyTagTest {
     @Rule
     public ActivityScenarioRule<WelcomeActivity> scenario=new ActivityScenarioRule<WelcomeActivity>(WelcomeActivity.class);
+
+    @Rule
+    public GrantPermissionRule permissionRule = GrantPermissionRule.grant(android.Manifest.permission.CAMERA);
 
     @Before
     public void setup() throws InterruptedException{
@@ -226,6 +232,7 @@ public class ApplyTagTest {
         Thread.sleep(2000);
         logout();
 
+        Intents.release();
     }
 
     /* Source: https://stackoverflow.com/a/30338665 */
@@ -265,5 +272,4 @@ public class ApplyTagTest {
         onView(withId(R.id.profile_logout)).perform(click());
         Thread.sleep(5000);
     }
-
 }

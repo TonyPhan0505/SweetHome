@@ -16,6 +16,13 @@ import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 
+/**
+ * @class ImageSliderAdapterTest
+ * <p>This class tests image slider adapter</p>
+ *
+ * @date <p>December 4, 2023</p>
+ *
+ */
 @RunWith(AndroidJUnit4.class)
 public class ImageSliderAdapterTest {
 

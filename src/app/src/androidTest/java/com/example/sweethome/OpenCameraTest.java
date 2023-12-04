@@ -31,6 +31,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+/**
+ * @class OpenCameraTest
+ * <p>This class tests opening a camera when adding/updating an item</p>
+ *
+ * @date <p>December 4, 2023</p>
+ *
+ */
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class OpenCameraTest {
