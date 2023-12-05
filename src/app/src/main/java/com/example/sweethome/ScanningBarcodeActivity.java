@@ -1,12 +1,4 @@
 package com.example.sweethome;
-/**
- * The ScanningBarcodeActivity class represents the activity for scanning a barcode and
- * returning the extracted barcode to ManageItemActivity. The barcode is then processed in
- * ManageItemActivity to get the associated product information.
- *
- * November 15, 2023
- *
- */
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -18,6 +10,16 @@ import com.google.zxing.integration.android.IntentResult;
 
 import javax.annotation.Nullable;
 
+/**
+ * @class ScanningBarcodeActivity
+ *
+ * <p>The ScanningBarcodeActivity class represents the activity for scanning a barcode and
+ * returning the extracted barcode to {@link com.example.sweethome.ManageItemActivity}.
+ * The barcode is then processed in {@link com.example.sweethome.ManageItemActivity}
+ * to get the associated product information.</p>
+ *
+ * @date <p>November 15, 2023</p>
+ */
 public class ScanningBarcodeActivity extends AppCompatActivity {
     private String scannedBarcode;
 
