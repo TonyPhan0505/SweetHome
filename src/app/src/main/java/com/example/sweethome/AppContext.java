@@ -1,4 +1,7 @@
 package com.example.sweethome;
+
+import android.app.Application;
+
 /**
  * @class AppContext
  *
@@ -9,9 +12,6 @@ package com.example.sweethome;
  *
  * @date <p>Dec 1, 2023</p>
  */
-
-import android.app.Application;
-
 public class AppContext extends Application {
     public String username;
 
