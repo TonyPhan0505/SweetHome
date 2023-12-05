@@ -1,13 +1,4 @@
 package com.example.sweethome;
-/**
- * The ManageItemActivity class represents the activity for managing items, including adding new
- * item or View/Edit existing ones. The activity includes functionalities for adding tags,
- * capturing and displaying images, and managing item details such as name, description, make,
- * model, serial number, estimated value, purchased date, and comments.
- *
- * November 10, 2023
- *
- */
 
 /* Necessary imports */
 import androidx.annotation.NonNull;
@@ -67,6 +58,16 @@ import java.util.Calendar;
 
 import javax.annotation.Nullable;
 
+/**
+ * @class ManageItemActivity
+ *
+ * <p>The ManageItemActivity class represents the activity for managing items, including adding new
+ * item or View/Edit existing ones. The activity includes functionalities for adding tags,
+ * capturing and displaying images, and managing item details such as name, description, make,
+ * model, serial number, estimated value, purchased date, and comments.</p>
+ *
+ * @date <p>November 10, 2023</p>
+ */
 public class ManageItemActivity extends AppCompatActivity implements BarcodeLookupApi.BarcodeLookupListener, NetworkChangeReceiver.NetworkChangeListener {
     /* attributes and variables of this class */
     private StorageReference photosStorageRef = FirebaseStorage.getInstance().getReference();
