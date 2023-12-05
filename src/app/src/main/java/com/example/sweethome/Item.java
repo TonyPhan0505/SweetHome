@@ -1,20 +1,4 @@
 package com.example.sweethome;
-/*
- * Item
- *
- * This class models an item in SweetHome. Item objects
- * contain information on their name, their make, their model
- * an optional serial number, their estimated value, the date
- * they were purchased/acquired, and an optional comment on
- * the item. These fields are the attributes of this class and
- * they can be accessed through getters and setters only to
- * encourage encapsulation.
- *
- * October 28, 2023
- *
- * Sources:
- *
- */
 
 /* necessary imports */
 import com.google.firebase.Timestamp;
@@ -23,6 +7,19 @@ import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
 
+/**
+ * @class Item
+ *
+ * <p>This class models an item in SweetHome. Item objects
+ * contain information on their name, their make, their model
+ * an optional serial number, their estimated value, the date
+ * they were purchased/acquired, and an optional comment on
+ * the item. These fields are the attributes of this class and
+ * they can be accessed through getters and setters only to
+ * encourage encapsulation.</p>
+ *
+ * @date <p>October 28, 2023</p>
+ */
 public class Item implements Serializable {
     /* attributes of this class */
     private String name;
