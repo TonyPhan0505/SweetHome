@@ -1,11 +1,12 @@
 package com.example.sweethome;
 /**
- * The BarcodeLookupApi performs an api call to Go-UPC backend to look up a barcode we have scanned.
+ * @class BarcodeLookupApi
  *
- * Api is called in another thread.
+ * <p>The BarcodeLookupApi class performs an api call to Go-UPC
+ * backend to look up a barcode we have scanned.</p>
+ * <p>The Api is called in another thread.</p>
  *
- * November 18, 2023
- *
+ * @date <p>November 18, 2023</p>
  */
 
 import android.os.AsyncTask;
