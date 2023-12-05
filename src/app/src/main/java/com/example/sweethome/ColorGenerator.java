@@ -1,4 +1,9 @@
 package com.example.sweethome;
+
+/* necessary imports */
+import android.graphics.Color;
+import java.util.Random;
+
 /**
  * @class Color Generator
  *
@@ -8,11 +13,6 @@ package com.example.sweethome;
  *
  * @date <p>November 10, 2023</p>
  */
-
-/* necessary imports */
-import android.graphics.Color;
-import java.util.Random;
-
 public class ColorGenerator {
     /* attributes of this class */
     private int colorCode;
