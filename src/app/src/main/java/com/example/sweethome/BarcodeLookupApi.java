@@ -1,13 +1,4 @@
 package com.example.sweethome;
-/**
- * @class BarcodeLookupApi
- *
- * <p>The BarcodeLookupApi class performs an api call to Go-UPC
- * backend to look up a barcode we have scanned.</p>
- * <p>The Api is called in another thread.</p>
- *
- * @date <p>November 18, 2023</p>
- */
 
 import android.os.AsyncTask;
 import android.util.Log;
@@ -22,6 +13,15 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+/**
+ * @class BarcodeLookupApi
+ *
+ * <p>The BarcodeLookupApi class performs an api call to Go-UPC
+ * backend to look up a barcode we have scanned.</p>
+ * <p>The Api is called in another thread.</p>
+ *
+ * @date <p>November 18, 2023</p>
+ */
 public class BarcodeLookupApi extends AsyncTask<String, Void, ReturnedItemData> {
     private static final String TAG = BarcodeLookupApi.class.getSimpleName();
     private String barcodeLookupApiKey = "8740f02750738893c6b4dc279ed33fdd8231474da1ebbfec45b328287c7f544c";
