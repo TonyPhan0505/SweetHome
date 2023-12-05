@@ -1,15 +1,3 @@
-/*
- * ItemViewHolder
- *
- * This class acts as view holder for each item entry on the list.
- * This is necessary to allow selecting multiple items at the same time.
- *
- * November 8, 2023
- *
- * Sources: https://windrealm.org/tutorials/android/listview-with-checkboxes.php
- *
- */
-
 package com.example.sweethome;
 
 import android.widget.LinearLayout;
@@ -19,6 +7,20 @@ import android.widget.CheckBox;
 
 import com.smarteist.autoimageslider.SliderView;
 
+/**
+ * @class ItemViewHolder
+ *
+ * <p>This class acts as view holder for each item entry on the list.
+ * This is necessary to allow selecting multiple items at the same time.</p>
+ *
+ * @date <p>November 8, 2023</p>
+ *
+ * @source Some code has been adapted from the following source:
+ * A ListView with Checkboxes (Using FragmentActivity).
+ * homepage of andrew lim. Copyright © Andrew Lim Chong Liang.
+ * Permission to use has been granted by the Copyright holder.
+ * @link https://windrealm.org/tutorials/android/listview-with-checkboxes.php
+ */
 public class ItemViewHolder {
     private TextView itemNameView;
     private TextView itemPurchaseDateView;

@@ -21,10 +21,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This class implements the adapter for tag entry views on the list
- * of existing tags found in CreateApplyTagFragment
+ * @class TagsAdapter
  *
- * Sources: https://youtu.be/yTvwfEmzMZY
+ * <p>This class implements the adapter for tag entry views on the list
+ * of existing tags found in CreateApplyTagFragment</p>
+ *
+ * @date <p>December 4, 2023</p>
+ *
+ * @source How to create RecyclerView in Android - Android Studio Tutorial.
+ * (2020, November 29). [Video]. YouTube.
+ * @link https://youtu.be/yTvwfEmzMZY
  */
 public class TagsAdapter extends RecyclerView.Adapter<TagViewHolder> {
 

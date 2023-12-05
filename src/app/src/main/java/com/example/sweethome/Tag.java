@@ -5,11 +5,12 @@ import com.google.firebase.Timestamp;
 import java.util.ArrayList;
 
 /**
- * The Tag class represents a tag with a name and array of usernames.
- * Tags can be associated with items to provide additional categorization or information.
+ * @class Tag
  *
- * November 10, 2023
+ * <p>The Tag class represents a tag with a name and array of usernames.
+ * Tags can be associated with items to provide additional categorization or information.</p>
  *
+ * @date <p>November 10, 2023</p>
  */
 public class Tag {
     /* attributes for this class */

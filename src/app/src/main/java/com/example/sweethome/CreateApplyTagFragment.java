@@ -40,11 +40,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This class implements the fragment for creating new tags
- * and deleting tags
+ * @class CreateApplyTagFragment
  *
- * Sources: https://developer.android.com/guide/fragments/
+ * <p>This class implements the fragment for creating new tags
+ * and deleting tags.</p>
  *
+ * @date <p>December 4, 2023</p>
+ *
+ * @source <p>Guide on Fragments. The guide was most recently updated (2023, March 22).
+ * Android Developers. The content of the guide on Android Developers is
+ * licensed under the Apache 2.0 license.
+ * @link https://developer.android.com/guide/fragments/. </p>
  */
 public class CreateApplyTagFragment extends Fragment {
 

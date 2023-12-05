@@ -12,6 +12,15 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
+/**
+ * @class WelcomeActivity
+ *
+ * <p>This class serves as an entry point to the SweetHome application.
+ * It checks whether a user is currently signed in and takes them to the
+ * main screen if so, otherwise it takes them to the login page. </p>
+ *
+ * @date <p>December 1, 2023</p>
+ */
 public class WelcomeActivity extends AppCompatActivity {
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference usersRef = db.collection("users");

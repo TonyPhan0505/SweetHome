@@ -1,5 +1,12 @@
 package com.example.sweethome;
 
+/**
+ * @class User
+ *
+ * <p>This class represents a user with a corresponding username and email.</p>
+ *
+ * @date <p>December 1, 2023</p>
+ */
 public class User {
     private String username;
     private String email;

@@ -1,5 +1,4 @@
 package com.example.sweethome;
-// source : https://firebase.google.com/docs/auth/android/password-auth#java_2
 
 import android.content.Context;
 import android.content.Intent;
@@ -31,6 +30,21 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.List;
 
+/**
+ * @class LoginActivity
+ *
+ * <p>This class handles logging in a user to the app. </p>
+ *
+ * @date <p>December 1, 2023</p>
+ *
+ * @source <p>Code used in this class was adapted from the official Firebase
+ * documentation. Authenticate with Firebase using Password-Based Accounts on Android.
+ * The documentation was most recently updated (2023, November 22). Firebase.
+ * The content of the documentation on Firebase is licensed under the Creative
+ * Commons Attribution 4.0 License and the code samples are licensed under the
+ * Apache 2.0 license.
+ * @link https://firebase.google.com/docs/auth/android/password-auth#java_2 </p>
+ */
 public class LoginActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private CollectionReference usersRef;
