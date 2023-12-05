@@ -1,13 +1,12 @@
 package com.example.sweethome;
 /**
- * Color Generator
+ * @class Color Generator
  *
- * This class is responsible for generating random color codes and determining
+ * <p>This class is responsible for generating random color codes and determining
  * suitable text color codes based on the background color. This class uses the Color class
- * methods to obtain the generated color code that contrasts well with the background color.
+ * methods to obtain the generated color code that contrasts well with the background color.</p>
  *
- * November 10, 2023
- *
+ * @date <p>November 10, 2023</p>
  */
 
 /* necessary imports */
