@@ -100,8 +100,8 @@ public class MainActivity extends AppCompatActivity implements IFilterable, Netw
     private Boolean datePickerShown = false;
     // Declare MaterialDatePicker as a field
     private MaterialDatePicker<Pair<Long, Long>> dateRangePicker;
-    private Long selectedStartDate;
-    private Long selectedEndDate;
+    private Long selectedStartDate = 0L;
+    private Long selectedEndDate = 0L;
     /* constants */
     private final long ONE_DAY = 86400000;
     private final long ONE_HOUR = 3600000;
