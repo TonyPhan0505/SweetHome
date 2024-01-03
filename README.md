@@ -10,6 +10,9 @@ You can add, view, edit, filter, sort, and search for items. You can also use th
 
 API 24: Android 7.0
 
+## Demo video
+https://youtu.be/86WqefW_Njk?si=tUkV5gYWq3u4YSGD
+
 ## Screenshots
 
 #### 1. Login, Sign Up and Password Recovery:
