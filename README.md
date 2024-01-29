@@ -11,7 +11,7 @@ You can add, view, edit, filter, sort, and search for items. You can also use th
 API 24: Android 7.0
 
 ## Demo video
-https://youtu.be/86WqefW_Njk?si=tUkV5gYWq3u4YSGD
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/86WqefW_Njk)](https://youtu.be/86WqefW_Njk?si=tUkV5gYWq3u4YSGD)
 
 ## Screenshots
 
