@@ -15,36 +15,36 @@ https://youtu.be/86WqefW_Njk?si=tUkV5gYWq3u4YSGD
 
 ## Screenshots
 
-#### 1. Login, Sign Up and Password Recovery:
+#### Login, Sign Up and Password Recovery:
 
 <img width="397" alt="login" src="https://github.com/CMPUT301F23T17/SweetHome/assets/87828913/63bc2286-cf23-45d5-b3a4-08a60d40d381">
 <img width="392" alt="signup" src="https://github.com/CMPUT301F23T17/SweetHome/assets/87828913/39c334df-01f8-438e-8860-d48a0fe93d38">
 <img width="395" alt="forgotpassword" src="https://github.com/CMPUT301F23T17/SweetHome/assets/87828913/282c3b1c-5062-4008-91dd-658ad96039d9">
 
-#### 2. Home Screen:
+#### Home Screen:
 
 <img width="393" alt="home" src="https://github.com/CMPUT301F23T17/SweetHome/assets/87828913/6b9e24ba-8dbf-4544-a375-4f701424facb">
 
-#### 3. Filtering and Sorting Items:
+#### Filtering and Sorting Items:
 
 <img width="395" alt="filter" src="https://github.com/CMPUT301F23T17/SweetHome/assets/87828913/fa096bbb-f082-4a23-8bbb-5118189455b7">
 <img width="391" alt="sort" src="https://github.com/CMPUT301F23T17/SweetHome/assets/87828913/3ba9c034-9467-4aac-b45e-33ac26a8d7c2">
 
-#### 4. Selecting Multiple Items:
+#### Selecting Multiple Items:
 
 <img width="393" alt="select" src="https://github.com/CMPUT301F23T17/SweetHome/assets/87828913/83ea5ab7-92af-4ed1-ac9d-e803b68ba1a6">
 
 
-#### 5. Create and Apply Tags to Items:
+#### Create and Apply Tags to Items:
 
 <img width="399" alt="createtag" src="https://github.com/CMPUT301F23T17/SweetHome/assets/87828913/bc37f15b-992e-4a9f-a3ba-206ceab3d504">
 <img width="394" alt="addtag" src="https://github.com/CMPUT301F23T17/SweetHome/assets/87828913/50ed0c74-98c4-4198-87a1-13b1ba6cb920">
 
-#### 6. Delete Items:
+#### Delete Items:
 
 <img width="391" alt="deleteitem" src="https://github.com/CMPUT301F23T17/SweetHome/assets/87828913/44be1dbb-3a1d-4f04-9ff6-46922312d3f6">
 
-#### 7. Create, View and Edit Items:
+#### Create, View and Edit Items:
 
 <img width="398" alt="create1" src="https://github.com/CMPUT301F23T17/SweetHome/assets/87828913/fcba09c8-1cb8-478b-8547-204fa526d701">
 <img width="395" alt="create2" src="https://github.com/CMPUT301F23T17/SweetHome/assets/87828913/5558557b-994e-408a-ab70-2c68d597093a">
